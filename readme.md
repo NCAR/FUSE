@@ -6,7 +6,7 @@
   1. Defining the name of the master directory (line 12);
   1. Defining the path to the NetCDF libraries (lines 162-163); and
   1. Define the fortran compiler - note that the NetCDF libraries must be compiled using the same compiler that you are using to run the program.
-1.Compile the code (i.e., type `make` or `make -f Makefile`)
+1. Compile the code (i.e., type `make` or `make -f Makefile`)
 
 ##B. Define the files to be used
 
@@ -25,7 +25,7 @@ B2. Now, in the file defined in B1 above (which by default is
      disk partition that is not backed up (hence, the flexibility). Note that
      there is also flexibility to change the name of the control files.
 
-##C. ASSEMBLE CONTROL AND INPUT FILES
+##C. Assemble control and input files
 C1. The file "M_DECISIONS" (can be called anything, and by default is called
      "fuse_zDecisions.txt") describes the different options available in the
      FUSE modeling framework. Each of these modeling decisions is described
