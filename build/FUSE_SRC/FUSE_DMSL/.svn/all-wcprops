@@ -1,0 +1,95 @@
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/41/trunk/FUSE_SRC/FUSE_DMSL
+END
+nfunc_test__driver.f90
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_DMSL/nfunc_test__driver.f90
+END
+fuse_rmse.f90
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/32/trunk/FUSE_SRC/FUSE_DMSL/fuse_rmse.f90
+END
+sobol_driver.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/10/trunk/FUSE_SRC/FUSE_DMSL/sobol_driver.f90
+END
+sce_merge.f90
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_DMSL/sce_merge.f90
+END
+optimiser_miniDmsl_qnewton_kit.f90
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_DMSL/optimiser_miniDmsl_qnewton_kit.f90
+END
+niter_test__driver.f90
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_DMSL/niter_test__driver.f90
+END
+dmsl_wrapper.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/41/trunk/FUSE_SRC/FUSE_DMSL/dmsl_wrapper.f90
+END
+pargrid_driver-slice.f90
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_DMSL/pargrid_driver-slice.f90
+END
+adapt_test__driver.f90
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_DMSL/adapt_test__driver.f90
+END
+pargrid_driver.f90
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/10/trunk/FUSE_SRC/FUSE_DMSL/pargrid_driver.f90
+END
+qnewton_mcmc__driver.f90
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/10/trunk/FUSE_SRC/FUSE_DMSL/qnewton_mcmc__driver.f90
+END
+test_fidelity.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_DMSL/test_fidelity.f90
+END
+parslice_optim.f90
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/10/trunk/FUSE_SRC/FUSE_DMSL/parslice_optim.f90
+END
+pargrid_driver-copy.f90
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_DMSL/pargrid_driver-copy.f90
+END
+sobol.f90
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_DMSL/sobol.f90
+END

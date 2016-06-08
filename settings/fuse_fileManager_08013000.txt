@@ -1,0 +1,12 @@
+FUSE_FILEMANAGER_V1.0
+! Comment line: The file "fuse_MusterDirektor.txt" must be in the same directory as the .exe
+! *** paths
+'/home/naddor/fuse/settings/' ! SETNGS_PATH
+'/home/naddor/fuse/input/'    ! INPUT_PATH
+'/home/naddor/fuse/output/'   ! OUTPUT_PATH
+! *** control files
+'input_info_08013000.txt' ! FORCINGINFO = info on forcing data files [not used in BATEAU_DK]
+'fuse_zDecisions.txt'      ! M_DECISIONS = definition of model decisions
+'fuse_zConstraints.txt'    ! CONSTRAINTS = definition of parameter constraints
+'fuse_zNumerix.txt'        ! MOD_NUMERIX = definition of numerical solution technique
+'batea_param.txt'          ! BATEA_PARAM = definition of BATEA parameters [not used in BATEAU_DK]

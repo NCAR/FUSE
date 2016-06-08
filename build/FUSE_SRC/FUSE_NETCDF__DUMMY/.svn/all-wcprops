@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/9/trunk/FUSE_SRC/FUSE_NETCDF
+END
+get_smodel.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/9/trunk/FUSE_SRC/FUSE_NETCDF/get_smodel.f90
+END
+getmahudat.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NETCDF/getmahudat.f90
+END
+handle_err.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NETCDF/handle_err.f90
+END
+get_fparam.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NETCDF/get_fparam.f90
+END
+put_output.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NETCDF/put_output.f90
+END
+put_sstats.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NETCDF/put_sstats.f90
+END
+extractor.f90
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NETCDF/extractor.f90
+END
+put_params.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NETCDF/put_params.f90
+END
+caldatss.f90
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NETCDF/caldatss.f90
+END
+def_output.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NETCDF/def_output.f90
+END
+juldayss.f90
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NETCDF/juldayss.f90
+END
+def_sstats.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NETCDF/def_sstats.f90
+END
+get_objfnc.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/9/trunk/FUSE_SRC/FUSE_NETCDF/get_objfnc.f90
+END
+def_params.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NETCDF/def_params.f90
+END

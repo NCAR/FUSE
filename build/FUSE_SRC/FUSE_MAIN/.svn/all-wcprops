@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_MAIN
+END
+fmodel_run_ascii.f90
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_MAIN/fmodel_run_ascii.f90
+END
+driver_ascii.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_MAIN/driver_ascii.f90
+END
+batea_test.f90
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_MAIN/batea_test.f90
+END
+fmodel_run_netcdf.f90
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_MAIN/fmodel_run_netcdf.f90
+END
+driver_netcdf.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_MAIN/driver_netcdf.f90
+END
+sobol.f90
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_MAIN/sobol.f90
+END

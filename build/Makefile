@@ -1,0 +1,219 @@
+#========================================================================
+# Makefile to compile FUSE 
+#========================================================================
+#
+#
+#
+#========================================================================
+# PART 0: Define directory paths
+#========================================================================
+
+# Define core directory below which everything resides
+F_MASTER = /home/naddor/fuse/
+
+# Core directory that contains FUSE source code
+F_KORE_DIR = $(F_MASTER)build/FUSE_SRC/
+
+# Location of the compiled modules
+MOD_PATH = $(F_MASTER)build/
+
+# Define the directory for the executables
+EXE_PATH = $(F_MASTER)bin
+#
+#========================================================================
+# PART 1: Assemble all of the FUSE sub-routines
+#========================================================================
+
+# Define directories
+NUMREC_DIR = $(F_KORE_DIR)FUSE_NR
+HOOKUP_DIR = $(F_KORE_DIR)FUSE_HOOK
+DRIVER_DIR = $(F_KORE_DIR)FUSE_DMSL
+NETCDF_DIR = $(F_KORE_DIR)FUSE_NETCDF
+ENGINE_DIR = $(F_KORE_DIR)FUSE_ENGINE
+#
+# Utility modules
+FUSE_UTILMS= \
+	kinds_dmsl_kit_FUSE.f90 \
+	fuse_fileManager.f90
+UTILMS = $(patsubst %, $(HOOKUP_DIR)/%, $(FUSE_UTILMS))
+
+# Numerical Recipes utilities
+FUSE_NRUTIL= \
+        nrtype.f90 \
+        nr.f90 nrutil.f90
+NRUTIL = $(patsubst %, $(NUMREC_DIR)/%, $(FUSE_NRUTIL))
+
+# Data modules
+FUSE_DATAMS=    \
+        model_defn.f90 \
+	model_defnames.f90 \
+        multiforce.f90 \
+        multiparam.f90 \
+        multistate.f90 \
+        multi_flux.f90 \
+        multiroute.f90 \
+        multistats.f90 \
+        model_numerix.f90
+DATAMS = $(patsubst %, $(ENGINE_DIR)/%, $(FUSE_DATAMS))
+
+# Information modules
+FUSE_INFOMS= \
+        metaoutput.f90 \
+        metaparams.f90 \
+        meta_stats.f90 \
+        selectmodl.f90 \
+        putpar_str.f90 \
+        getpar_str.f90 \
+        par_insert.f90 \
+        parextract.f90 \
+        varextract.f90 \
+        sumextract.f90 \
+        str_2_xtry.f90 \
+        xtry_2_str.f90
+INFOMS = $(patsubst %, $(ENGINE_DIR)/%, $(FUSE_INFOMS))
+
+# Numerical Recipes
+FUSE_NR_SUB= \
+        ludcmp.f90 lubksb.f90 svbksb.f90 svdcmp.f90 pythag.f90 \
+        gammln.f90 gammp.f90 gcf.f90 gser.f90
+NR_SUB = $(patsubst %, $(NUMREC_DIR)/%, $(FUSE_NR_SUB))
+
+# Model guts
+FUSE_MODGUT=\
+        mod_derivs.f90 \
+                qrainerror.f90 \
+                qsatexcess.f90 \
+                evap_upper.f90 \
+                evap_lower.f90 \
+                qinterflow.f90 \
+                qpercolate.f90 \
+                q_baseflow.f90 \
+                q_misscell.f90 \
+                logismooth.f90 \
+        mstate_eqn.f90 \
+        fix_states.f90 \
+        meanfluxes.f90 \
+        wgt_fluxes.f90 \
+        updatstate.f90 \
+        q_overland.f90
+MODGUT = $(patsubst %, $(ENGINE_DIR)/%, $(FUSE_MODGUT))
+
+# Solver
+FUSE_SOLVER= \
+        interfaceb.f90 \
+        limit_xtry.f90 \
+        viol_state.f90 \
+        fuse_deriv.f90 \
+        fmin.f90 fdjac_ode.f90 flux_deriv.f90 disaggflux.f90 \
+        fuse_sieul.f90 \
+        newtoniter.f90 lnsrch.f90
+SOLVER = $(patsubst %, $(ENGINE_DIR)/%, $(FUSE_SOLVER))
+
+# Define routines for FUSE preliminaries
+FUSE_PRELIM= \
+        uniquemodl.f90 \
+        getnumerix.f90 \
+        getparmeta.f90 \
+        assign_stt.f90 \
+        assign_flx.f90 \
+        assign_par.f90 \
+        adjust_stt.f90 \
+        par_derive.f90 \
+                bucketsize.f90 \
+                mean_tipow.f90 \
+                qbsaturatn.f90 \
+                qtimedelay.f90 \
+        init_stats.f90 \
+        init_state.f90
+PRELIM = $(patsubst %, $(ENGINE_DIR)/%, $(FUSE_PRELIM))
+
+# Define routines for the FUSE model runs
+FUSE_MODRUN = \
+        getforcing.f90 \
+        initfluxes.f90 \
+        ode_int.f90 \
+                fuse_solve.f90 \
+        comp_stats.f90 \
+        mean_stats.f90
+MODRUN = $(patsubst %, $(ENGINE_DIR)/%, $(FUSE_MODRUN))
+
+# Define NetCDF routines
+FUSE_NETCDF = \
+    handle_err.f90 \
+        extractor.f90 juldayss.f90 caldatss.f90 \
+    def_params.f90 \
+    def_output.f90 \
+    def_sstats.f90 \
+    put_params.f90 \
+    put_output.f90 \
+    put_sstats.f90
+NETCDF = $(patsubst %, $(NETCDF_DIR)/%, $(FUSE_NETCDF))
+
+# ... and stitch it all together...
+FUSE_ALL = $(UTILMS) $(NRUTIL) $(DATAMS) $(INFOMS) \
+		$(NR_SUB) $(MODGUT) $(SOLVER) $(PRELIM) $(MODRUN) \
+        $(NETCDF)
+
+#========================================================================
+# PART 2: Define the libraries, driver programs, and executables
+#========================================================================
+
+# Define the NetCDF libraries and path to include files
+# Note 1: the order of the libraries matters, e.g. -lcurl should come
+# before netcdf libraries 
+# Note 2: on hydro-c1, /usr/local is a copy (via symbolic link) of /opt
+HDF_PATH  = /opt/hdf5
+NCDF_PATH = /opt/netcdf4-intel
+SZ_PATH = /opt/szip-2.1
+Z_PATH = /opt/zlib-1.2.8
+LIBNETCDF = -lcurl -L$(NCDF_PATH)/lib -lnetcdff -lnetcdf -L$(HDF_PATH)/lib -lhdf5_hl -lhdf5 -L$(SZ_PATH)/lib -lsz -L$(SZ_PATH)/lib -lz
+INCNETCDF = -I$(NCDF_PATH)/include -I$(HDF_PATH)/include
+
+# Define the driver program and associated subroutines for the fidelity test
+FUSE__URS_DRIVER = \
+	sobol.f90 \
+    fuse_rmse.f90 \
+        URS_driver.f90
+URS_DRIVER = $(patsubst %, $(DRIVER_DIR)/%, $(FUSE__URS_DRIVER))
+
+# Define the executables
+URS_DRIVER__EX = fuse_URS.exe
+
+#========================================================================
+# PART 3: Compile the puppy
+#========================================================================
+
+# Define the Fortran Compiler
+FC  = ifort
+
+# Define flags
+ifeq "$(FC)" "ifort"
+ FLAGS1 = -warn all -noerror_limit -FR -O0 -auto -WB -traceback -g -fltconsistency
+ #FLAGS = -static -debug -warn all -check all -FR -O0 -auto -WB -traceback -g -fltconsistency -fpe0
+ # FLAGS = -debug -warn all -check all -FR -O0 -auto -WB -traceback -g -fltconsistency -fpe0 # same as above, but without -static
+ FLAGS = -cpp -w -O2 -auto -noalign -convert big_endian # not for debugging - from http://wiki.seas.harvard.edu/geos-chem/index.php/Intel_Fortran_Compiler 
+endif
+ifeq "$(FC)" "pgf90"
+ FLAGS = -Bstatic -Mbackslash -g -Mchkptr -Mchkstk -Mpgicoff -Minform=inform -Ktrap=divz
+endif
+
+#FLAGS = -O3 -W -v
+
+#.SUFFIXES: .f .o .f90
+
+# Compile
+all: compile_URS install_URS clean
+
+# compile FUSE into a static library
+compile_URS:
+	$(FC) $(FLAGS) $(FUSE_ALL) $(URS_DRIVER) \
+	$(LIBNETCDF) $(INCNETCDF) -o $(URS_DRIVER__EX)
+
+# Remove object files
+clean:
+						rm -f *.o
+						rm -f *.mod
+#
+# Copy the executable to the bin directory
+install_URS:
+		mv $(URS_DRIVER__EX) $(EXE_PATH)

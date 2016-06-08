@@ -1,0 +1,10 @@
+        !COMPILER-GENERATED INTERFACE MODULE: Tue Jun  7 22:07:53 2016
+        MODULE I8_SOBOL__genmod
+          INTERFACE 
+            SUBROUTINE I8_SOBOL(DIM_NUM,SEED,QUASI)
+              INTEGER(KIND=8) :: DIM_NUM
+              INTEGER(KIND=8) :: SEED
+              REAL(KIND=8) :: QUASI(DIM_NUM)
+            END SUBROUTINE I8_SOBOL
+          END INTERFACE 
+        END MODULE I8_SOBOL__genmod

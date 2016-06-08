@@ -1,0 +1,77 @@
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NR
+END
+lubksb.f90
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NR/lubksb.f90
+END
+ludcmp.f90
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NR/ludcmp.f90
+END
+svbksb.f90
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NR/svbksb.f90
+END
+gammln.f90
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NR/gammln.f90
+END
+pythag.f90
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NR/pythag.f90
+END
+svdcmp.f90
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NR/svdcmp.f90
+END
+nrutil.f90
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NR/nrutil.f90
+END
+gcf.f90
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NR/gcf.f90
+END
+nr.f90
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NR/nr.f90
+END
+gser.f90
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NR/gser.f90
+END
+gammp.f90
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NR/gammp.f90
+END
+nrtype.f90
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_NR/nrtype.f90
+END

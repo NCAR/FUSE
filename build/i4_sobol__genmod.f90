@@ -1,0 +1,10 @@
+        !COMPILER-GENERATED INTERFACE MODULE: Tue Jun  7 22:07:53 2016
+        MODULE I4_SOBOL__genmod
+          INTERFACE 
+            SUBROUTINE I4_SOBOL(DIM_NUM,SEED,QUASI)
+              INTEGER(KIND=4) :: DIM_NUM
+              INTEGER(KIND=4) :: SEED
+              REAL(KIND=4) :: QUASI(DIM_NUM)
+            END SUBROUTINE I4_SOBOL
+          END INTERFACE 
+        END MODULE I4_SOBOL__genmod

@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_TESTFUNC
+END
+interfaceb.f90
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_TESTFUNC/interfaceb.f90
+END
+driver_testfunc.f90
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_TESTFUNC/driver_testfunc.f90
+END
+model_numerix.f90
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_TESTFUNC/model_numerix.f90
+END
+test_modvar.f90
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_TESTFUNC/test_modvar.f90
+END
+test_solve.f90
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_TESTFUNC/test_solve.f90
+END
+test_deriv.f90
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_TESTFUNC/test_deriv.f90
+END
+impl_error.f90
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_TESTFUNC/impl_error.f90
+END
+rtnewt_sub.f90
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_TESTFUNC/rtnewt_sub.f90
+END
+substepper.f90
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_TESTFUNC/substepper.f90
+END
+ode_int.f90
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_TESTFUNC/ode_int.f90
+END

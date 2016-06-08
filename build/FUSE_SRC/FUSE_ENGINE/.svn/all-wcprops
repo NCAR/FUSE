@@ -1,0 +1,443 @@
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/63/trunk/FUSE_SRC/FUSE_ENGINE
+END
+qsatexcess.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/qsatexcess.f90
+END
+adjust_stt.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/adjust_stt.f90
+END
+wgt_fluxes.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/wgt_fluxes.f90
+END
+metaparams.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/metaparams.f90
+END
+q_misscell.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/q_misscell.f90
+END
+fuse_deriv.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/fuse_deriv.f90
+END
+assign_flx.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/assign_flx.f90
+END
+sumextract.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/sumextract.f90
+END
+meta_stats.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/meta_stats.f90
+END
+limit_xtry.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/limit_xtry.f90
+END
+evap_upper.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/evap_upper.f90
+END
+metaoutput.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/metaoutput.f90
+END
+flux_deriv.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/flux_deriv.f90
+END
+viol_state.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/viol_state.f90
+END
+ode_int.f90
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/ode_int.f90
+END
+q_baseflow.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/q_baseflow.f90
+END
+uniquemodl.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/uniquemodl.f90
+END
+qbsaturatn.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/qbsaturatn.f90
+END
+assign_par.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/assign_par.f90
+END
+getnumerix.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/23/trunk/FUSE_SRC/FUSE_ENGINE/getnumerix.f90
+END
+fmin.f90
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/fmin.f90
+END
+getparmeta.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/17/trunk/FUSE_SRC/FUSE_ENGINE/getparmeta.f90
+END
+multistate.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/multistate.f90
+END
+mod_derivs.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/mod_derivs.f90
+END
+selectmodl.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/selectmodl.f90
+END
+disaggflux.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/disaggflux.f90
+END
+mean_stats.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/mean_stats.f90
+END
+qpercolate.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/qpercolate.f90
+END
+model_defnames.f90
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/model_defnames.f90
+END
+mean_tipow.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/mean_tipow.f90
+END
+putpar_str.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/putpar_str.f90
+END
+init_state.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/init_state.f90
+END
+multistats.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/multistats.f90
+END
+updatstate.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/updatstate.f90
+END
+xtry_2_str.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/xtry_2_str.f90
+END
+par_derive.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/par_derive.f90
+END
+funcv.f90
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/funcv.f90
+END
+init_stats.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/init_stats.f90
+END
+varextract.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/varextract.f90
+END
+qrainerror.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/qrainerror.f90
+END
+logismooth.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/logismooth.f90
+END
+multi_flux.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/multi_flux.f90
+END
+qinterflow.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/qinterflow.f90
+END
+model_defn.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/63/trunk/FUSE_SRC/FUSE_ENGINE/model_defn.f90
+END
+get_limits.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/9/trunk/FUSE_SRC/FUSE_ENGINE/get_limits.f90
+END
+interfaceb.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/interfaceb.f90
+END
+fuse_sieul.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/fuse_sieul.f90
+END
+par_insert.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/par_insert.f90
+END
+model_numerix.f90
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/model_numerix.f90
+END
+meanfluxes.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/meanfluxes.f90
+END
+multiroute.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/63/trunk/FUSE_SRC/FUSE_ENGINE/multiroute.f90
+END
+multiforce.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/multiforce.f90
+END
+multiparam.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/63/trunk/FUSE_SRC/FUSE_ENGINE/multiparam.f90
+END
+assign_stt.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/assign_stt.f90
+END
+str_2_xtry.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/str_2_xtry.f90
+END
+frac_error.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/frac_error.f90
+END
+getforcing.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/9/trunk/FUSE_SRC/FUSE_ENGINE/getforcing.f90
+END
+lnsrch.f90
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/lnsrch.f90
+END
+q_overland.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/63/trunk/FUSE_SRC/FUSE_ENGINE/q_overland.f90
+END
+initfluxes.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/initfluxes.f90
+END
+qtimedelay.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/63/trunk/FUSE_SRC/FUSE_ENGINE/qtimedelay.f90
+END
+newtoniter.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/newtoniter.f90
+END
+fdjac_ode.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/11/trunk/FUSE_SRC/FUSE_ENGINE/fdjac_ode.f90
+END
+mstate_eqn.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/mstate_eqn.f90
+END
+evap_lower.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/evap_lower.f90
+END
+fdjac.f90
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/fdjac.f90
+END
+bucketsize.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/bucketsize.f90
+END
+fix_states.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/61/trunk/FUSE_SRC/FUSE_ENGINE/fix_states.f90
+END
+fuse_solve.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/fuse_solve.f90
+END
+getpar_str.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/getpar_str.f90
+END
+batea_file.f90
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/11/trunk/FUSE_SRC/FUSE_ENGINE/batea_file.f90
+END
+comp_stats.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/comp_stats.f90
+END
+parextract.f90
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/UoNEnvEngGroup/FUSE/svn/!svn/ver/2/trunk/FUSE_SRC/FUSE_ENGINE/parextract.f90
+END

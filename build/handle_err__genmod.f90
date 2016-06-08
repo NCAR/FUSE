@@ -1,0 +1,8 @@
+        !COMPILER-GENERATED INTERFACE MODULE: Tue Jun  7 22:08:00 2016
+        MODULE HANDLE_ERR__genmod
+          INTERFACE 
+            SUBROUTINE HANDLE_ERR(IERR)
+              INTEGER(KIND=4) :: IERR
+            END SUBROUTINE HANDLE_ERR
+          END INTERFACE 
+        END MODULE HANDLE_ERR__genmod
