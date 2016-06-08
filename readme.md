@@ -4,9 +4,9 @@
 
 This is a source code repository for the Framework for Understanding Structural Errors or FUSE. FUSE initial implementation is described in the following paper:
 
- *Clark, M. P., Slater, A. G., Rupp, D. E., Woods, R. A., Vrugt, J. A., Gupta, H. V., Wagener, T. and Hay, L. E.: Framework for Understanding Structural Errors (FUSE): A modular framework to diagnose differences between hydrological models, Water Resour. Res., 44(12), [doi:10.1029/2007WR006735](http://dx.doi.org/10.1029/2007WR006735), 2008.
+ * Clark, M. P., Slater, A. G., Rupp, D. E., Woods, R. A., Vrugt, J. A., Gupta, H. V., Wagener, T. and Hay, L. E.: Framework for Understanding Structural Errors (FUSE): A modular framework to diagnose differences between hydrological models, Water Resour. Res., 44(12), [doi:10.1029/2007WR006735](http://dx.doi.org/10.1029/2007WR006735), 2008.
 
-If you use FUSE, please credit this publications.
+If you use FUSE, please credit this publication.
 
 ##A. Compile
 1. Change directory to `$(MASTER)/build/`, where `$(MASTER)` is the directory where you un-tar'd the package.
@@ -19,17 +19,17 @@ If you use FUSE, please credit this publications.
 ##B. Define the files to be used
 1. In the directory $(MASTER)/bin, edit the file `fuse_MusterDirektor.txt` to point to the file that defines all of the files required to run FUSE (i.e., change the path to wherever you want to put the file manager file).
 1. Now, in the file defined in B1 above (which by default is `$(MASTER)/settings/fuse_fileManager.txt`), modify the path to define the directories where you would like to keep FUSE settings, FUSE input, and FUSE output. In the example given these directories are simply
-        `$(MASTER)/settings/`
-        `$(MASTER)/input/`
-        `$(MASTER)/output/`
+  * `$(MASTER)/settings/`
+  * `$(MASTER)/input/`
+  * `$(MASTER)/output/`
 but it may be necessary to store input and output data on a different disk partition that is not backed up (hence, the flexibility). Note that there is also flexibility to change the name of the control files.
 
 ##C. Assemble control and input files
-C1. The file "M_DECISIONS" (can be called anything, and by default is called "fuse_zDecisions.txt") describes the different options available in the FUSE modeling framework. Each of these modeling decisions is described in detail by Clark et al. (WRR, 2008).
-C2. The file "CONSTRAINTS" (can be called anything, and by default is called "fuse_zConstraints.txt") defines the default parameter values and lower and upper parameter bounds. The list of parameters corresponds to those described in Clark et al. (WRR, 2008). There is alot in this file, mostly used for hierarchacal Bayesian modeling, but the important columns are the default parameter values and lower and upper parameter bounds (everything else is used for research that is still underway).
-C3. The file "MOD_NUMERIX" (can be called anything, and by default is called "fuse_zNumerix.txt") defines decisions regarding the numerical solution technique. Examples of the impact of these decisions are described by Clark and Kavetski (WRR 2010) and Kavetski and Clark (WRR 2010).
-C4. The file "FORCINGINFO" (can be called anything, and by default is called "forcinginfo.txt") provides metadata for the model input files. It defines the name of the data file, the number of columns in the data file, the column numbers for precip, potential ET, and runoff, the number of header lines, and the row numbers for the start of the similation, the end of the warm-up period, and the end of the simulation.
-C5. The model input file resides in the location defined by fuse_fileManager.txt and has the name defined in "FORCINGINFO". The only real restriction is that it is an ASCII file. The time step of the forcing data (in days) is defined on the second line of the forcing data file.
+1. The file `M_DECISIONS` (can be called anything, and by default is called `fuse_zDecisions.txt`) describes the different options available in the FUSE modeling framework. Each of these modeling decisions is described in detail by Clark et al. (WRR, 2008).
+2. The file `CONSTRAINTS` (can be called anything, and by default is called `fuse_zConstraints.txt`) defines the default parameter values and lower and upper parameter bounds. The list of parameters corresponds to those described in Clark et al. (WRR, 2008). There is alot in this file, mostly used for hierarchacal Bayesian modeling, but the important columns are the default parameter values and lower and upper parameter bounds (everything else is used for research that is still underway).
+3. The file `MOD_NUMERIX` (can be called anything, and by default is called `fuse_zNumerix.txt`) defines decisions regarding the numerical solution technique. Examples of the impact of these decisions are described by Clark and Kavetski (WRR 2010) and Kavetski and Clark (WRR 2010).
+4. The file `FORCINGINFO` (can be called anything, and by default is called `forcinginfo.txt`) provides metadata for the model input files. It defines the name of the data file, the number of columns in the data file, the column numbers for precip, potential ET, and runoff, the number of header lines, and the row numbers for the start of the similation, the end of the warm-up period, and the end of the simulation.
+55. The model input file resides in the location defined by `fuse_fileManager.txt` and has the name defined in `FORCINGINFO`. The only real restriction is that it is an ASCII file. The time step of the forcing data (in days) is defined on the second line of the forcing data file.
 
 ##D. Run the puppy
 Background: My modis operandi is to write different driver programs to fulfill different objectives. The example provided is for the case of uniform random sampling through the feasible parameter space using the Sobol sequence.
@@ -41,15 +41,15 @@ The NetCDF output in $(MASTER)/output was created using the following command li
 ./fuse_URS.exe fuse_direktor_08013000.txt 08013000 070 2 0 1.e-2 1.e-2 1.0000000000 10
 ```
 where
-`$1` is the muster file
-`$2` if the ID of the basin
-`$3` is the ID of the FUSE model
-`$4` is the method used to temporally integrate model equations (2 is implicit Euler)
-`$5` is a switch between fixed and adaptive sub-steps
-`$6` is the absolute tolerance for defining the length of sub-steps (adaptive sub-stepping)
-`$7` is the relative tolerance for defining the length of sub-steps (adaptive sub-stepping)
-`$8` is the maximum length of the time step (days)
-`$9` is the number of random samples desired
+`$1` is the muster file, 
+`$2` if the ID of the basin, 
+`$3` is the ID of the FUSE model, 
+`$4` is the method used to temporally integrate model equations (2 is implicit Euler), 
+`$5` is a switch between fixed and adaptive sub-steps, 
+`$6` is the absolute tolerance for defining the length of sub-steps (adaptive sub-stepping), 
+`$7` is the relative tolerance for defining the length of sub-steps (adaptive sub-stepping), 
+`$8` is the maximum length of the time step (days), 
+`$9` is the number of random samples desired.
 
 These arguments override the information provided in the control files, specifically: 
 `$2` is used to define the name of the "FORCINGINFO" file, and overwrites the information
@@ -66,7 +66,7 @@ Plot the content of the input and output files, for instance using the script r_
 
 ```
 ifort -O2 -c -fixed sce.f
-``
+```
 
 2. If necessary, rename the compiled file, so that it can be found by `FUSE_SCE/URS_driver_sce.f90`, which by default will be looking for a file nammed `sce.o`.
 
@@ -80,15 +80,9 @@ a while to run:
 ./fuse_URS_sce.exe fuse_direktor_08013000.txt 08013000 070 2 0 1.e-2 1.e-2 1.0000000000 3 5000 3 1.e-3
 ```
 
-where
-`$1` to $8 are as above
-`$9` is the number of calibrated parameter sets desired
-`$10` is the maximum number of trials before optimization is terminated
-`$11` is the number of shuffling loops the objective function must change by `PCENTO` (max=9)
-`$12` is the percentage `PCENTO` (1 is 1%)
+where `$1` to $8 are as above, `$9` is the number of calibrated parameter sets desired, `$10` is the maximum number of trials before optimization is terminated, `$11` is the number of shuffling loops the objective function must change by `PCENTO` (max=9), `$12` is the percentage `PCENTO` (1 is 1%).
 
-5. Note that the objective function is RMSE, defined in the file FUSE_SCE/fuse_rsme.f90 
-and called by the wrapper `FUSE_SCE/functn.f90`.
+5. Note that the objective function is RMSE, defined in the file `FUSE_SCE/fuse_rsme.f90` and called by the wrapper `FUSE_SCE/functn.f90`.
 
 6. Note that in `FUSE_SCE/URS_driver_sce.f90` the following line turns off the production 
 of time series outputs to save space: 
@@ -111,9 +105,7 @@ However, the value of the objective function of each model run is backed up toge
 ```
 
 where
-`$1` is the muster file as above
-`$2` is the ID of the basin run as above
-`$3` is the name of the file containing the name of the netcdf file produced by SCE
+`$1` is the muster file as above, `$2` is the ID of the basin run as above and `$3` is the name of the file containing the name of the netcdf file produced by SCE
 
 ##H. Plot the calibrated model runs
 This will check that the RMSE values returned by SCE are consistent with those computed in R using the observed discharge from the input file and the simulated discharge from the output file.
