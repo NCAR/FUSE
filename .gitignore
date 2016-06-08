@@ -3,9 +3,9 @@
 *.mod
 # rtf files
 *.rtf
-# summa executable and bin directory
+# executables and bin directory
 bin
-summa.exe
+*.exe
 # temporary files
 *~
 *.swp
@@ -20,3 +20,4 @@ summa.exe
 .tags*
 # OS X .DS_Store files
 .DS_Store
+
