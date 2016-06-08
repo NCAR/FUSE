@@ -104,5 +104,5 @@ where
 Explore the calibrated parameter values and plot the calibrated model runs, e.g. using the code in Sections 7 and 8 of `$(MASTER)/r_scripts/plot_fuse_input_output.R`. This will plot the evolution of the NSE through the calibration and check that the NSE values returned by SCE are consistent with those computed in R using the observed discharge from the input file and the simulated discharge from the output file.
 
 ### License
-FUSE is distributed under the GNU Public License Version 3. For details see the file `COPYING` in the FUSE root directory or visit the [online version](http://www.gnu.org/licenses/gpl-3.0.html).
+FUSE is distributed under the GNU Public License Version 3. For details see the file `LICENSE` in the FUSE root directory or visit the [online version](http://www.gnu.org/licenses/gpl-3.0.html).
 
