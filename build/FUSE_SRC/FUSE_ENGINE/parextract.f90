@@ -8,6 +8,7 @@ SUBROUTINE GET_PARSET(PARSET)
 ! Creator:
 ! --------
 ! Martyn Clark, 2008
+! Modified by Brian Henn to include snow model, 6/2013
 ! ---------------------------------------------------------------------------------------
 ! Purpose:
 ! --------
@@ -43,6 +44,7 @@ PURE FUNCTION PAREXTRACT(PARNAME)
 USE nrtype                                            ! variable types, etc.
 USE multiparam                                        ! model parameters
 USE model_numerix                                     ! model numerix parameters
+USE multibands                                        ! model basin band data
 IMPLICIT NONE
 ! input
 CHARACTER(*), INTENT(IN)               :: PARNAME     ! parameter name
@@ -84,6 +86,12 @@ SELECT CASE (TRIM(PARNAME))
  CASE ('LOGLAMB')    ; XVAR = MPARAM%LOGLAMB
  CASE ('TISHAPE')    ; XVAR = MPARAM%TISHAPE
  CASE ('TIMEDELAY')  ; XVAR = MPARAM%TIMEDELAY
+ CASE ('MBASE')      ; XVAR = MPARAM%MBASE
+ CASE ('MFMAX')      ; XVAR = MPARAM%MFMAX
+ CASE ('MFMIN')      ; XVAR = MPARAM%MFMIN
+ CASE ('PXTEMP')     ; XVAR = MPARAM%PXTEMP
+ CASE ('OPG')        ; XVAR = MPARAM%OPG
+ CASE ('LAPSE')      ; XVAR = MPARAM%LAPSE
  ! derived parameters
  CASE ('MAXTENS_1')  ; XVAR = DPARAM%MAXTENS_1
  CASE ('MAXTENS_1A') ; XVAR = DPARAM%MAXTENS_1A 
@@ -97,6 +105,109 @@ SELECT CASE (TRIM(PARNAME))
  CASE ('RTFRAC2')    ; XVAR = DPARAM%RTFRAC2
  CASE ('POWLAMB')    ; XVAR = DPARAM%POWLAMB
  CASE ('MAXPOW')     ; XVAR = DPARAM%MAXPOW
+ ! basin band data
+ CASE ('Z_MID01')   ; XVAR = MBANDS(1)%Z_MID
+ CASE ('AF01')      ; XVAR = MBANDS(1)%AF
+ CASE ('Z_MID02')   ; XVAR = MBANDS(2)%Z_MID
+ CASE ('AF02')      ; XVAR = MBANDS(2)%AF
+ CASE ('Z_MID03')   ; XVAR = MBANDS(3)%Z_MID
+ CASE ('AF03')      ; XVAR = MBANDS(3)%AF
+ CASE ('Z_MID04')   ; XVAR = MBANDS(4)%Z_MID
+ CASE ('AF04')      ; XVAR = MBANDS(4)%AF
+ CASE ('Z_MID05')   ; XVAR = MBANDS(5)%Z_MID
+ CASE ('AF05')      ; XVAR = MBANDS(5)%AF
+ CASE ('Z_MID06')   ; XVAR = MBANDS(6)%Z_MID
+ CASE ('AF06')      ; XVAR = MBANDS(6)%AF
+ CASE ('Z_MID07')   ; XVAR = MBANDS(7)%Z_MID
+ CASE ('AF07')      ; XVAR = MBANDS(7)%AF
+ CASE ('Z_MID08')   ; XVAR = MBANDS(8)%Z_MID
+ CASE ('AF08')      ; XVAR = MBANDS(8)%AF
+ CASE ('Z_MID09')   ; XVAR = MBANDS(9)%Z_MID
+ CASE ('AF09')      ; XVAR = MBANDS(9)%AF
+ CASE ('Z_MID10')   ; XVAR = MBANDS(10)%Z_MID
+ CASE ('AF10')      ; XVAR = MBANDS(10)%AF
+ CASE ('Z_MID11')   ; XVAR = MBANDS(11)%Z_MID
+ CASE ('AF11')      ; XVAR = MBANDS(11)%AF
+ CASE ('Z_MID12')   ; XVAR = MBANDS(12)%Z_MID
+ CASE ('AF12')      ; XVAR = MBANDS(12)%AF
+ CASE ('Z_MID13')   ; XVAR = MBANDS(13)%Z_MID
+ CASE ('AF13')      ; XVAR = MBANDS(13)%AF
+ CASE ('Z_MID14')   ; XVAR = MBANDS(14)%Z_MID
+ CASE ('AF14')      ; XVAR = MBANDS(14)%AF
+ CASE ('Z_MID15')   ; XVAR = MBANDS(15)%Z_MID
+ CASE ('AF15')      ; XVAR = MBANDS(15)%AF
+ CASE ('Z_MID16')   ; XVAR = MBANDS(16)%Z_MID
+ CASE ('AF16')      ; XVAR = MBANDS(16)%AF
+ CASE ('Z_MID17')   ; XVAR = MBANDS(17)%Z_MID
+ CASE ('AF17')      ; XVAR = MBANDS(17)%AF
+ CASE ('Z_MID18')   ; XVAR = MBANDS(18)%Z_MID
+ CASE ('AF18')      ; XVAR = MBANDS(18)%AF
+ CASE ('Z_MID19')   ; XVAR = MBANDS(19)%Z_MID
+ CASE ('AF19')      ; XVAR = MBANDS(19)%AF
+ CASE ('Z_MID20')   ; XVAR = MBANDS(20)%Z_MID
+ CASE ('AF20')      ; XVAR = MBANDS(20)%AF
+ CASE ('Z_MID21')   ; XVAR = MBANDS(21)%Z_MID
+ CASE ('AF21')      ; XVAR = MBANDS(21)%AF
+ CASE ('Z_MID22')   ; XVAR = MBANDS(22)%Z_MID
+ CASE ('AF22')      ; XVAR = MBANDS(22)%AF
+ CASE ('Z_MID23')   ; XVAR = MBANDS(23)%Z_MID
+ CASE ('AF23')      ; XVAR = MBANDS(23)%AF
+ CASE ('Z_MID24')   ; XVAR = MBANDS(24)%Z_MID
+ CASE ('AF24')      ; XVAR = MBANDS(24)%AF
+ CASE ('Z_MID25')   ; XVAR = MBANDS(25)%Z_MID
+ CASE ('AF25')      ; XVAR = MBANDS(25)%AF
+ CASE ('Z_MID26')   ; XVAR = MBANDS(26)%Z_MID
+ CASE ('AF26')      ; XVAR = MBANDS(26)%AF
+ CASE ('Z_MID27')   ; XVAR = MBANDS(27)%Z_MID
+ CASE ('AF27')      ; XVAR = MBANDS(27)%AF
+ CASE ('Z_MID28')   ; XVAR = MBANDS(28)%Z_MID
+ CASE ('AF28')      ; XVAR = MBANDS(28)%AF
+ CASE ('Z_MID29')   ; XVAR = MBANDS(29)%Z_MID
+ CASE ('AF29')      ; XVAR = MBANDS(29)%AF
+ CASE ('Z_MID30')   ; XVAR = MBANDS(30)%Z_MID
+ CASE ('AF30')      ; XVAR = MBANDS(30)%AF
+ CASE ('Z_MID31')   ; XVAR = MBANDS(31)%Z_MID
+ CASE ('AF31')      ; XVAR = MBANDS(31)%AF
+ CASE ('Z_MID32')   ; XVAR = MBANDS(32)%Z_MID
+ CASE ('AF32')      ; XVAR = MBANDS(32)%AF
+ CASE ('Z_MID33')   ; XVAR = MBANDS(33)%Z_MID
+ CASE ('AF33')      ; XVAR = MBANDS(33)%AF
+ CASE ('Z_MID34')   ; XVAR = MBANDS(34)%Z_MID
+ CASE ('AF34')      ; XVAR = MBANDS(34)%AF
+ CASE ('Z_MID35')   ; XVAR = MBANDS(35)%Z_MID
+ CASE ('AF35')      ; XVAR = MBANDS(35)%AF
+ CASE ('Z_MID36')   ; XVAR = MBANDS(36)%Z_MID
+ CASE ('AF36')      ; XVAR = MBANDS(36)%AF
+ CASE ('Z_MID37')   ; XVAR = MBANDS(37)%Z_MID
+ CASE ('AF37')      ; XVAR = MBANDS(37)%AF
+ CASE ('Z_MID38')   ; XVAR = MBANDS(38)%Z_MID
+ CASE ('AF38')      ; XVAR = MBANDS(38)%AF
+ CASE ('Z_MID39')   ; XVAR = MBANDS(39)%Z_MID
+ CASE ('AF39')      ; XVAR = MBANDS(39)%AF
+ CASE ('Z_MID40')   ; XVAR = MBANDS(40)%Z_MID
+ CASE ('AF40')      ; XVAR = MBANDS(40)%AF
+ CASE ('Z_MID41')   ; XVAR = MBANDS(41)%Z_MID
+ CASE ('AF41')      ; XVAR = MBANDS(41)%AF
+ CASE ('Z_MID42')   ; XVAR = MBANDS(42)%Z_MID
+ CASE ('AF42')      ; XVAR = MBANDS(42)%AF
+ CASE ('Z_MID43')   ; XVAR = MBANDS(43)%Z_MID
+ CASE ('AF43')      ; XVAR = MBANDS(43)%AF
+ CASE ('Z_MID44')   ; XVAR = MBANDS(44)%Z_MID
+ CASE ('AF44')      ; XVAR = MBANDS(44)%AF
+ CASE ('Z_MID45')   ; XVAR = MBANDS(45)%Z_MID
+ CASE ('AF45')      ; XVAR = MBANDS(45)%AF
+ CASE ('Z_MID46')   ; XVAR = MBANDS(46)%Z_MID
+ CASE ('AF46')      ; XVAR = MBANDS(46)%AF
+ CASE ('Z_MID47')   ; XVAR = MBANDS(47)%Z_MID
+ CASE ('AF47')      ; XVAR = MBANDS(47)%AF
+ CASE ('Z_MID48')   ; XVAR = MBANDS(48)%Z_MID
+ CASE ('AF48')      ; XVAR = MBANDS(48)%AF
+ CASE ('Z_MID49')   ; XVAR = MBANDS(49)%Z_MID
+ CASE ('AF49')      ; XVAR = MBANDS(49)%AF
+ CASE ('Z_MID50')   ; XVAR = MBANDS(50)%Z_MID
+ CASE ('AF50')      ; XVAR = MBANDS(50)%AF
+ CASE('N_BANDS')    ; XVAR = N_BANDS
+ CASE('Z_FORCING')  ; XVAR = Z_FORCING
  ! numerical solution parameters
  CASE ('SOLUTION')   ; XVAR = REAL(SOLUTION_METHOD, KIND(SP))
  CASE ('TIMSTEP_TYP'); XVAR = REAL(TEMPORAL_ERROR_CONTROL, KIND(SP))

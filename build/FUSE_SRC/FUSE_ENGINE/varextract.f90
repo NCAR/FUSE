@@ -3,12 +3,12 @@ IMPLICIT NONE
 CONTAINS
 ! ---------------------------------------------------------------------------------------
 ! ---------------------------------------------------------------------------------------
-!PURE FUNCTION VAREXTRACT(VARNAME)
-FUNCTION VAREXTRACT(VARNAME)
+PURE FUNCTION VAREXTRACT(VARNAME)
 ! ---------------------------------------------------------------------------------------
 ! Creator:
 ! --------
 ! Martyn Clark, 2007
+! Modified by Brian Henn to include snow model, 6/2013
 ! ---------------------------------------------------------------------------------------
 ! Purpose:
 ! --------
@@ -19,6 +19,7 @@ USE metaoutput                                        ! metadata for all model v
 USE multiforce                                        ! model forcing data
 USE multistate                                        ! model states
 USE multi_flux                                        ! model fluxes
+USE multibands                                        ! model snow bands
 USE multiroute                                        ! routed runoff
 USE model_numerix                                     ! model numerix parameters
 IMPLICIT NONE
@@ -34,6 +35,7 @@ XVAR=-9999._sp
 SELECT CASE (TRIM(VARNAME))
  ! extract forcing data
  CASE ('ppt')        ; XVAR = MFORCE%PPT
+CASE ('temp')       ; XVAR = MFORCE%TEMP
  CASE ('pet')        ; XVAR = MFORCE%PET
  CASE ('obsq')       ; XVAR = MFORCE%OBSQ
  ! extract model states
@@ -47,6 +49,56 @@ SELECT CASE (TRIM(VARNAME))
  CASE ('free_2a')    ; XVAR = FSTATE%FREE_2A
  CASE ('free_2b')    ; XVAR = FSTATE%FREE_2B
  CASE ('watr_2')     ; XVAR = FSTATE%WATR_2
+ CASE ('swe_z01')    ; XVAR = MBANDS(1)%SWE
+ CASE ('swe_z02')    ; XVAR = MBANDS(2)%SWE
+ CASE ('swe_z03')    ; XVAR = MBANDS(3)%SWE
+ CASE ('swe_z04')    ; XVAR = MBANDS(4)%SWE
+ CASE ('swe_z05')    ; XVAR = MBANDS(5)%SWE
+ CASE ('swe_z06')    ; XVAR = MBANDS(6)%SWE
+ CASE ('swe_z07')    ; XVAR = MBANDS(7)%SWE
+ CASE ('swe_z08')    ; XVAR = MBANDS(8)%SWE
+ CASE ('swe_z09')    ; XVAR = MBANDS(9)%SWE
+ CASE ('swe_z10')    ; XVAR = MBANDS(10)%SWE
+ CASE ('swe_z11')    ; XVAR = MBANDS(11)%SWE
+ CASE ('swe_z12')    ; XVAR = MBANDS(12)%SWE
+ CASE ('swe_z13')    ; XVAR = MBANDS(13)%SWE
+ CASE ('swe_z14')    ; XVAR = MBANDS(14)%SWE
+ CASE ('swe_z15')    ; XVAR = MBANDS(15)%SWE
+ CASE ('swe_z16')    ; XVAR = MBANDS(16)%SWE
+ CASE ('swe_z17')    ; XVAR = MBANDS(17)%SWE
+ CASE ('swe_z18')    ; XVAR = MBANDS(18)%SWE
+ CASE ('swe_z19')    ; XVAR = MBANDS(19)%SWE
+ CASE ('swe_z20')    ; XVAR = MBANDS(20)%SWE
+ CASE ('swe_z21')    ; XVAR = MBANDS(21)%SWE
+ CASE ('swe_z22')    ; XVAR = MBANDS(22)%SWE
+ CASE ('swe_z23')    ; XVAR = MBANDS(23)%SWE
+ CASE ('swe_z24')    ; XVAR = MBANDS(24)%SWE
+ CASE ('swe_z25')    ; XVAR = MBANDS(25)%SWE
+ CASE ('swe_z26')    ; XVAR = MBANDS(26)%SWE
+ CASE ('swe_z27')    ; XVAR = MBANDS(27)%SWE
+ CASE ('swe_z28')    ; XVAR = MBANDS(28)%SWE
+ CASE ('swe_z29')    ; XVAR = MBANDS(29)%SWE
+ CASE ('swe_z30')    ; XVAR = MBANDS(30)%SWE
+ CASE ('swe_z31')    ; XVAR = MBANDS(31)%SWE
+ CASE ('swe_z32')    ; XVAR = MBANDS(32)%SWE
+ CASE ('swe_z33')    ; XVAR = MBANDS(33)%SWE
+ CASE ('swe_z34')    ; XVAR = MBANDS(34)%SWE
+ CASE ('swe_z35')    ; XVAR = MBANDS(35)%SWE
+ CASE ('swe_z36')    ; XVAR = MBANDS(36)%SWE
+ CASE ('swe_z37')    ; XVAR = MBANDS(37)%SWE
+ CASE ('swe_z38')    ; XVAR = MBANDS(38)%SWE
+ CASE ('swe_z39')    ; XVAR = MBANDS(39)%SWE
+ CASE ('swe_z40')    ; XVAR = MBANDS(40)%SWE
+ CASE ('swe_z41')    ; XVAR = MBANDS(41)%SWE
+ CASE ('swe_z42')    ; XVAR = MBANDS(42)%SWE
+ CASE ('swe_z43')    ; XVAR = MBANDS(43)%SWE
+ CASE ('swe_z44')    ; XVAR = MBANDS(44)%SWE
+ CASE ('swe_z45')    ; XVAR = MBANDS(45)%SWE
+ CASE ('swe_z46')    ; XVAR = MBANDS(46)%SWE
+ CASE ('swe_z47')    ; XVAR = MBANDS(47)%SWE
+ CASE ('swe_z48')    ; XVAR = MBANDS(48)%SWE
+ CASE ('swe_z49')    ; XVAR = MBANDS(49)%SWE
+ CASE ('swe_z50')    ; XVAR = MBANDS(50)%SWE
  ! extract model fluxes
  CASE ('eff_ppt')    ; XVAR = W_FLUX%EFF_PPT
  CASE ('satarea')    ; XVAR = W_FLUX%SATAREA
@@ -67,6 +119,106 @@ SELECT CASE (TRIM(VARNAME))
  CASE ('oflow_2')    ; XVAR = W_FLUX%OFLOW_2
  CASE ('oflow_2a')   ; XVAR = W_FLUX%OFLOW_2A
  CASE ('oflow_2b')   ; XVAR = W_FLUX%OFLOW_2B
+CASE ('snwacml_z01'); XVAR = MBANDS(1)%SNOWACCMLTN
+ CASE ('snwacml_z02'); XVAR = MBANDS(2)%SNOWACCMLTN
+ CASE ('snwacml_z03'); XVAR = MBANDS(3)%SNOWACCMLTN
+ CASE ('snwacml_z04'); XVAR = MBANDS(4)%SNOWACCMLTN
+ CASE ('snwacml_z05'); XVAR = MBANDS(5)%SNOWACCMLTN
+ CASE ('snwacml_z06'); XVAR = MBANDS(6)%SNOWACCMLTN
+ CASE ('snwacml_z07'); XVAR = MBANDS(7)%SNOWACCMLTN
+ CASE ('snwacml_z08'); XVAR = MBANDS(8)%SNOWACCMLTN
+ CASE ('snwacml_z09'); XVAR = MBANDS(9)%SNOWACCMLTN
+ CASE ('snwacml_z10'); XVAR = MBANDS(10)%SNOWACCMLTN
+ CASE ('snwacml_z11'); XVAR = MBANDS(11)%SNOWACCMLTN
+ CASE ('snwacml_z12'); XVAR = MBANDS(12)%SNOWACCMLTN
+ CASE ('snwacml_z13'); XVAR = MBANDS(13)%SNOWACCMLTN
+ CASE ('snwacml_z14'); XVAR = MBANDS(14)%SNOWACCMLTN
+ CASE ('snwacml_z15'); XVAR = MBANDS(15)%SNOWACCMLTN
+ CASE ('snwacml_z16'); XVAR = MBANDS(16)%SNOWACCMLTN
+ CASE ('snwacml_z17'); XVAR = MBANDS(17)%SNOWACCMLTN
+ CASE ('snwacml_z18'); XVAR = MBANDS(18)%SNOWACCMLTN
+ CASE ('snwacml_z19'); XVAR = MBANDS(19)%SNOWACCMLTN
+ CASE ('snwacml_z20'); XVAR = MBANDS(20)%SNOWACCMLTN
+ CASE ('snwacml_z21'); XVAR = MBANDS(21)%SNOWACCMLTN
+ CASE ('snwacml_z22'); XVAR = MBANDS(22)%SNOWACCMLTN
+ CASE ('snwacml_z23'); XVAR = MBANDS(23)%SNOWACCMLTN
+ CASE ('snwacml_z24'); XVAR = MBANDS(24)%SNOWACCMLTN
+ CASE ('snwacml_z25'); XVAR = MBANDS(25)%SNOWACCMLTN
+ CASE ('snwacml_z26'); XVAR = MBANDS(26)%SNOWACCMLTN
+ CASE ('snwacml_z27'); XVAR = MBANDS(27)%SNOWACCMLTN
+ CASE ('snwacml_z28'); XVAR = MBANDS(28)%SNOWACCMLTN
+ CASE ('snwacml_z29'); XVAR = MBANDS(29)%SNOWACCMLTN
+ CASE ('snwacml_z30'); XVAR = MBANDS(30)%SNOWACCMLTN
+ CASE ('snwacml_z31'); XVAR = MBANDS(31)%SNOWACCMLTN
+ CASE ('snwacml_z32'); XVAR = MBANDS(32)%SNOWACCMLTN
+ CASE ('snwacml_z33'); XVAR = MBANDS(33)%SNOWACCMLTN
+ CASE ('snwacml_z34'); XVAR = MBANDS(34)%SNOWACCMLTN
+ CASE ('snwacml_z35'); XVAR = MBANDS(35)%SNOWACCMLTN
+ CASE ('snwacml_z36'); XVAR = MBANDS(36)%SNOWACCMLTN
+ CASE ('snwacml_z37'); XVAR = MBANDS(37)%SNOWACCMLTN
+ CASE ('snwacml_z38'); XVAR = MBANDS(38)%SNOWACCMLTN
+ CASE ('snwacml_z39'); XVAR = MBANDS(39)%SNOWACCMLTN
+ CASE ('snwacml_z40'); XVAR = MBANDS(40)%SNOWACCMLTN
+ CASE ('snwacml_z41'); XVAR = MBANDS(41)%SNOWACCMLTN
+ CASE ('snwacml_z42'); XVAR = MBANDS(42)%SNOWACCMLTN
+ CASE ('snwacml_z43'); XVAR = MBANDS(43)%SNOWACCMLTN
+ CASE ('snwacml_z44'); XVAR = MBANDS(44)%SNOWACCMLTN
+ CASE ('snwacml_z45'); XVAR = MBANDS(45)%SNOWACCMLTN
+ CASE ('snwacml_z46'); XVAR = MBANDS(46)%SNOWACCMLTN
+ CASE ('snwacml_z47'); XVAR = MBANDS(47)%SNOWACCMLTN
+ CASE ('snwacml_z48'); XVAR = MBANDS(48)%SNOWACCMLTN
+ CASE ('snwacml_z49'); XVAR = MBANDS(49)%SNOWACCMLTN
+ CASE ('snwacml_z50'); XVAR = MBANDS(50)%SNOWACCMLTN
+ CASE ('snwmelt_z01'); XVAR = MBANDS(1)%SNOWMELT
+ CASE ('snwmelt_z02'); XVAR = MBANDS(2)%SNOWMELT
+ CASE ('snwmelt_z03'); XVAR = MBANDS(3)%SNOWMELT
+ CASE ('snwmelt_z04'); XVAR = MBANDS(4)%SNOWMELT
+ CASE ('snwmelt_z05'); XVAR = MBANDS(5)%SNOWMELT
+ CASE ('snwmelt_z06'); XVAR = MBANDS(6)%SNOWMELT
+ CASE ('snwmelt_z07'); XVAR = MBANDS(7)%SNOWMELT
+ CASE ('snwmelt_z08'); XVAR = MBANDS(8)%SNOWMELT
+ CASE ('snwmelt_z09'); XVAR = MBANDS(9)%SNOWMELT
+ CASE ('snwmelt_z10'); XVAR = MBANDS(10)%SNOWMELT
+ CASE ('snwmelt_z11'); XVAR = MBANDS(11)%SNOWMELT
+ CASE ('snwmelt_z12'); XVAR = MBANDS(12)%SNOWMELT
+ CASE ('snwmelt_z13'); XVAR = MBANDS(13)%SNOWMELT
+ CASE ('snwmelt_z14'); XVAR = MBANDS(14)%SNOWMELT
+ CASE ('snwmelt_z15'); XVAR = MBANDS(15)%SNOWMELT
+ CASE ('snwmelt_z16'); XVAR = MBANDS(16)%SNOWMELT
+ CASE ('snwmelt_z17'); XVAR = MBANDS(17)%SNOWMELT
+ CASE ('snwmelt_z18'); XVAR = MBANDS(18)%SNOWMELT
+ CASE ('snwmelt_z19'); XVAR = MBANDS(19)%SNOWMELT
+ CASE ('snwmelt_z20'); XVAR = MBANDS(20)%SNOWMELT
+ CASE ('snwmelt_z21'); XVAR = MBANDS(21)%SNOWMELT
+ CASE ('snwmelt_z22'); XVAR = MBANDS(22)%SNOWMELT
+ CASE ('snwmelt_z23'); XVAR = MBANDS(23)%SNOWMELT
+ CASE ('snwmelt_z24'); XVAR = MBANDS(24)%SNOWMELT
+ CASE ('snwmelt_z25'); XVAR = MBANDS(25)%SNOWMELT
+ CASE ('snwmelt_z26'); XVAR = MBANDS(26)%SNOWMELT
+ CASE ('snwmelt_z27'); XVAR = MBANDS(27)%SNOWMELT
+ CASE ('snwmelt_z28'); XVAR = MBANDS(28)%SNOWMELT
+ CASE ('snwmelt_z29'); XVAR = MBANDS(29)%SNOWMELT
+ CASE ('snwmelt_z30'); XVAR = MBANDS(30)%SNOWMELT
+ CASE ('snwmelt_z31'); XVAR = MBANDS(31)%SNOWMELT
+ CASE ('snwmelt_z32'); XVAR = MBANDS(32)%SNOWMELT
+ CASE ('snwmelt_z33'); XVAR = MBANDS(33)%SNOWMELT
+ CASE ('snwmelt_z34'); XVAR = MBANDS(34)%SNOWMELT
+ CASE ('snwmelt_z35'); XVAR = MBANDS(35)%SNOWMELT
+ CASE ('snwmelt_z36'); XVAR = MBANDS(36)%SNOWMELT
+ CASE ('snwmelt_z37'); XVAR = MBANDS(37)%SNOWMELT
+ CASE ('snwmelt_z38'); XVAR = MBANDS(38)%SNOWMELT
+ CASE ('snwmelt_z39'); XVAR = MBANDS(39)%SNOWMELT
+ CASE ('snwmelt_z40'); XVAR = MBANDS(40)%SNOWMELT
+ CASE ('snwmelt_z41'); XVAR = MBANDS(41)%SNOWMELT
+ CASE ('snwmelt_z42'); XVAR = MBANDS(42)%SNOWMELT
+ CASE ('snwmelt_z43'); XVAR = MBANDS(43)%SNOWMELT
+ CASE ('snwmelt_z44'); XVAR = MBANDS(44)%SNOWMELT
+ CASE ('snwmelt_z45'); XVAR = MBANDS(45)%SNOWMELT
+ CASE ('snwmelt_z46'); XVAR = MBANDS(46)%SNOWMELT
+ CASE ('snwmelt_z47'); XVAR = MBANDS(47)%SNOWMELT
+ CASE ('snwmelt_z48'); XVAR = MBANDS(48)%SNOWMELT
+ CASE ('snwmelt_z49'); XVAR = MBANDS(49)%SNOWMELT
+ CASE ('snwmelt_z50'); XVAR = MBANDS(50)%SNOWMELT
  ! extract extrapolation errors
  CASE ('err_tens_1') ; XVAR = W_FLUX%ERR_TENS_1 
  CASE ('err_tens_1a'); XVAR = W_FLUX%ERR_TENS_1A

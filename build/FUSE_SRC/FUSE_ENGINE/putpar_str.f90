@@ -6,6 +6,7 @@ SUBROUTINE PUTPAR_STR(METADAT,PARNAME)
 ! Creator:
 ! --------
 ! Martyn Clark, 2009
+! Modified by Brian Henn to include snow model, 6/2013
 ! ---------------------------------------------------------------------------------------
 ! Purpose:
 ! --------
@@ -51,6 +52,12 @@ CASE('AXV_BEXP');   PARMETA%AXV_BEXP  = METADAT
 CASE('LOGLAMB');    PARMETA%LOGLAMB   = METADAT
 CASE('TISHAPE');    PARMETA%TISHAPE   = METADAT
 CASE('TIMEDELAY');  PARMETA%TIMEDELAY = METADAT
+CASE('MBASE');      PARMETA%MBASE     = METADAT
+CASE('MFMAX');      PARMETA%MFMAX     = METADAT
+CASE('MFMIN');      PARMETA%MFMIN     = METADAT
+CASE('PXTEMP');     PARMETA%PXTEMP    = METADAT
+CASE('OPG');        PARMETA%OPG       = METADAT
+CASE('LAPSE');      PARMETA%LAPSE     = METADAT
 CASE DEFAULT
  print *, 'parameter name (', TRIM(PARNAME), ') does not exist'; STOP
 ENDSELECT

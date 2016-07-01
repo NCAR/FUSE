@@ -3,6 +3,7 @@ SUBROUTINE MOD_DERIVS()
 ! Creator:
 ! --------
 ! Martyn Clark, 2007
+! Modified by to include snow model by Brian Henn, 6/2013
 ! ---------------------------------------------------------------------------------------
 ! Purpose:
 ! --------
@@ -16,7 +17,6 @@ USE model_numerix, ONLY: NUM_FUNCS  ! (number of function evaluations)
 ! ---------------------------------------------------------------------------------------
 ! (1) COMPUTE FLUXES
 ! ---------------------------------------------------------------------------------------
-CALL QRAINERROR()  ! compute the "effective" rainfall, following a prescribed error model
 CALL QSATEXCESS()  ! compute the saturated area and surface runoff
 CALL EVAP_UPPER()  ! compute evaporation from the upper layer
 CALL EVAP_LOWER()  ! compute evaporation from the lower layer

@@ -3,6 +3,7 @@ SUBROUTINE UNIQUEMODL(NMOD,err,message)
 ! Creator:
 ! --------
 ! Martyn Clark, 2007; modified in 2008 to include rainfall errors
+! Modified by Brian Henn to include snow model, 6/2013
 ! ---------------------------------------------------------------------------------------
 ! Purpose:
 ! --------
@@ -19,9 +20,9 @@ USE model_defn
 USE model_defnames
 IMPLICIT NONE
 ! Output
-INTEGER(I4B)                           :: NMOD        ! number of model combinations
-integer(I4B),intent(out)::err
-character(*),intent(out)::message
+INTEGER(I4B), intent(out)              :: NMOD        ! number of model combinations
+integer(I4B), intent(out)              :: err
+character(*), intent(out)              :: message
 ! Internal
 INTEGER(I4B)                           :: ICOUNT      ! loop through unique models
 INTEGER(I4B)                           :: ISW_RFERR   ! loop thru rainfall errors
@@ -32,8 +33,9 @@ INTEGER(I4B)                           :: ISW_QPERC   ! loop thru percolation
 INTEGER(I4B)                           :: ISW_ESOIL   ! loop thru evaporation
 INTEGER(I4B)                           :: ISW_QINTF   ! loop thru interflow
 INTEGER(I4B)                           :: ISW_Q_TDH   ! loop thru time delay options
+INTEGER(I4B)                           :: ISW_SNOWM   ! loop thru snow model options
 ! Start procedure here
-err=0; message="UNIQUEMODL/ok"
+!err=0; message="UNIQUEMODL/ok"
 ! ---------------------------------------------------------------------------------------
 ! (1) POPULATE LISTS OF OPTIONS FOR THE DIFFERENT MODEL COMPONENTS
 ! ---------------------------------------------------------------------------------------
@@ -66,6 +68,9 @@ LIST_QINTF(2)%MCOMPONENT = 'intflwsome' ! interflow
 ! time delay in runoff
 LIST_Q_TDH(1)%MCOMPONENT = 'rout_gamma' ! use a Gamma distribution with shape parameter = 2.5
 LIST_Q_TDH(2)%MCOMPONENT = 'no_routing' ! no routing
+! snow model switch
+LIST_SNOWM(1)%MCOMPONENT = 'no_snowmod' ! no snow model
+LIST_SNOWM(2)%MCOMPONENT = 'temp_index' ! temperature index snow model
 ! ---------------------------------------------------------------------------------------
 ! (2) LOOP THROUGH MODEL COMPONENTS AND DEFINE A SET OF UNIQUE MODELS
 ! ---------------------------------------------------------------------------------------
@@ -78,7 +83,9 @@ LIST_Q_TDH(2)%MCOMPONENT = 'no_routing' ! no routing
 ! f) define evaporation method
 ! g) define interflow method
 ! h) define time delay in runoff
-ICOUNT = 0 ! initialize counter
+ERR=0; ICOUNT = 0 ! initialize counter
+! loop through snow model options
+DO ISW_SNOWM=1,SIZE(LIST_SNOWM)
 ! (loop through time delay options)
 DO ISW_Q_TDH=1,SIZE(LIST_Q_TDH)
  ! (loop through interflow options)
@@ -112,6 +119,7 @@ DO ISW_Q_TDH=1,SIZE(LIST_Q_TDH)
          AMODL(ICOUNT)%iESOIL = desc_str2int(LIST_ESOIL(ISW_ESOIL)%MCOMPONENT)
          AMODL(ICOUNT)%iQINTF = desc_str2int(LIST_QINTF(ISW_QINTF)%MCOMPONENT)
          AMODL(ICOUNT)%iQ_TDH = desc_str2int(LIST_Q_TDH(ISW_Q_TDH)%MCOMPONENT)
+         AMODL(ICOUNT)%iSNOWM = desc_str2int(LIST_Q_TDH(ISW_SNOWM)%MCOMPONENT)
          !write(*,'(i3,1x,7(a10,1x))') icount, amodl(icount)
         ELSE
          ! need to allocate more space
@@ -126,6 +134,7 @@ DO ISW_Q_TDH=1,SIZE(LIST_Q_TDH)
   END DO  ! ESOIL
  END DO  ! QINTF
 END DO  ! Q_TDH
+END DO ! SNOWM
 ! ---------------------------------------------------------------------------------------
 NMOD = ICOUNT
 !pause

@@ -1,3 +1,9 @@
+! ---------------------------------------------------------------------------------------
+! Creator:
+! --------
+! Martyn Clark
+! Modified by Brian Henn to include snow model, 6/2013
+! ---------------------------------------------------------------------------------------
 MODULE multiforce
  USE nrtype
  TYPE FDATA
@@ -9,6 +15,7 @@ MODULE multiforce
   REAL(SP)                             :: DSEC       ! second
   REAL(SP)                             :: DTIME      ! time in seconds since year dot
   REAL(SP)                             :: PPT        ! water input: rain + melt (mm day-1)
+  REAL(SP)                             :: TEMP       ! temperature for snow model (deg.C)
   REAL(SP)                             :: PET        ! energy input: potential ET (mm day-1)
   REAL(SP)                             :: OBSQ       ! observed runoff (mm day-1)
  ENDTYPE FDATA

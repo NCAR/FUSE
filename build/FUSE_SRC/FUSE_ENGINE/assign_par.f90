@@ -3,6 +3,7 @@ SUBROUTINE ASSIGN_PAR()
 ! Creator:
 ! --------
 ! Martyn Clark, 2007
+! Modified by Brian Henn to include snow model, 6/2013
 ! ---------------------------------------------------------------------------------------
 ! Purpose:
 ! --------
@@ -173,6 +174,22 @@ SELECT CASE(SMODL%iQ_TDH)
   ! (no additional parameters when there is no time delay in runoff)
  CASE DEFAULT       ! check for errors
   print *, "SMODL%iQ_TDH must be either iopt_rout_gamma or iopt_no_routing"
+  STOP
+END SELECT
+! ---------------------------------------------------------------------------------------
+! (9) SNOW MODEL 
+! ---------------------------------------------------------------------------------------
+SELECT CASE(SMODL%iSNOWM)
+ CASE(iopt_temp_index) ! temperature index snow model
+  MPAR = MPAR + 1; LPARAM(MPAR)%PARNAME = 'MBASE    ' ! snow base melting temperature
+  MPAR = MPAR + 1; LPARAM(MPAR)%PARNAME = 'MFMAX    ' ! snow maximum melt factor
+  MPAR = MPAR + 1; LPARAM(MPAR)%PARNAME = 'MFMIN    ' ! snow minimum melt factor
+  MPAR = MPAR + 1; LPARAM(MPAR)%PARNAME = 'PXTEMP   ' ! rain snow partition temperature
+  MPAR = MPAR + 1; LPARAM(MPAR)%PARNAME = 'OPG      ' ! precipitation gradient
+  MPAR = MPAR + 1; LPARAM(MPAR)%PARNAME = 'LAPSE    ' ! temperature gradient
+ CASE(iopt_no_snowmod) ! if no snow model, no addtional parameters
+ CASE DEFAULT
+  print *, "SMODL%SNOWM must be either 'temp_index' or 'no_snowmod'"
   STOP
 END SELECT
 ! ---------------------------------------------------------------------------------------

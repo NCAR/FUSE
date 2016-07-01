@@ -1,3 +1,9 @@
+! ---------------------------------------------------------------------------------------
+! Creator:
+! --------
+! Martyn Clark
+! Modified by Brian Henn to include snow model, 6/2013
+! ---------------------------------------------------------------------------------------
 MODULE multiparam
  USE nrtype
  USE model_defn,ONLY:NTDH_MAX
@@ -64,6 +70,13 @@ MODULE multiparam
   TYPE(PARATT)                         :: TISHAPE     ! shape parameter for the topo index Gamma distribution (-)
   ! time delay in runoff
   TYPE(PARATT)                         :: TIMEDELAY   ! time delay in runoff (days)
+  ! snow model (adjustable)
+  TYPE(PARATT)                         :: MBASE       ! base melt temperature (deg. C)
+  TYPE(PARATT)                         :: MFMAX       ! maximum melt factor (mm melt deg C.-1 6hrs-1)
+  TYPE(PARATT)                         :: MFMIN       ! minimum melt factor (mm melt deg C.-1 6hrs-1)
+  TYPE(PARATT)                         :: PXTEMP      ! rain-snow partition temperature (deg. C)
+  TYPE(PARATT)                         :: OPG         ! precipitation gradient (-) 
+  TYPE(PARATT)                         :: LAPSE       ! temperature gradient (deg. C)
  ENDTYPE PARINFO
  ! --------------------------------------------------------------------------------------
  ! (2) ADJUSTABLE PARAMETERS
@@ -108,6 +121,13 @@ MODULE multiparam
   REAL(SP)                             :: TISHAPE     ! shape parameter for the topo index Gamma distribution (-)
   ! time delay in runoff
   REAL(SP)                             :: TIMEDELAY   ! time delay in runoff (days)
+  ! snow model
+  REAL(SP)                             :: MBASE       ! base melt temperature (deg. C)
+  REAL(SP)                             :: MFMAX       ! maximum melt factor (mm melt deg C.-1 6hrs-1)
+  REAL(SP)                             :: MFMIN       ! minimum melt factor (mm melt deg C.-1 6hrs-1)
+  REAL(SP)                             :: PXTEMP      ! rain-snow partition temperature (deg. C)
+  REAL(SP)                             :: OPG         ! precipitation gradient (-) 
+  REAL(SP)                             :: LAPSE       ! temperature gradient (deg. C)
  END TYPE PARADJ
  ! --------------------------------------------------------------------------------------
  ! (3) DERIVED PARAMETERS
@@ -143,7 +163,7 @@ MODULE multiparam
  ! (5) FINAL DATA STRUCTURES
  ! --------------------------------------------------------------------------------------
  INTEGER(I4B), PARAMETER               :: MAXPAR=50   ! maximum number of parameters for a single model
- TYPE(PARADJ), DIMENSION(:), POINTER   :: APARAM=>null()  ! all model parameter sets; DK211008: explicit null
+ TYPE(PARADJ), DIMENSION(:), POINTER   :: APARAM=>null()  ! all model parameter sets; DK/2008/10/21: explicit null
  TYPE(PARADJ)                          :: MPARAM      ! single model parameter set
  TYPE(PARDVD)                          :: DPARAM      ! derived model parameters
  TYPE(PARINFO)                         :: PARMETA     ! parameter metadata (all parameters)

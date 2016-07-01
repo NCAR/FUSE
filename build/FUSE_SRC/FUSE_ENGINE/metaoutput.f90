@@ -3,6 +3,7 @@ MODULE metaoutput
 ! Creator:
 ! --------
 ! Martyn Clark, 2007
+! Modified by Brian Henn to include snow model, 6/2013
 ! ---------------------------------------------------------------------------------------
 ! Purpose:
 ! --------
@@ -10,13 +11,18 @@ MODULE metaoutput
 ! ---------------------------------------------------------------------------------------
 ! variable definitions
 USE nrtype
+USE multibands,ONLY:N_BANDS
+USE model_defn,ONLY:SMODL
+USE model_defnames
 IMPLICIT NONE
 LOGICAL(LGT)                           :: Q_ONLY=.FALSE. ! .TRUE. = restrict attention to simulated runoff
-CHARACTER(LEN=11), DIMENSION(100)      :: VNAME       ! variable names
-CHARACTER(LEN=52), DIMENSION(100)      :: LNAME       ! variable long names (descrition of variable)
-CHARACTER(LEN=13), DIMENSION(100)      :: VUNIT       ! variable units
+CHARACTER(LEN=11), DIMENSION(200)      :: VNAME       ! variable names
+CHARACTER(LEN=52), DIMENSION(200)      :: LNAME       ! variable long names (descrition of variable)
+CHARACTER(LEN=13), DIMENSION(200)      :: VUNIT       ! variable units
 INTEGER(I4B)                           :: I           ! loop through variables
 INTEGER(I4B)                           :: NOUTVAR     ! number of output variables
+INTEGER(I4B)                           :: ISNW        ! loop through SWE states
+CHARACTER(LEN=2)                       :: TXT_ISNW    ! band index as a character
 CONTAINS
 ! ---------------------------------------------------------------------------------------
 SUBROUTINE VARDESCRIBE()
@@ -24,6 +30,7 @@ I=0  ! initialize counter
 ! model forcing
 I=I+1; VNAME(I)='ppt        '; LNAME(I)='precipitation rate                                 '; VUNIT(I)='mm day-1     '
 I=I+1; VNAME(I)='pet        '; LNAME(I)='potential evapotranspiration rate                  '; VUNIT(I)='mm day-1     '
+I=I+1; VNAME(I)='temp       '; LNAME(I)='mean air temperature                               '; VUNIT(I)='deg.C        '
 I=I+1; VNAME(I)='obsq       '; LNAME(I)='observed runoff                                    '; VUNIT(I)='mm timestep-1'
 ! model states
 I=I+1; VNAME(I)='tens_1     '; LNAME(I)='tension storage in the upper layer                 '; VUNIT(I)='mm           '
@@ -36,6 +43,18 @@ I=I+1; VNAME(I)='free_2     '; LNAME(I)='free storage in the lower layer        
 I=I+1; VNAME(I)='free_2a    '; LNAME(I)='free storage in the primary baseflow reservoir     '; VUNIT(I)='mm           '
 I=I+1; VNAME(I)='free_2b    '; LNAME(I)='free storage in the secondary baseflow reservoir   '; VUNIT(I)='mm           '
 I=I+1; VNAME(I)='watr_2     '; LNAME(I)='total storage in the lower layer                   '; VUNIT(I)='mm           '
+IF(SMODL%iSNOWM.EQ.iopt_temp_index) THEN !loop through snow model bands
+ DO ISNW=1,N_BANDS ! output each for each snow model band
+  WRITE(TXT_ISNW,'(I2)') ISNW              ! convert band no. to text
+  IF (ISNW.LT.10) TXT_ISNW(1:1) = '0'      ! pad with zeros 
+  I=I+1; VNAME(I)='swe_z'//TXT_ISNW//' '! first create SWE band series
+  LNAME(I)='elevation band snow water equivalent               '; VUNIT(I)='mm           '
+  I=I+1; VNAME(I)='snwacml_z'//TXT_ISNW  ! then the accumulation series
+  LNAME(I)='new band snowpack accumulation, in water equivalent'; VUNIT(I)='mm timestep-1'
+  I=I+1; VNAME(I)='snwmelt_z'//TXT_ISNW  ! then the melt series
+  LNAME(I)='band snowpack melt, in water equivalent            '; VUNIT(I)='mm timestep-1'
+ END DO
+ENDIF
 ! model fluxes
 I=I+1; VNAME(I)='eff_ppt    '; LNAME(I)='effective precipitation rate                       '; VUNIT(I)='mm timestep-1'
 I=I+1; VNAME(I)='satarea    '; LNAME(I)='saturated area                                     '; VUNIT(I)='-            '

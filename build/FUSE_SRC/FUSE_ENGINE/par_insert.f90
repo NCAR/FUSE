@@ -1,3 +1,9 @@
+! ---------------------------------------------------------------------------------------
+! Creator:
+! --------
+! Martyn Clark
+! Modified by Brian Henn to include snow model, 6/2013
+! ---------------------------------------------------------------------------------------
 MODULE PAR_INSERT_MODULE
 IMPLICIT NONE
 CONTAINS
@@ -80,6 +86,12 @@ CASE('AXV_BEXP');   MPARAM%AXV_BEXP   = XVAR
 CASE('LOGLAMB');    MPARAM%LOGLAMB    = XVAR
 CASE('TISHAPE');    MPARAM%TISHAPE    = XVAR
 CASE('TIMEDELAY');  MPARAM%TIMEDELAY  = XVAR
+CASE('MBASE');      MPARAM%MBASE      = XVAR
+CASE('MFMAX');      MPARAM%MFMAX      = XVAR
+CASE('MFMIN');      MPARAM%MFMIN      = XVAR
+CASE('PXTEMP');     MPARAM%PXTEMP     = XVAR
+CASE('OPG');        MPARAM%OPG        = XVAR
+CASE('LAPSE');      MPARAM%LAPSE      = XVAR
 ! derived parameters
 CASE('MAXTENS_1');  DPARAM%MAXTENS_1  = XVAR
 CASE('MAXTENS_1A'); DPARAM%MAXTENS_1A = XVAR

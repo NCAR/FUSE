@@ -6,6 +6,7 @@ SUBROUTINE GETPAR_STR(PARNAME,METADAT)
 ! Creator:
 ! --------
 ! Martyn Clark, 2009
+! Modified by Brian Henn to include snow model, 6/2013
 ! ---------------------------------------------------------------------------------------
 ! Purpose:
 ! --------
@@ -51,6 +52,12 @@ CASE('AXV_BEXP');   METADAT = PARMETA%AXV_BEXP
 CASE('LOGLAMB');    METADAT = PARMETA%LOGLAMB 
 CASE('TISHAPE');    METADAT = PARMETA%TISHAPE  
 CASE('TIMEDELAY');  METADAT = PARMETA%TIMEDELAY
+CASE('MBASE');      METADAT = PARMETA%MBASE
+CASE('MFMAX');      METADAT = PARMETA%MFMAX
+CASE('MFMIN');      METADAT = PARMETA%MFMIN
+CASE('PXTEMP');     METADAT = PARMETA%PXTEMP
+CASE('OPG');        METADAT = PARMETA%OPG
+CASE('LAPSE');      METADAT = PARMETA%LAPSE
 CASE DEFAULT
  print *, 'parameter name (', TRIM(PARNAME), ') does not exist '
  IF (TRIM(PARNAME).EQ.'NO_CHILD1' .OR. TRIM(PARNAME).EQ.'NO_CHILD2') &

@@ -3,6 +3,7 @@ MODULE metaparams
 ! Creator:
 ! --------
 ! Martyn Clark, 2007
+! Modified by Brian Henn to include snow model, 6/2013
 ! ---------------------------------------------------------------------------------------
 ! Purpose:
 ! --------
@@ -10,11 +11,16 @@ MODULE metaparams
 ! ---------------------------------------------------------------------------------------
 ! variable definitions
 USE nrtype
+USE multibands
+USE model_defn,ONLY:SMODL
+USE model_defnames
 IMPLICIT NONE
-CHARACTER(LEN=11), DIMENSION(100)      :: PNAME       ! parameter names
-CHARACTER(LEN=52), DIMENSION(100)      :: PDESC       ! parameter long names (description of variable)
-CHARACTER(LEN= 8), DIMENSION(100)      :: PUNIT       ! paramerter units
+CHARACTER(LEN=11), DIMENSION(200)      :: PNAME       ! parameter names
+CHARACTER(LEN=52), DIMENSION(200)      :: PDESC       ! parameter long names (description of variable)
+CHARACTER(LEN= 8), DIMENSION(200)      :: PUNIT       ! paramerter units
 INTEGER(I4B)                           :: I           ! loop through parameter sets
+INTEGER(I4B)                           :: IBAND       ! loop through bands
+CHARACTER(LEN=2)                       :: TXT_IBAND   ! band index as a character
 INTEGER(I4B)                           :: NOUTPAR     ! number of model parameters for output
 CONTAINS
 ! ---------------------------------------------------------------------------------------
@@ -46,6 +52,12 @@ I=I+1; PNAME(I)='AXV_BEXP   '; PDESC(I)='ARNO/VIC b exponent                    
 I=I+1; PNAME(I)='LOGLAMB    '; PDESC(I)='mean value of the log-transformed topographic index'; PUNIT(I)='log m   '
 I=I+1; PNAME(I)='TISHAPE    '; PDESC(I)='shape parameter for the topo index Gamma distribtn '; PUNIT(I)='-       '
 I=I+1; PNAME(I)='TIMEDELAY  '; PDESC(I)='time delay in runoff (routing)                     '; PUNIT(I)='day     '
+I=I+1; PNAME(I)='MBASE      '; PDESC(I)='snow model base melt temperature                   '; PUNIT(I)='deg.C   '
+I=I+1; PNAME(I)='MFMAX      '; PDESC(I)='snow model maximum melt factor                     '; PUNIT(I)='mm/(C-d)'
+I=I+1; PNAME(I)='MFMIN      '; PDESC(I)='snow model minimum melt factor                     '; PUNIT(I)='mm/(C-d)'
+I=I+1; PNAME(I)='PXTEMP     '; PDESC(I)='rain-snow partition temperature                    '; PUNIT(I)='deg.C   '
+I=I+1; PNAME(I)='OPG        '; PDESC(I)='maximum relative precip difference across the bands'; PUNIT(I)='-       '
+I=I+1; PNAME(I)='LAPSE      '; PDESC(I)='maximum temperature difference across the bands    '; PUNIT(I)='deg.C   '
 ! derived model parameters
 I=I+1; PNAME(I)='MAXTENS_1  '; PDESC(I)='maximum tension storage in the upper layer         '; PUNIT(I)='mm      '
 I=I+1; PNAME(I)='MAXTENS_1A '; PDESC(I)='maximum storage in the recharge zone               '; PUNIT(I)='mm      '
@@ -59,6 +71,17 @@ I=I+1; PNAME(I)='RTFRAC2    '; PDESC(I)='fraction of roots in the lower layer   
 I=I+1; PNAME(I)='QBSAT      '; PDESC(I)='baseflow at saturation (derived parameter)         '; PUNIT(I)='mm day-1'
 I=I+1; PNAME(I)='POWLAMB    '; PDESC(I)='mean value of power-transformed topographic index  '; PUNIT(I)='m**(1/n)'
 I=I+1; PNAME(I)='MAXPOW     '; PDESC(I)='max value of power-transformed topographic index   '; PUNIT(I)='m**(1/n)'
+! model bands parameters
+IF(SMODL%iSNOWM.EQ.iopt_temp_index) THEN !loop through snow model bands
+ DO IBAND=1,N_BANDS
+  WRITE(TXT_IBAND,'(I2)') IBAND              ! convert band no. to text
+  IF (IBAND.LT.10) TXT_IBAND(1:1) = '0'      ! pad with zeros 
+  I=I+1; PNAME(I)='Z_MID'//TXT_IBAND//'    '; PDESC(I)='basin band mid-point elevation                     '; PUNIT(I)='m       '
+  I=I+1; PNAME(I)='AF'//TXT_IBAND//'       '; PDESC(I)='basin band area fraction                           '; PUNIT(I)='-       '
+ END DO
+ENDIF
+I=I+1; PNAME(I)='N_BANDS    '; PDESC(I)='number of basin bands in model                     '; PUNIT(I)='=       '
+I=I+1; PNAME(I)='Z_FORCING  '; PDESC(I)='elevation of model forcing data                    '; PUNIT(I)='m       '
 ! numerical solution parameters
 I=I+1; PNAME(I)='SOLUTION   '; PDESC(I)='0=explicit euler; 1=implicit euler                 '; PUNIT(I)='-       '
 I=I+1; PNAME(I)='TIMSTEP_TYP'; PDESC(I)='0=fixed time steps; 1=adaptive time steps          '; PUNIT(I)='-       '
