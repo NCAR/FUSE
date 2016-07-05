@@ -62,6 +62,7 @@ DATAMS = $(patsubst %, $(ENGINE_DIR)/%, $(FUSE_DATAMS))
 # Information modules
 FUSE_INFOMS= \
 	metaoutput.f90 \
+	metaparams.f90 \
 	meta_stats.f90 \
 	selectmodl.f90 \
 	putpar_str.f90 \
@@ -144,7 +145,6 @@ MODRUN = $(patsubst %, $(ENGINE_DIR)/%, $(FUSE_MODRUN))
 # Define NetCDF routines
 FUSE_NETCDF = \
 	handle_err.f90 \
-	metaparams.f90 \
 	extractor.f90 juldayss.f90 caldatss.f90 \
 	get_smodel.f90 \
 	def_params.f90 \
