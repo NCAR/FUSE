@@ -95,7 +95,7 @@ CALL GETNUMERIX()                         ! defines method/parameters used for n
 ! convert command-line arguments to integer flags and real numbers
 FORCINGINFO = 'forcinginfo.'//TRIM(MBASIN_ID)//'.txt'
 MBANDS_INFO = 'mbands_info.'//TRIM(MBASIN_ID)//'.txt'
-READ(FMODEL_ID,*) FUSE_ID                 ! integer definining FUSE model
+READ(FMODEL_ID,*) FUSE_ID                 ! integer defining FUSE model
 READ(NSOLUTION,*) SOLUTION_METHOD         ! numerical solution (0=implicit, 1=explicit)
 READ(FADAPTIVE,*) TEMPORAL_ERROR_CONTROL  ! identifier for adaptive sub-steps (0=fixed, 1=adaptive)
 READ(TRUNC_ABS,*) ERR_TRUNC_ABS           ! absolute temporal truncation error tolerance
@@ -122,7 +122,7 @@ CALL UNIQUEMODL(NMOD)           ! get nmod unique models
 CALL GETPARMETA(ERR,MESSAGE)    ! read parameter metadata (parameter bounds etc.)
 IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 ! Identify a single model (read control file ../DataFiles/m_decisions.txt)
-CALL SELECTMODL(ISTATUS=ERR,MESSAGE=MESSAGE)
+CALL SELECTMODL(FUSE_ID,ERR=ERR,MESSAGE=MESSAGE)
 IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 ! Define list of states and parameters for the current model
 ! Read data from the "BATEA-compliant" ASCII files
@@ -130,7 +130,7 @@ CALL GETFORCING(INFERN_START,NTIM) ! read forcing data
 IF (SMODL%iSNOWM.EQ.iopt_temp_index) CALL GET_MBANDS() ! read band data if snow model 
 CALL ASSIGN_STT()        ! state definitions are stored in module model_defn
 CALL ASSIGN_FLX()        ! flux definitions are stored in module model_defn
-CALL ASSIGN_PAR()        ! parameter defintions are stored in module multiparam
+CALL ASSIGN_PAR()        ! parameter definitions are stored in module multiparam
 ! compute derived model parameters (bucket sizes, etc.)
 CALL PAR_DERIVE(ERR,MESSAGE)
 IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
@@ -164,7 +164,7 @@ DO IPSET=1,NUMPSET
  WRITE(*,'(I4,1X,12(E10.2,1X))') ISEED-1, URAND
  APAR = BL + URAND*(BU-BL)
  ! run zee model
- CALL FUSE_RMSE(APAR,RMSE,OUTPUT_FLAG)
+ CALL FUSE_RMSE(APAR,RMSE,OUTPUT_FLAG,ERR=ERR,MESSAGE=MESSAGE)
 END DO
 ! and, deallocate space
 DEALLOCATE(APAR,BL,BU,URAND)

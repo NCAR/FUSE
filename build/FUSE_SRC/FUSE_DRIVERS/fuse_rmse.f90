@@ -42,7 +42,7 @@ LOGICAL(LGT), INTENT(IN), OPTIONAL     :: MPARAM_FLAG  ! .FALSE. (used to turn o
 ! output
 REAL(SP),INTENT(OUT)                   :: RMSE         ! root mean squared error
 INTEGER(I4B),INTENT(OUT)               :: ERR          ! error indicator
-CHARACTER(LEN=*),INTENT(OUT)           :: MESSAGE      ! error message
+CHARACTER(LEN=256),INTENT(OUT)           :: MESSAGE      ! error message
 ! internal
 REAL(SP)                               :: T1,T2        ! CPU time
 INTEGER(I4B)                           :: ITIM         ! loop through time series
