@@ -25,7 +25,9 @@ integer(I4B), parameter ::  iopt_additive_e = 1001, &
                             iopt_intflwnone = 7001, &
                             iopt_intflwsome = 7002, &
                             iopt_rout_gamma = 8001, &
-                            iopt_no_routing = 8002
+                            iopt_no_routing = 8002, &
+                            iopt_no_snowmod = 8501, &
+                            iopt_temp_index = 8502
 ! ---
 integer(I4B), parameter ::  iopt_TENS1A = 9001, &
                             iopt_TENS1B = 9002, &
@@ -68,6 +70,8 @@ case("intflwnone"); res = iopt_intflwnone
 case("intflwsome"); res = iopt_intflwsome
 case("rout_gamma"); res = iopt_rout_gamma
 case("no_routing"); res = iopt_no_routing
+case("no_snowmod"); res = iopt_no_snowmod
+case("temp_index"); res = iopt_temp_index
 case("TENS1B");  res = iopt_TENS1B
 case("TENS_1");  res = iopt_TENS_1
 case("FREE_1");  res = iopt_FREE_1
@@ -77,7 +81,7 @@ case("FREE2A");  res = iopt_FREE2A
 case("FREE2B");  res = iopt_FREE2B
 case("WATR_2");  res = iopt_WATR_2
 case default;    res = -999
-endselect  
+endselect
 ! End procedure here
 endfunction desc_str2int
 ! ------------------------------------------
@@ -89,10 +93,17 @@ integer(I4B), intent(in) :: intVal
 character(10) :: res
 ! Start procedure here
 selectcase(intVal)
-! model decisions
-case(iopt_additive_e); res = "additive_e"
+case(iopt_TENS1B); res = "TENS1B"
+case(iopt_TENS_1); res = "TENS_1"
+case(iopt_FREE_1); res = "FREE_1"
+case(iopt_WATR_1); res = "WATR_1"
+case(iopt_TENS_2); res = "TENS_2"
+case(iopt_FREE2A); res = "FREE2A"
+case(iopt_FREE2B); res = "FREE2B"
+case(iopt_WATR_2); res = "WATR_2"
+case(iopt_additive_e); res = "additive_e" 
 case(iopt_multiplc_e); res = "multiplc_e"
-case(iopt_tension1_1); res = "tension1_1"
+case(iopt_tension1_1); res = "tension1_1" 
 case(iopt_tension2_1); res = "tension2_1"
 case(iopt_onestate_1); res = "onestate_1"
 case(iopt_tens2pll_2); res = "tens2pll_2"
@@ -111,15 +122,8 @@ case(iopt_intflwnone); res = "intflwnone"
 case(iopt_intflwsome); res = "intflwsome"
 case(iopt_rout_gamma); res = "rout_gamma"
 case(iopt_no_routing); res = "no_routing"
-! state variables
-case(iopt_TENS1B); res = "TENS1B"
-case(iopt_TENS_1); res = "TENS_1"
-case(iopt_FREE_1); res = "FREE_1"
-case(iopt_WATR_1); res = "WATR_1"
-case(iopt_TENS_2); res = "TENS_2"
-case(iopt_FREE2A); res = "FREE2A"
-case(iopt_FREE2B); res = "FREE2B"
-case(iopt_WATR_2); res = "WATR_2"
+case(iopt_no_snowmod); res = "no_snowmod"
+case(iopt_temp_index); res = "temp_index"
 case default;      res = "UNDFND"
 endselect
 ! End procedure here

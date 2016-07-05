@@ -43,6 +43,9 @@ I=I+1; VNAME(I)='free_2     '; LNAME(I)='free storage in the lower layer        
 I=I+1; VNAME(I)='free_2a    '; LNAME(I)='free storage in the primary baseflow reservoir     '; VUNIT(I)='mm           '
 I=I+1; VNAME(I)='free_2b    '; LNAME(I)='free storage in the secondary baseflow reservoir   '; VUNIT(I)='mm           '
 I=I+1; VNAME(I)='watr_2     '; LNAME(I)='total storage in the lower layer                   '; VUNIT(I)='mm           '
+
+print *, SMODL%iSNOWM
+
 IF(SMODL%iSNOWM.EQ.iopt_temp_index) THEN !loop through snow model bands
  DO ISNW=1,N_BANDS ! output each for each snow model band
   WRITE(TXT_ISNW,'(I2)') ISNW              ! convert band no. to text
