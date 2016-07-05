@@ -15,9 +15,6 @@ F_MASTER = /home/naddor/fuse/
 # Core directory that contains FUSE source code
 F_KORE_DIR = $(F_MASTER)build/FUSE_SRC/
 
-# Location of the compiled modules
-MOD_PATH = $(F_MASTER)
-
 # Define the directory for the executables
 EXE_PATH = $(F_MASTER)bin
 #
@@ -169,13 +166,12 @@ FUSE_ALL = $(UTILMS) $(NRUTIL) $(DATAMS) $(INFOMS) \
 # INCNETCDF = -I/usr/include
 
 # 2. netCDF on NCAR "hydro" cluster
-HDF_PATH  = /usr/local/hdf5
-NCDF_PATH = /usr/local/netcdf4-intel
-LOCL_PATH = /usr/local
-LIBNETCDF = -L$(NCDF_PATH)/lib -lnetcdff -lnetcdf -L$(HDF_PATH)/lib -lhdf5_hl -lhdf5 -L$(LOCL_PATH)/lib -lsz -lz
+HDF_PATH  = /opt/hdf5
+NCDF_PATH = /opt/netcdf4-intel
+SZ_PATH = /opt/szip-2.1
+Z_PATH = /opt/zlib-1.2.8
+LIBNETCDF = -lcurl -L$(NCDF_PATH)/lib -lnetcdff -lnetcdf -L$(HDF_PATH)/lib -lhdf5_hl -lhdf5 -L$(SZ_PATH)/lib -lsz -L$(Z_PATH)/lib -lz
 INCNETCDF = -I$(NCDF_PATH)/include -I$(HDF_PATH)/include
-# NETCDF = $(INCNETCDF) $(LIBNETCDF)
-
 
 # Define the driver program and associated subroutines for the fidelity test
 FUSE__SNOW_DRIVER = \
