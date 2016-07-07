@@ -55,7 +55,7 @@ SELECT CASE(SMODL%iRFERR)
  CASE DEFAULT
   print *, "SMODL%RFERR must be 'additive_e' or 'multiplc_e'"
   STOP
-END SELECT  ! (different upper-layer architechure)
+END SELECT  ! (different upper-layer architecture)
 ! ---------------------------------------------------------------------------------------
 ! (2) UPPER-LAYER ARCHITECTURE
 ! ---------------------------------------------------------------------------------------

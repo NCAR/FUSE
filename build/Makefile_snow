@@ -31,8 +31,8 @@ ENGINE_DIR = $(F_KORE_DIR)FUSE_ENGINE
 #
 # Utility modules
 FUSE_UTILMS= \
-	utilities_dmsl_kit_FUSE.f90 \
 	kinds_dmsl_kit_FUSE.f90 \
+	utilities_dmsl_kit_FUSE.f90 \
 	fuse_fileManager.f90
 UTILMS = $(patsubst %, $(HOOKUP_DIR)/%, $(FUSE_UTILMS))
 
@@ -190,11 +190,14 @@ SNOW_DRIVER__EX = fuse_snow.exe
 # Define the Fortran Compiler
 FC = ifort
 
-# Define flags
+# Define flags - http://wiki.seas.harvard.edu/geos-chem/index.php/Intel_Fortran_Compiler#Optimization_level_for_debugging
 ifeq "$(FC)" "ifort"
  FLAGS1 = -warn all -noerror_limit -FR -O0 -auto -WB -traceback -g -fltconsistency
- FLAGS2 = -debug -warn all -noerror_limit -check all -FR -O0 -auto -WB -traceback -g -fltconsistency
+ FLAGS2 = -debug -warn all -noerror_limit -check all -FR -O0 -auto -WB -traceback -g -fltconsistency -heap-arrays 
+ FLAGS_NORMA = -cpp -w -O2 -auto -noalign -convert big_endian -vec-report0 -fp-model source 
+ FLAGS_DEBUG = -debug all -g -O0 -check bounds -check arg_temp_created -traceback -fpe0 -ftrapuv -heap-arrays
 endif
+
 ifeq "$(FC)" "pgf90"
  FLAGS = -Bstatic -Mbackslash -g -Mchkptr -Mchkstk -Mpgicoff -Minform=inform -Ktrap=divz
 endif
@@ -208,7 +211,7 @@ all: compile_URS install_URS clean
 
 # compile FUSE into a static library
 compile_URS:
-	$(FC) $(FLAGS) $(FUSE_ALL) $(SNOW_DRIVER) \
+	$(FC) $(FLAGS_DEBUG) $(FUSE_ALL) $(SNOW_DRIVER) \
 	$(LIBNETCDF) $(INCNETCDF) -o $(SNOW_DRIVER__EX)
 
 # Remove object files

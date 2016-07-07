@@ -66,6 +66,7 @@ INTEGER(I4B)                           :: NAME_FMT    ! format for the model nam
 ! ---------------------------------------------------------------------------------------
 ! (0) INITIALIZE
 ! ---------------------------------------------------------------------------------------
+
 NAME_FMT=1 ! format for the naming convention
 ICOUNT  =0
 IX_MODEL=0
@@ -77,6 +78,7 @@ MESSAGE ='SELECTMODL/everything is fine'
 ! (1) READ IN THE COMPONENT CHOICE AND MODEL COMPONENT (AND SAVE IN A STRUCTURE)
 ! ---------------------------------------------------------------------------------------
 ! check if there is a need to read data from file
+
 IF (PRESENT(FUSE_ID)) THEN
  READ_FILE = (FUSE_ID < 1)
 ELSE

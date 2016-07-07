@@ -17,7 +17,7 @@ USE model_defnames
 IMPLICIT NONE
 CHARACTER(LEN=11), DIMENSION(200)      :: PNAME       ! parameter names
 CHARACTER(LEN=52), DIMENSION(200)      :: PDESC       ! parameter long names (description of variable)
-CHARACTER(LEN= 8), DIMENSION(200)      :: PUNIT       ! paramerter units
+CHARACTER(LEN= 8), DIMENSION(200)      :: PUNIT       ! parameter units
 INTEGER(I4B)                           :: I           ! loop through parameter sets
 INTEGER(I4B)                           :: IBAND       ! loop through bands
 CHARACTER(LEN=2)                       :: TXT_IBAND   ! band index as a character

@@ -32,7 +32,7 @@ INTEGER(I4B)                           :: ICH         ! looping variable (forall
 print *, 'in get_limits'
 ! read in control file
 IUNIT = 21  ! file unit
-CFILE = TRIM(SETNGS_PATH)//TRIM(CONSTRAINTS)      ! control file info shared in MODULE ddirectory
+CFILE = TRIM(SETNGS_PATH)//TRIM(CONSTRAINTS)      ! control file info shared in MODULE directory
 INQUIRE(FILE=CFILE,EXIST=LEXIST)  ! check that control file exists
 IF (LEXIST) THEN
  ! initialize parameter strings

@@ -33,6 +33,7 @@ else;                    minUnits=minUnitsDef; endif
 do i=minUnits,maxUnits
   inquire(unit=i,opened=opened,exist=xist) ! check unit status
   if(.not.opened.and.xist)then ! un-opened existing unit found
+    print *, 'success, free unit found:', i ! removing this line causes module to crash...TBI
     unt=i; err=0; message="getSpareUnit/ok"; exit
   endif
 enddo

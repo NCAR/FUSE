@@ -49,18 +49,21 @@ REAL(SP),DIMENSION(:),ALLOCATABLE      :: TMPDAT      ! one line of data
 ! ---------------------------------------------------------------------------------------
 ! read in control file
 err=0
-CFILE = TRIM(SETNGS_PATH)//TRIM(FORCINGINFO)      ! control file info shared in MODULE ddirectory
+CFILE = TRIM(SETNGS_PATH)//TRIM(FORCINGINFO)      ! control file info shared in MODULE directory
 INQUIRE(FILE=CFILE,EXIST=LEXIST)  ! check that control file exists
+
 IF (.NOT.LEXIST) THEN
  message = 'f-GETFORCING/control file '//TRIM(CFILE)//' for forcing data does not exist ' 
  err=100; return
 ENDIF
+
 ! read in parameters of the control file
 CALL getSpareUnit(IUNIT,err,message) ! make sure IUNIT is actually available
-IF (err/=0) THEN
- message="f-GETFORCING/weird/&"//message
- err=100; return
+  IF (err/=0) THEN
+  message="f-GETFORCING/weird/&"//message
+  err=100; return
 ENDIF
+
 OPEN(IUNIT,FILE=CFILE,STATUS='old')           
 READ(IUNIT,'(A)') FNAME_INPUT                        ! get input filename
 READ(IUNIT,*) NCOL,IX_PPT,IX_PET,IX_OBSQ,IX_TEMP        ! number of columns and column numbers

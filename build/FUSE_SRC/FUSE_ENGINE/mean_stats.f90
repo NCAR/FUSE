@@ -62,7 +62,7 @@ SS_LOBS = DOT_PRODUCT(DOBS(2:NS),DOBS(1:NS-1))
 SS_LSIM = DOT_PRODUCT(DSIM(2:NS),DSIM(1:NS-1))
 ! compute sum of squared differences between model and observations
 RAWD(:) = QSIM(:) - QOBS(:)
-LOGD(:) = LOG(QSIM(:)+TINY(QSIM)) - LOG(QOBS(:)+TINY(QOBS)) ! TINY ADDED TO AVOID TROUBLES WHEN Q=0
+LOGD(:) = LOG(QSIM(:)+TINY(QSIM(1))) - LOG(QOBS(:)+TINY(QOBS(1))) ! TINY ADDED TO AVOID TROUBLES WHEN Q=0
 SS_RAW  = DOT_PRODUCT(RAWD,RAWD)  ! = SUM( RAWD(:)*RAWD(:) )
 SS_LOG  = DOT_PRODUCT(LOGD,LOGD)  ! = SUM( LOGD(:)*LOGD(:) )
 ! ---------------------------------------------------------------------------------------

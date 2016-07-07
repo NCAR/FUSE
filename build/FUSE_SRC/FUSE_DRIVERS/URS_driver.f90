@@ -90,7 +90,7 @@ IF (LEN_TRIM(NUMPARSET).EQ.0) STOP '8th command-line argument is missing (NUMPAR
 ! get directories and filenames for control files
 call fuse_SetDirsUndPhiles("fuse_MusterDirektor.txt",err=err,message=message)
 if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
-CALL GETNUMERIX()                         ! defines method/parameters used for numerical solution
+CALL GETNUMERIX(ERR,MESSAGE)              ! defines method/parameters used for numerical solution
 ! define basin desired
 ! convert command-line arguments to integer flags and real numbers
 FORCINGINFO = 'forcinginfo.'//TRIM(MBASIN_ID)//'.txt'
@@ -121,13 +121,13 @@ SOLUTION_METHOD, TEMPORAL_ERROR_CONTROL, ERR_TRUNC_ABS, ERR_TRUNC_REL
 CALL UNIQUEMODL(NMOD)           ! get nmod unique models
 CALL GETPARMETA(ERR,MESSAGE)    ! read parameter metadata (parameter bounds etc.)
 IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
-! Identify a single model (read control file ../DataFiles/m_decisions.txt)
-CALL SELECTMODL(FUSE_ID,ERR=ERR,MESSAGE=MESSAGE)
+! Identify a single model (read control file ../fuse_zDecisions.txt)
+CALL SELECTMODL(ERR=ERR,MESSAGE=MESSAGE)
 IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 ! Define list of states and parameters for the current model
 ! Read data from the "BATEA-compliant" ASCII files
 CALL GETFORCING(INFERN_START,NTIM) ! read forcing data
-IF (SMODL%iSNOWM.EQ.iopt_temp_index) CALL GET_MBANDS() ! read band data if snow model 
+IF (SMODL%iSNOWM.EQ.iopt_temp_index) CALL GET_MBANDS(err,message) ! read band data if snow model 
 CALL ASSIGN_STT()        ! state definitions are stored in module model_defn
 CALL ASSIGN_FLX()        ! flux definitions are stored in module model_defn
 CALL ASSIGN_PAR()        ! parameter definitions are stored in module multiparam
