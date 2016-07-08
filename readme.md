@@ -58,9 +58,9 @@ Plot the content of the input and output files, for instance using the code in S
 
 ##F. Calibrate FUSE using the shuffled complex evolution method 
 1. The code of the shuffled complex evolution method (SCE, in file `$(MASTER)/build/FUSE_SRC/FUSE_SCE/sce.f`, [Duan et al., 1992](http://dx.doi.org/10.1029/91WR02985)) was written in F77. It must be compiled separately. Compile it with ifort or whichever F77 compiler you like. We use the following flags: 
-```
-ifort -c -fixed -O3 -r8 sce.f  
-```
+  ```
+  ifort -c -fixed -O3 -r8 sce.f  
+  ```
 
 2. If necessary, rename the compiled file, so that it can be found by `$(MASTER)/build/FUSE_SRC/FUSE_SCE/URS_driver_sce.f90`, which by default will be looking for a file named `sce.o`.
 
