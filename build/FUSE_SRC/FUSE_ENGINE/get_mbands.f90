@@ -16,7 +16,7 @@ SUBROUTINE GET_MBANDS(err,message)
 ! ---------------------------------------------------------------------------------------
 use nrtype,only:I4B,LGT,SP
 use utilities_dmsl_kit_FUSE,only:getSpareUnit,stripTrailString
-USE fuse_fileManager,only:SETNGS_PATH,MBANDS_INFO     ! defines data directory 
+USE fuse_fileManager,only:INPUT_PATH,SETNGS_PATH,MBANDS_INFO     ! defines data directory 
 USE multibands,only:N_BANDS,MBANDS,Z_FORCING          ! model band structures
 IMPLICIT NONE
 ! dummies
@@ -44,7 +44,9 @@ REAL(SP),DIMENSION(:),ALLOCATABLE      :: TMPDAT      ! one line of data
 ! ---------------------------------------------------------------------------------------
 ! read in control file
 err=0
-CFILE = TRIM(SETNGS_PATH)//MBANDS_INFO      ! control file info shared in MODULE ddirectory
+CFILE = TRIM(SETNGS_PATH)//MBANDS_INFO      ! control file info shared in MODULE directory
+print *, 'Elevation bands info file:', CFILE
+
 INQUIRE(FILE=CFILE,EXIST=LEXIST)  ! check that control file exists
 IF (.NOT.LEXIST) THEN
  message='f-GET_MBANDS/control file "'//TRIM(CFILE)//'" for band data does not exist ' 
@@ -77,7 +79,7 @@ IF (ANY(IERR.NE.0)) THEN
  err=100; return
 ENDIF
 JBAND = 0
-BFILE = TRIM(SETNGS_PATH)//FNAME_INPUT
+BFILE = TRIM(INPUT_PATH)//FNAME_INPUT
 INQUIRE(FILE=BFILE,EXIST=LEXIST)  ! check that control file exists
 IF (.NOT.LEXIST) THEN
  message='f-GET_MBANDS/band data file '//TRIM(BFILE)//' does not exist '

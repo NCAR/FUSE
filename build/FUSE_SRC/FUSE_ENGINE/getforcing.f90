@@ -15,7 +15,7 @@ SUBROUTINE GETFORCING(INFERN_START,NTIM,err,message)
 ! ---------------------------------------------------------------------------------------
 use nrtype,only:I4B,LGT,SP
 use utilities_dmsl_kit_FUSE,only:getSpareUnit,stripTrailString
-USE fuse_fileManager,only:SETNGS_PATH,FORCINGINFO     ! defines data directory 
+USE fuse_fileManager,only:INPUT_PATH,SETNGS_PATH,FORCINGINFO     ! defines data directory 
 USE multiforce,only:AFORCE,DELTIM,ISTART,NUMTIM       ! model forcing structures
 USE multiroute,only:AROUTE                            ! model routing structure
 IMPLICIT NONE
@@ -49,7 +49,9 @@ REAL(SP),DIMENSION(:),ALLOCATABLE      :: TMPDAT      ! one line of data
 ! ---------------------------------------------------------------------------------------
 ! read in control file
 err=0
+
 CFILE = TRIM(SETNGS_PATH)//TRIM(FORCINGINFO)      ! control file info shared in MODULE directory
+print *, 'Forcing info file:', CFILE
 INQUIRE(FILE=CFILE,EXIST=LEXIST)  ! check that control file exists
 
 IF (.NOT.LEXIST) THEN
@@ -69,6 +71,7 @@ READ(IUNIT,'(A)') FNAME_INPUT                        ! get input filename
 READ(IUNIT,*) NCOL,IX_PPT,IX_PET,IX_OBSQ,IX_TEMP        ! number of columns and column numbers
 READ(IUNIT,*) NHEAD,WARM_START,INFERN_START,INFERN_END  ! n header, start warm-up, start inference, end inference
 CLOSE(IUNIT)
+
 ! subtract the header lines from the data indices
 WARM_START   = WARM_START   - NHEAD
 INFERN_START = INFERN_START - NHEAD
@@ -100,7 +103,9 @@ AROUTE(1:NSTEPS)%Q_ACCURATE = -9999._SP
 ! ---------------------------------------------------------------------------------------
 ! read data
 JTIME = 0
-FFILE = TRIM(SETNGS_PATH)//FNAME_INPUT
+FFILE = TRIM(INPUT_PATH)//FNAME_INPUT
+print *, 'Forcing file:', FFILE
+
 INQUIRE(FILE=FFILE,EXIST=LEXIST)  ! check that control file exists
 IF (.NOT.LEXIST) THEN
  message='f-getforcing/forcing data file '//TRIM(FFILE)//' does not exist '
@@ -112,10 +117,13 @@ IF (err/=0) THEN
  err=100; return
 ENDIF
 OPEN(IUNIT,FILE=FFILE,STATUS='old')
+
+print *, 'Number of header lines', NHEAD
 ! read header
 DO IHEAD=1,NHEAD
- IF (IHEAD.EQ.2) THEN
+ IF (IHEAD.EQ.NHEAD-1) THEN ! the last line of the header contains the time step
   READ(IUNIT,*) DELTIM   ! time interval of the data (shared in module multiforce)
+  print *, 'Time step:', DELTIM
  ELSE
   READ(IUNIT,*) TMPTXT   ! descriptive text
  ENDIF

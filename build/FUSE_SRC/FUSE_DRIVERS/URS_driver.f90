@@ -93,8 +93,8 @@ if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
 CALL GETNUMERIX(ERR,MESSAGE)              ! defines method/parameters used for numerical solution
 ! define basin desired
 ! convert command-line arguments to integer flags and real numbers
-FORCINGINFO = 'forcinginfo.'//TRIM(MBASIN_ID)//'.txt'
-MBANDS_INFO = 'mbands_info.'//TRIM(MBASIN_ID)//'.txt'
+FORCINGINFO = 'forcing.info.'//TRIM(MBASIN_ID)//'.txt'
+MBANDS_INFO = 'elevbands.info.'//TRIM(MBASIN_ID)//'.txt'
 READ(FMODEL_ID,*) FUSE_ID                 ! integer defining FUSE model
 READ(NSOLUTION,*) SOLUTION_METHOD         ! numerical solution (0=implicit, 1=explicit)
 READ(FADAPTIVE,*) TEMPORAL_ERROR_CONTROL  ! identifier for adaptive sub-steps (0=fixed, 1=adaptive)

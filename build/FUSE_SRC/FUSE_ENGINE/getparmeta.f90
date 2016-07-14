@@ -37,6 +37,7 @@ err=0
 IUNIT = 21  ! file unit
 CFILE = TRIM(SETNGS_PATH)//TRIM(CONSTRAINTS)      ! control file info shared in MODULE ddirectory
 INQUIRE(FILE=CFILE,EXIST=LEXIST)  ! check that control file exists
+print *, CFILE
 IF (.not.LEXIST) THEN
  message="f-GETPARMETA/parameter constraints file '"//trim(CFILE)//"' does not exist "
  err=100; return
