@@ -57,7 +57,7 @@ These arguments override the information provided in the control files, specific
 Plot the content of the input and output files, for instance using the code in Sections 1 to 6 of `$(MASTER)/r_scripts/plot_fuse_input_output.R`. This will make basic consistency tests, e.g. check that the length of the input and output time series and the indices in the settings file are consistent. Since parameter values were obtained from a uniform random sampling, do not expect a good fit of the observed discharge at this stage.
 
 ##F. Calibrate FUSE using the shuffled complex evolution method 
-1. The code of the shuffled complex evolution method (SCE, in file `$(MASTER)/build/FUSE_SRC/FUSE_SCE/sce.f`, [Duan et al., 1992](http://dx.doi.org/10.1029/91WR02985)) was written in F77. It must be compiled separately. Compile it with ifort or whichever F77 compiler you like. We use the following flags: 
+1. The code of the shuffled complex evolution method (SCE, in file `$(MASTER)/build/FUSE_SRC/FUSE_SCE/sce.f`, [Duan et al., 1992](http://dx.doi.org/10.1029/91WR02985)) was written in F77, so it must be compiled separately. We compile it using `ifort` and the following flags: 
   ```
   ifort -c -fixed -O3 -r8 sce.f  
   ```
