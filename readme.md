@@ -57,7 +57,7 @@ These arguments override the information provided in the control files, specific
 Plot the content of the input and output files, for instance using the code in Sections 1 to 6 of `$(MASTER)/r_scripts/plot_fuse_input_output.R`. This will make basic consistency tests, e.g. check that the length of the input and output time series and the indices in the settings file are consistent. Since parameter values were obtained from a uniform random sampling, do not expect a good fit of the observed discharge at this stage.
 
 ##F. Calibrate FUSE using the shuffled complex evolution method 
-1. The code of the shuffled complex evolution method (SCE, in file `$(MASTER)/build/FUSE_SRC/FUSE_SCE/sce.f`, [Duan et al., 1992](http://dx.doi.org/10.1029/91WR02985)) was written in F77. It must be compiled separately. Compile it with ifort or whichever F77 compiler you like. We use the following flags: 
+1. The code of the shuffled complex evolution method (SCE, in file `$(MASTER)/build/FUSE_SRC/FUSE_SCE/sce.f`, [Duan et al., 1992](http://dx.doi.org/10.1029/91WR02985)) was written in F77, so it must be compiled separately. We compile it using `ifort` and the following flags: 
   ```
   ifort -c -fixed -O3 -r8 sce.f  
   ```
@@ -66,26 +66,25 @@ Plot the content of the input and output files, for instance using the code in S
 
 3. Adapt and compile `$(MASTER)/build/Makefile_sce` following the steps A1 to A3.
 
-4. Calibrate FUSE by adapting and executing one following command lines - the second will take 
-a while to run:
+4. Calibrate FUSE by adapting and executing one following command lines - the second one will take longer to run because of the higher maximum number of trials:
 
-```
-./fuse_URS_sce.exe fuse_direktor_08013000.txt 08013000 070 2 0 1.e-2 1.e-2 1.0000000000 3 50 3 1.e-3
-./fuse_URS_sce.exe fuse_direktor_08013000.txt 08013000 070 2 0 1.e-2 1.e-2 1.0000000000 3 5000 3 1.e-3
-```
+  ```
+  ./fuse_URS_sce.exe fuse_direktor_08013000.txt 08013000 070 2 0 1.e-2 1.e-2 1.0000000000 3 50 3 1.e-3
+  ./fuse_URS_sce.exe fuse_direktor_08013000.txt 08013000 070 2 0 1.e-2 1.e-2 1.0000000000 3 5000 3 1.e-3
+  ```
 
-where `$1` to `$8` are as above, `$9` is the number of calibrated parameter sets desired, `$10` is the maximum number of trials before optimization is terminated, `$11` is the number of shuffling loops the objective function must change by `PCENTO` (max=9), `$12` is the percentage `PCENTO` (1 is 1%).
+  where `$1` to `$8` are as above, `$9` is the number of calibrated parameter sets desired, `$10` is the maximum number of trials before optimization is terminated, `$11` is the number of shuffling loops the objective function must change by `RC` to consider that an optimum has been reached (max=9), `$12` is relative change `RC`.
 
 5. Note that the objective function is RMSE, defined in the file `$(MASTER)/build/FUSE_SRC/FUSE_SCE/fuse_rsme.f90` and called by the wrapper `$(MASTER)/build/FUSE_SCE/functn.f90`.
 
 6. Note that in `$(MASTER)/build/FUSE_SRC/FUSE_SCE/URS_driver_sce.f90` the following line turns off the production 
 of time series outputs to save space: 
 
-```
-OUTPUT_FLAG = .FALSE.    ! .TRUE. if desire time series output
-```
+  ```
+  OUTPUT_FLAG = .FALSE.    ! .TRUE. if desire time series output
+  ```
 
-However, the value of the objective function of each model run is backed up together with parameter values, so that the parameter set associated with the best results can then be run (see Section G below).
+  However, the value of the objective function of each model run is backed up together with parameter values, so that the parameter set associated with the best results can then be run (see Section G below).
 
 ##G. Run FUSE with calibrated parameter values
 1. Adapt and compile `$(MASTER)/build/Makefile_sce_merge` following the steps A1 to A3.
@@ -94,12 +93,11 @@ However, the value of the objective function of each model run is backed up toge
 
 3. Run FUSE for the parameter set leading to the lowest RMSE by adapting and executing the following command line:
 
-```
-./fuse_URS_sce_merge.exe fuse_direktor_08013000.txt 08013000 sce_ncfiles_08013000.txt
-```
+  ```
+  ./fuse_URS_sce_merge.exe fuse_direktor_08013000.txt 08013000 sce_ncfiles_08013000.txt
+  ```
 
-where
-`$1` is the muster file as above, `$2` is the ID of the basin run as above and `$3` is the name of the file containing the name of the NetCDF file produced by SCE.
+  where `$1` is the muster file as above, `$2` is the ID of the basin run as above and `$3` is the name of the file containing the name of the NetCDF file produced by SCE.
 
 ##H. Check the calibration results
 Explore the calibrated parameter values and plot the calibrated model runs, e.g. using the code in Sections 7 and 8 of `$(MASTER)/r_scripts/plot_fuse_input_output.R`. This will plot the evolution of the NSE through the calibration and check that the NSE values returned by SCE are consistent with those computed in R using the observed discharge from the input file and the simulated discharge from the output file.
