@@ -55,6 +55,7 @@ ENDIF
 ! loop through model bands
 DO ISNW=1,N_BANDS
  ! calculate forcing data for each band
+
  DZ = MBANDS(ISNW)%Z_MID - Z_FORCING
  TEMP_Z = MFORCE%TEMP + DZ*MPARAM%LAPSE/1000._sp ! adjust for elevation using lapse rate
  IF (DZ.GT.0._sp) THEN ! adjust for elevation using OPG

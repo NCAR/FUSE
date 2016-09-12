@@ -3,6 +3,7 @@
 ! --------
 ! Martyn Clark
 ! Modified by Brian Henn to include snow model, 6/2013
+! Modified by Nans Addor to deal with missing values, 8/2016
 ! ---------------------------------------------------------------------------------------
 MODULE multiforce
  USE nrtype
@@ -25,6 +26,7 @@ MODULE multiforce
  TYPE(FDATA)                           :: MFORCE     ! model forcing data for a single time step 
  INTEGER(I4B)                          :: ISTART     ! index for start of the inference period
  INTEGER(I4B)                          :: NUMTIM     ! number of time steps
+ INTEGER(I4B)                          :: NA_VALUE   ! integer designating missing values
  REAL(SP)                              :: DELTIM     ! length of time step (days)
  ! --------------------------------------------------------------------------------------
 END MODULE multiforce

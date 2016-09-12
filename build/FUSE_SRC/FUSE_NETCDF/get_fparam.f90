@@ -3,10 +3,12 @@ SUBROUTINE GET_FPARAM(NETCDF_FILE,IMOD,MPAR,XPAR)
 ! Creator:
 ! --------
 ! Martyn Clark, 2009
+! Modified by Nans Addor - previously the parameter set extracted was the last one,
+! now it is the one associated with the lowest RMSE
 ! ---------------------------------------------------------------------------------------
 ! Purpose:
 ! --------
-! Read parameters in LPARAM from the last parameter set in the specified NetCDF file
+! Read parameters in LPARAM from the parameter set with the lowest RMSE in the specified NetCDF file
 ! ---------------------------------------------------------------------------------------
 USE nrtype                                            ! variable types, etc.
 USE fuse_fileManager, only : OUTPUT_PATH              ! define output path
@@ -17,14 +19,16 @@ CHARACTER(LEN=*), INTENT(IN)           :: NETCDF_FILE ! NetCDF file name
 INTEGER(I4B), INTENT(IN)               :: IMOD        ! model index
 INTEGER(I4B), INTENT(IN)               :: MPAR        ! number of model parameters
 ! internal
+INTEGER(I4B), DIMENSION(2)             :: INDX        ! indices for parameter extraction
 LOGICAL(LGT)                           :: LEXIST      ! .TRUE. if NetCDF file exists
 INTEGER(I4B)                           :: IERR        ! error code
 INTEGER(I4B)                           :: NCID        ! NetCDF file ID
 INTEGER(I4B)                           :: IDIMID      ! NetCDF dimension ID
 INTEGER(I4B)                           :: IVARID      ! NetCDF variable ID
 INTEGER(I4B)                           :: I_RAW_RMSE  ! NetCDF RMSE ID
-INTEGER(I4B), DIMENSION(1)             :: I_OPT_PARA  ! index of the optimum parameter set (e.g. lowest RSME)
+INTEGER(I4B), DIMENSION(1)             :: I_OPT_PARA  ! index of the optimum parameter set (e.g. lowest RSME) - MUST BE DIMENSIONED
 REAL(DP), DIMENSION(:),ALLOCATABLE     :: RAW_RMSE    ! RMSE for each parameter set
+REAL(DP), DIMENSION(1)                 :: LOWEST_RAW_RMSE    ! LOWEST RAW RMSE
 INTEGER(I4B)                           :: IPAR        ! loop through model parameters
 INTEGER(I4B)                           :: NPAR        ! number of parameter sets in output file
 REAL(DP)                               :: APAR        ! parameter value (single precision)
@@ -48,16 +52,22 @@ IERR = NF_OPEN(TRIM(OUTPUT_PATH)//TRIM(NETCDF_FILE),NF_NOWRITE,NCID); CALL HANDL
  IERR = NF_INQ_DIMLEN(NCID,IDIMID,NPAR); CALL HANDLE_ERR(IERR)
 
  ! extract RMSE for each parameter set
+ print *, 'NPAR - total number of parameter sets produced by SCE', NPAR
+ print *, 'Number of model parameters:', MPAR
+
  ALLOCATE(RAW_RMSE(NPAR),STAT=IERR); IF(IERR.NE.0) STOP ' problem allocating space for RAW_RMSE '
  
  IERR = NF_INQ_VARID(NCID,'raw_rmse',I_RAW_RMSE); CALL HANDLE_ERR(IERR)
  IERR = NF_GET_VAR_DOUBLE(NCID,I_RAW_RMSE,RAW_RMSE); CALL HANDLE_ERR(IERR)
 
- I_OPT_PARA = MINLOC(RAW_RMSE)
-
- print *, 'INDEX OF LOWEST RMSE', I_OPT_PARA,'RMSE',RAW_RMSE(I_OPT_PARA)
+ I_OPT_PARA = MINLOC(RAW_RMSE,DIM=1) !TODO: use argument MASK to find best parameter set for each of the SCE run
+ LOWEST_RAW_RMSE=RAW_RMSE(I_OPT_PARA)
+ print *, 'Index of parameter set with lowest RMSE =',I_OPT_PARA
+ print *, 'Lowest RMSE =',LOWEST_RAW_RMSE
  
-  DEALLOCATE(RAW_RMSE,STAT=IERR); IF (IERR.NE.0) STOP ' problem deallocating ATIME/TDATA '
+ DEALLOCATE(RAW_RMSE,STAT=IERR); IF (IERR.NE.0) STOP ' problem deallocating ATIME/TDATA '
+
+ PRINT *, 'Reading from NetCDF file parameter values for best parameter set:'
 
  ! loop through parameters
  DO IPAR=1,NUMPAR
@@ -66,12 +76,17 @@ IERR = NF_OPEN(TRIM(OUTPUT_PATH)//TRIM(NETCDF_FILE),NF_NOWRITE,NCID); CALL HANDL
   IERR = NF_INQ_VARID(NCID,TRIM(LPARAM(IPAR)%PARNAME),IVARID); CALL HANDLE_ERR(IERR)
 
   ! get parameter value for the optimal parameter set
-  IERR = NF_GET_VAR1_DOUBLE(NCID,IVARID,(/IMOD,I_OPT_PARA/),APAR); CALL HANDLE_ERR(IERR) 
-  
+  INDX = (/IMOD,I_OPT_PARA/)
+  IERR = NF_GET_VAR1_DOUBLE(NCID,IVARID,INDX,APAR); CALL HANDLE_ERR(IERR) 
+
   ! put parameter value in the output vector
   XPAR(IPAR) = APAR
 
+  print *, 'PARAM VALUES:',LPARAM(IPAR)%PARNAME, '->', APAR
+
  END DO
+
+ PRINT *, 'Best parameter set loaded into XPAR!'
 
 ! close NetCDF file
 IERR = NF_CLOSE(NCID)

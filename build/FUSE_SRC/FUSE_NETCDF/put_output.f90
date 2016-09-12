@@ -29,8 +29,10 @@ include 'netcdf.inc'                                  ! use netCDF libraries
 ! ---------------------------------------------------------------------------------------
 ! open file
 IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,NCID); CALL HANDLE_ERR(IERR)
- ! define indices for model output
+
+  ! define indices for model output
  INDX = (/ITIM,IMOD,IPAR/)
+
  ! loop through time-varying model output
  DO IVAR=1,NOUTVAR
   ! check if there is a need to write the variable

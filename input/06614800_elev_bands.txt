@@ -1,0 +1,10 @@
+Elevation band data for MICHIGAN RIVER NEAR CAMERON PASS, CO.
+3317 ! forcing site elevation, i.e. mean catchment elevation [m]
+band no.   mid-point elev. [m]   fraction of basin area [-]
+ 1         3150                  0.0187343902
+ 2         3250                  0.1641858537
+ 3         3350                  0.2484080488
+ 4         3450                  0.3027424390
+ 5         3550                  0.1631224390
+ 6         3650                  0.0628426829
+ 7         3750                  0.0104221951

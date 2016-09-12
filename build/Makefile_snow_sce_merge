@@ -1,6 +1,7 @@
 #========================================================================
-# Makefile to compile FUSE 
-# Creates version SNOWv3, Brian Henn, 5/2013
+# Makefile to SCE_MERGE 
+# Original file by Brian Henn, 5/2013
+# Modified by Nans Addor to include snow routine
 #========================================================================
 #
 #
@@ -25,7 +26,7 @@ EXE_PATH = $(F_MASTER)bin
 # Define directories
 NUMREC_DIR = $(F_KORE_DIR)FUSE_NR
 HOOKUP_DIR = $(F_KORE_DIR)FUSE_HOOK
-DRIVER_DIR = $(F_KORE_DIR)FUSE_DRIVERS
+DRIVER_DIR = $(F_KORE_DIR)FUSE_SCE
 NETCDF_DIR = $(F_KORE_DIR)FUSE_NETCDF
 ENGINE_DIR = $(F_KORE_DIR)FUSE_ENGINE
 #
@@ -143,6 +144,7 @@ MODRUN = $(patsubst %, $(ENGINE_DIR)/%, $(FUSE_MODRUN))
 FUSE_NETCDF = \
 	handle_err.f90 \
 	extractor.f90 juldayss.f90 caldatss.f90 \
+	get_fparam.f90 \
 	get_smodel.f90 \
 	def_params.f90 \
 	def_output.f90 \
@@ -162,10 +164,10 @@ FUSE_ALL = $(UTILMS) $(NRUTIL) $(DATAMS) $(INFOMS) \
 #========================================================================
 
 # Define the NetCDF libraries and path to include files
-# LIBNETCDF = -L/usr/share/info -lnetcdff -lnetcdf
-# INCNETCDF = -I/usr/include
+# Note 1: the order of the libraries matters, e.g. -lcurl should come
+# before netcdf libraries 
+# Note 2: on hydro-c1, /usr/local is a copy (via symbolic link) of /opt
 
-# 2. netCDF on NCAR "hydro" cluster
 HDF_PATH  = /opt/hdf5
 NCDF_PATH = /opt/netcdf4-intel
 SZ_PATH = /opt/szip-2.1
@@ -175,13 +177,12 @@ INCNETCDF = -I$(NCDF_PATH)/include -I$(HDF_PATH)/include
 
 # Define the driver program and associated subroutines for the fidelity test
 FUSE__SNOW_DRIVER = \
-	sobol.f90 \
 	fuse_rmse.f90 \
-	URS_driver.f90
+	sce_merge_snow.f90
 SNOW_DRIVER = $(patsubst %, $(DRIVER_DIR)/%, $(FUSE__SNOW_DRIVER))
 
 # Define the executables
-SNOW_DRIVER__EX = fuse_snow.exe
+SNOW_DRIVER__EX = fuse_snow_sce_merge.exe
 
 #========================================================================
 # PART 3: Compile the puppy
@@ -201,10 +202,6 @@ endif
 ifeq "$(FC)" "pgf90"
  FLAGS = -Bstatic -Mbackslash -g -Mchkptr -Mchkstk -Mpgicoff -Minform=inform -Ktrap=divz
 endif
-
-#FLAGS = -O3 -W -v
-
-#.SUFFIXES: .f .o .f90
 
 # Compile
 all: compile_URS install_URS clean

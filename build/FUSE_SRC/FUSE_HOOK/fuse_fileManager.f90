@@ -17,8 +17,8 @@ CHARACTER(LEN=fusePathLen)  :: M_DECISIONS='fuse_zDecisions.txt'    ! definition
 CHARACTER(LEN=fusePathLen)  :: CONSTRAINTS='fuse_zConstraints.txt'  ! definition of parameter constraints
 CHARACTER(LEN=fusePathLen)  :: MOD_NUMERIX='fuse_zNumerix.txt'      ! definition of numerical solution technique
 ! additional control files (not needed by the FUSE engines)
-CHARACTER(LEN=fusePathLen)  :: FORCINGINFO='forcinginfo.txt'  ! info on forcing data files
-CHARACTER(LEN=fusePathLen)  :: MBANDS_INFO='mbands_info.txt'  ! info on basin band data files
+CHARACTER(LEN=fusePathLen)  :: FORCINGINFO='forcing.info.txt'  ! info on forcing data files
+CHARACTER(LEN=fusePathLen)  :: MBANDS_INFO='elevbands.info.txt'  ! info on basin band data files
 CHARACTER(LEN=fusePathLen)  :: BATEA_PARAM='batea_param.txt'  ! definition of BATEA parameters
 !----------------------------------------------------
 contains
@@ -68,10 +68,14 @@ elseif(haveFMG)then
   fuseFileManager=fuseFileManagerIn
   i=scan(fuseFileManager,pathDelim,back=.true.)
   if(i>0)defpath=fuseFileManager(:i-1)//pathDelim(1:1)
+  print *, 'fuseFileManager:', TRIM(fuseFileManager)
+
 elseif(haveMUS)then
   fuseMusterDirektor=fuseMusterDirektorIn
   i=scan(fuseMusterDirektor,pathDelim,back=.true.)
   if(i>0)defpath=fuseMusterDirektor(:i-1)//pathDelim(1:1)
+  print *, 'fuseMusterDirektor:', TRIM(fuseMusterDirektor)
+
 else
   message="f-"//procnam//"/mustSpecifyEither&
            &[fuseMusterDirektor.or.fuseFileManager]"

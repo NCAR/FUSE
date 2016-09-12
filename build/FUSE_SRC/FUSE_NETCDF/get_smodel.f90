@@ -3,6 +3,7 @@ SUBROUTINE GET_SMODEL(NETCDF_FILE,IMOD)
 ! Creator:
 ! --------
 ! Martyn Clark, 2009
+! Modified by Nans Addor to include snow module
 ! ---------------------------------------------------------------------------------------
 ! Purpose:
 ! --------
@@ -55,6 +56,8 @@ IERR = NF_OPEN(TRIM(OUTPUT_PATH)//TRIM(NETCDF_FILE),NF_NOWRITE,NCID); CALL HANDL
  ! get variable name
  IERR = NF_INQ_VARID(NCID,'model_description',IVARID); CALL HANDLE_ERR(IERR)
  ! loop through descriptors
+ PRINT *, 'Number of model decisions:', NDESC
+
  DO IDESC=1,NDESC
   ! define indices
   ISTART = (/    1,IDESC,IMOD/)   ! starting position of array
@@ -63,6 +66,8 @@ IERR = NF_OPEN(TRIM(OUTPUT_PATH)//TRIM(NETCDF_FILE),NF_NOWRITE,NCID); CALL HANDL
   IERR = NF_GET_VARA_TEXT(NCID,IVARID,ISTART,ICOUNT,M_CHOICE); CALL HANDLE_ERR(IERR)
 
  !print *,'TEST 6',desc_str2int(M_CHOICE)
+
+  PRINT *, 'MODEL CHOICE: ', desc_str2int(M_CHOICE),'-> ', M_CHOICE
 
   ! put text string in structure
   IF (IDESC.EQ.1) SMODL%iRFERR = desc_str2int(M_CHOICE)
@@ -73,8 +78,11 @@ IERR = NF_OPEN(TRIM(OUTPUT_PATH)//TRIM(NETCDF_FILE),NF_NOWRITE,NCID); CALL HANDL
   IF (IDESC.EQ.6) SMODL%iESOIL = desc_str2int(M_CHOICE)
   IF (IDESC.EQ.7) SMODL%iQINTF = desc_str2int(M_CHOICE)
   IF (IDESC.EQ.8) SMODL%iQ_TDH = desc_str2int(M_CHOICE)
+  IF (IDESC.EQ.9) SMODL%iSNOWM = desc_str2int(M_CHOICE)
+
   !print *, TXTVEC(1:NCHAR) 
  END DO
+
 IERR = NF_CLOSE(NCID); CALL HANDLE_ERR(IERR)
 ! ---------------------------------------------------------------------------------------
 END SUBROUTINE GET_SMODEL

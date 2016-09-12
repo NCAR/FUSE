@@ -2,9 +2,10 @@ PROGRAM URS_DRIVER
 ! ---------------------------------------------------------------------------------------
 ! Creator:
 ! Martyn Clark, 2011
-! Modified by Nans Addor, 2015-2016
+! Modified by Brian Henn to include snow model, 6/2013
+! Modified by Nans Addor to include SCE
 ! ---------------------------------------------------------------------------------------
-! Original purpose:
+! Purpose:
 ! Driver program to perform multiple runs of a model by uniform random sampling from the
 !  feasible parameter space.
 !
@@ -13,10 +14,12 @@ PROGRAM URS_DRIVER
 ! ---------------------------------------------------------------------------------------
 USE nrtype                                                ! variable types, etc.
 USE fuse_fileManager,only:fuse_SetDirsUndPhiles,&         ! sets directories and filenames
-     OUTPUT_PATH,FORCINGINFO
+     SETNGS_PATH,OUTPUT_PATH,FORCINGINFO,MBANDS_INFO
 ! data modules
 USE model_defn,nstateFUSE=>nstate                         ! model definition structures
+USE model_defnames                                        ! defines the integer model options
 USE multiforce, ONLY: AFORCE, DELTIM, NUMTIM              ! data interval = maximum model time step
+USE multibands                                            ! basin band stuctures
 USE multiparam, ONLY: LPARAM, PARATT, NUMPAR              ! parameter metadata structures
 USE multiroute, ONLY: AROUTE                              ! model routing structures
 USE multistats                                            ! model statistics structures
@@ -28,12 +31,11 @@ USE par_insert_module                                     ! inserts model parame
 USE model_numerix                                         ! defines decisions on model numerix
 ! access to model simulation modules
 USE fuse_rmse_module                                      ! run model and compute the root mean squared error
-
 IMPLICIT NONE
 ! ---------------------------------------------------------------------------------------
 ! (0) GET COMMAND-LINE ARGUMENTS...
 ! ---------------------------------------------------------------------------------------
-CHARACTER(LEN=80)                      :: MUSTRFILE='                                                                                ' ! path/name of muster file
+CHARACTER(LEN=1024)                    :: FFMFILE='        ' ! name of fuse_file_manager file
 CHARACTER(LEN=12)                      :: MBASIN_ID='      ' ! MOPEX basin ID
 CHARACTER(LEN=6)                       :: FMODEL_ID='      ' ! integer defining FUSE model
 CHARACTER(LEN=6)                       :: NSOLUTION='      ' ! numerical solution (0=explicit Euler; 1=explicit Heun; 2=implicit Euler; 3=implicit Heun, 4=semi-implicit)
@@ -64,27 +66,22 @@ INTEGER(I4B)                           :: ONEMOD=1        ! just specify one mod
 ! ---------------------------------------------------------------------------------------
 INTEGER(I4B)                           :: IPAR    ! loop thru model parameters
 INTEGER(I4B)                           :: IPSET   ! loop thru model parameter sets
-INTEGER(I4B)                           :: NUMPSET ! ! number of parameter sets
+INTEGER(I4B)                           :: NUMPSET ! number of parameter sets
 TYPE(PARATT)                           :: PARAM_META ! parameter metadata (model parameters)
-!REAL(SP), DIMENSION(:), ALLOCATABLE    :: BL      ! ! vector of lower parameter bounds
-!REAL(SP), DIMENSION(:), ALLOCATABLE    :: BU      ! ! vector of upper parameter bounds
-!REAL(SP), DIMENSION(:), ALLOCATABLE    :: APAR    ! model parameter set
-!INTEGER(KIND=4)                        :: ISEED   ! seed for the random sequence
-!REAL(KIND=4),DIMENSION(:), ALLOCATABLE :: URAND   ! vector of quasi-random numbers U[0,1]
+REAL(SP), DIMENSION(:), ALLOCATABLE    :: BL      ! vector of lower parameter bounds
+REAL(SP), DIMENSION(:), ALLOCATABLE    :: BU      ! vector of upper parameter bounds
+REAL(SP), DIMENSION(:), ALLOCATABLE    :: APAR    ! model parameter set
+INTEGER(KIND=4)                        :: ISEED   ! seed for the random sequence
+REAL(KIND=4),DIMENSION(:), ALLOCATABLE :: URAND   ! vector of quasi-random numbers U[0,1]
 REAL(SP)                               :: RMSE    ! error from the simulation
 ! ---------------------------------------------------------------------------------------
 ! (3) SCE VARIABLES
 ! ---------------------------------------------------------------------------------------
-REAL(MSP), DIMENSION(16)               :: A       ! ! parameter set
 REAL(MSP)                              :: AF      ! objective function value
-REAL(MSP), DIMENSION(16)               :: BL      ! ! lower bound of model parameters
-REAL(MSP), DIMENSION(16)               :: BU      ! ! upper bound of model parameters
-REAL(MSP), DIMENSION(16)               :: URAND   ! vector of quasi-random numbers U[0,1]
 INTEGER(I4B)                           :: NOPT    ! number of parameters to be optimized
 INTEGER(I4B)                           :: KSTOP   ! number of shuffling loops the value must change by PCENTO
 INTEGER(I4B)                           :: MAXN    ! maximum number of trials before optimization is terminated
 REAL(MSP)                              :: PCENTO  ! the percentage
-INTEGER(KIND=4)				           :: ISEED   ! starting seed for the random sequence
 CHARACTER(LEN=3)                       :: CSEED   ! starting seed converted to a character
 INTEGER(I4B)                           :: NGS     ! # complexes in the initial population
 INTEGER(I4B)                           :: NPG     ! # points in each complex
@@ -95,13 +92,12 @@ INTEGER(I4B)                           :: INIFLG  ! 1 = include initial point in
 INTEGER(I4B)                           :: IPRINT  ! 0 = supress printing
 INTEGER(I4B)                           :: ISCE    ! unit number for SCE write
 REAL(MSP)                              :: FUNCTN  ! function name for the model run
-
 ! ---------------------------------------------------------------------------------------
 ! (0) READ COMMAND LINE ARGUMENTS
 ! ---------------------------------------------------------------------------------------
 ! read command-line arguments
-CALL GETARG(1,MUSTRFILE)  ! path/name of muster file
-CALL GETARG(2,MBASIN_ID)  ! MOPEX basin ID
+CALL GETARG(1,FFMFILE)    ! name of fuse_file_manager file
+CALL GETARG(2,MBASIN_ID)  ! basin ID
 CALL GETARG(3,FMODEL_ID)  ! integer defining FUSE model
 CALL GETARG(4,NSOLUTION)  ! numerical solution (0=explicit, 1=implicit)
 CALL GETARG(5,FADAPTIVE)  ! identifier for adaptive sub-steps (0=fixed, 1=adaptive)
@@ -114,7 +110,7 @@ CALL GETARG(11,MAX_SL)    ! number of shuffling loops the objective function mus
 CALL GETARG(12,PERC)      ! percentage PCENTO (1 is 1%)
 
 ! check command-line arguments
-IF (LEN_TRIM(MUSTRFILE).EQ.0) STOP '1st command-line argument is missing (MUSTRFILE)'
+IF (LEN_TRIM(FFMFILE).EQ.0)   STOP '1st command-line argument is missing (FFMFILE)'
 IF (LEN_TRIM(MBASIN_ID).EQ.0) STOP '2nd command-line argument is missing (MBASIN_ID)'
 IF (LEN_TRIM(FMODEL_ID).EQ.0) STOP '3rd command-line argument is missing (FMODEL_ID)'
 IF (LEN_TRIM(NSOLUTION).EQ.0) STOP '4th command-line argument is missing (NSOLUTION)'
@@ -123,21 +119,25 @@ IF (LEN_TRIM(TRUNC_ABS).EQ.0) STOP '6th command-line argument is missing (TRUNC_
 IF (LEN_TRIM(TRUNC_REL).EQ.0) STOP '7th command-line argument is missing (TRUNC_REL)'
 IF (LEN_TRIM(TSTEP_LEN).EQ.0) STOP '8th command-line argument is missing (TSTEP_LEN)'
 IF (LEN_TRIM(NUMPARSET).EQ.0) STOP '9th command-line argument is missing (NUMPARSET)'
-IF (LEN_TRIM(MAX_T).EQ.0) STOP '10th command-line argument is missing (MAX_T)'
-IF (LEN_TRIM(MAX_SL).EQ.0) STOP '11th command-line argument is missing (MAX_SL)'
-IF (LEN_TRIM(PERC).EQ.0) STOP '12th command-line argument is missing (PERC)'
+IF (LEN_TRIM(MAX_T).EQ.0)  stop 	'10th command-line argument is missing (MAX_T)'
+IF (LEN_TRIM(MAX_SL).EQ.0) STOP 	'11th command-line argument is missing (MAX_SL)'
+IF (LEN_TRIM(PERC).EQ.0) STOP 		'12th command-line argument is missing (PERC)'
+
+! set path to fuse_file_manager
+!FFMFILE=TRIM(SETNGS_PATH)//TRIM(MBASIN_ID)//'_fuse_file_manager.txt'
+print *, 'fuse_file_manager:', TRIM(FFMFILE)
 
 ! get directories and filenames for control files
-call fuse_SetDirsUndPhiles(trim(MUSTRFILE),err=err,message=message)
-if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
+call fuse_SetDirsUndPhiles(fuseFileManagerIn=FFMFILE,err=err,message=message)
 
+if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
+CALL GETNUMERIX(ERR,MESSAGE)              ! defines method/parameters used for numerical solution
+if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
 ! define basin desired
-! FORCINGINFO = 'forcinginfo.'//TRIM(MBASIN_ID)//'.txt' ! commented because it would overwrite file name passed by fileManager
 ! convert command-line arguments to integer flags and real numbers
-
-CALL GETNUMERIX(err,message)              ! defines method/parameters used for numerical solution
-if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
-READ(FMODEL_ID,*) FUSE_ID                 ! integer definining FUSE model
+FORCINGINFO = TRIM(MBASIN_ID)//'_input_info_calib.txt'
+MBANDS_INFO = TRIM(MBASIN_ID)//'_elev_bands_info.txt'
+READ(FMODEL_ID,*) FUSE_ID                 ! integer defining FUSE model
 READ(NSOLUTION,*) SOLUTION_METHOD         ! numerical solution (0=implicit, 1=explicit)
 READ(FADAPTIVE,*) TEMPORAL_ERROR_CONTROL  ! identifier for adaptive sub-steps (0=fixed, 1=adaptive)
 READ(TRUNC_ABS,*) ERR_TRUNC_ABS           ! absolute temporal truncation error tolerance
@@ -160,25 +160,24 @@ SELECT CASE(TEMPORAL_ERROR_CONTROL); CASE(TS_FIXED,TS_ADAPT); CASE DEFAULT;
 END SELECT
 write(*,'(A5,1X,2(I1,1X),2(E12.5,1X),I6,1X,A11,1X,I6)') 'FUSE ', &
 SOLUTION_METHOD, TEMPORAL_ERROR_CONTROL, ERR_TRUNC_ABS, ERR_TRUNC_REL
-
-
 ! ---------------------------------------------------------------------------------------
 ! (1) GET MODEL SETUP -- MODEL DEFINITION, AND PARAMETER AND VARIABLE INFO FOR ALL MODELS
 ! ---------------------------------------------------------------------------------------
-! Read data from the "BATEA-compliant" ASCII files
-CALL GETFORCING(INFERN_START,NTIM)
 ! Define model attributes (valid for all models)
-CALL UNIQUEMODL(NMOD,err,message)   ! get nmod unique models
+CALL UNIQUEMODL(NMOD)           ! get nmod unique models
+CALL GETPARMETA(ERR,MESSAGE)    ! read parameter metadata (parameter bounds etc.)
+
 IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
-CALL GETPARMETA(ERR,MESSAGE)        ! read parameter metadata (parameter bounds etc.)
-IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
-! Identify a single model (read control file ../DataFiles/m_decisions.txt)
-CALL SELECTMODL(FUSE_ID,ISTATUS=ERR,MESSAGE=MESSAGE)
+! Select model: fuse_zDecisions.txt is ignored if FUSE_ID is provided, otherwise model defined by fuse_zDecisions.txt
+CALL SELECTMODL(FUSE_ID,ERR=ERR,MESSAGE=MESSAGE)
 IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 ! Define list of states and parameters for the current model
+! Read data from the "BATEA-compliant" ASCII files
+CALL GETFORCING(INFERN_START,NTIM) ! read forcing data
+IF (SMODL%iSNOWM.EQ.iopt_temp_index) CALL GET_MBANDS(err,message) ! read band data if snow model 
 CALL ASSIGN_STT()        ! state definitions are stored in module model_defn
 CALL ASSIGN_FLX()        ! flux definitions are stored in module model_defn
-CALL ASSIGN_PAR()        ! parameter defintions are stored in module multiparam
+CALL ASSIGN_PAR()        ! parameter definitions are stored in module multiparam
 ! compute derived model parameters (bucket sizes, etc.)
 CALL PAR_DERIVE(ERR,MESSAGE)
 IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
@@ -189,10 +188,7 @@ FNAME_NETCDF = TRIM(OUTPUT_PATH)//'sce_params_'//TRIM(MBASIN_ID)//'_'//TRIM(SMOD
                TRIM(TSTEP_LEN)//'_SCE_'//TRIM(NUMPARSET)//'_'//&
 			   TRIM(MAX_T)//'_'//TRIM(MAX_SL)//'_'//TRIM(PERC)//'.nc' 
 
-
 write(*,'(a)') trim(fname_netcdf)
-
-
 ! Define NetCDF output files (only write parameters and summary statistics)
 ONEMOD=1                 ! one file per model (i.e., model dimension = 1)
 PCOUNT=0                 ! counter for parameter sets evaluated (shared in MODULE multistats)
@@ -200,12 +196,12 @@ OUTPUT_FLAG = .FALSE.    ! .TRUE. if desire time series output
 CALL DEF_PARAMS(ONEMOD)  ! define model parameters (initial CREATE)
 CALL DEF_SSTATS()        ! define summary statistics (REDEF)
 IF (OUTPUT_FLAG) CALL DEF_OUTPUT(NTIM)    ! define model time series (REDEF)
-
 ! --------------------------------------------------------------------------------------
 ! (2) SCE WRAPPER
 ! --------------------------------------------------------------------------------------
 ! assign algorithmic control parameters for SCE
 NOPT   =  NUMPAR         ! number of parameters to be optimized (NUMPAR in module multiparam)
+PRINT *, 'NUMBER OF PARAM PASSED TO SCE WRAPPER', NUMPAR
 !MAXN   = 5000			 ! maximum number of trials before optimization is terminated
 !KSTOP  =      3          ! number of shuffling loops the value must change by PCENTO (MAX=9)
 !PCENTO =      0.001      ! the percentage
@@ -215,25 +211,27 @@ NPS    =    NOPT + 1     ! number of points in a sub-complex
 NSPL   =  2*NOPT + 1     ! number of evolution steps allowed for each complex before shuffling
 MINGS  =  NGS            ! minimum number of complexes required
 INIFLG =  1              ! 1 = include initial point in the population
-IPRINT =  1              ! 0 = supress printing
+IPRINT =  1              ! 0 = suppress printing
 
-! get parameter bounds
-DO IPAR=1,NUMPAR ! loop through parameters and retrive 
+! get parameter bounds and random numbers
+ALLOCATE(APAR(NUMPAR),BL(NUMPAR),BU(NUMPAR),URAND(NUMPAR))
+DO IPAR=1,NUMPAR ! loop through parameters and retrieve 
+	
  CALL GETPAR_STR(LPARAM(IPAR)%PARNAME,PARAM_META)
+ 
  BL(IPAR) = PARAM_META%PARLOW
  BU(IPAR) = PARAM_META%PARUPP
-END DO
 
+END DO
 ! loop through parameter sets
 DO IPSET=1,NUMPSET
-
 	! assign new seed
 	ISEED=IPSET
 	
 	! get new parameter sets using seed
 	CALL I4_SOBOL(NUMPAR,ISEED,URAND)
 	WRITE(*,'(I4,1X,12(E10.2,1X))') ISEED-1, URAND
-	A = BL + URAND*(BU-BL)
+	APAR = BL + URAND*(BU-BL)
 
 	 ! get the seed as a character string
 	WRITE(CSEED,'(i3.3)') ISEED-1
@@ -246,17 +244,23 @@ DO IPSET=1,NUMPSET
 
 	write(*,'(a)') trim(FNAME_ASCII)
 
+	print *, 'NUMPAR:', NUMPAR
+	print *, 'NOPT:', NOPT
 
 	! open up ASCII output file
 	ISCE = 96; OPEN(ISCE,FILE=TRIM(FNAME_ASCII))
 	! optimize (returns A and AF)
-	CALL SCEUA(A,AF,BL,BU,NOPT,MAXN,KSTOP,PCENTO,ISEED,&
+
+	! run SCE, which will repeatedly call FUNCTN
+	CALL SCEUA(APAR,AF,BL,BU,NOPT,MAXN,KSTOP,PCENTO,ISEED,& 
 	        NGS,NPG,NPS,NSPL,MINGS,INIFLG,IPRINT,ISCE)
 	! close ASCII output file
 	CLOSE(ISCE)
-	! call the function again with the optimized parameter set (to ensure the last parameter set is the optimum(
-	AF = FUNCTN(NOPT,A) 
+	! call the function again with the optimized parameter set (to ensure the last parameter set is the optimum
+	AF = FUNCTN(NOPT,APAR) 
 
 END DO
-
+! and, deallocate space
+DEALLOCATE(APAR,BL,BU,URAND)
+STOP
 END PROGRAM URS_DRIVER

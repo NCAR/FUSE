@@ -1,11 +1,12 @@
-MODULE FUSE_RMSE_MODULE! have as a module because of dynamic arrays
+MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
 IMPLICIT NONE
 CONTAINS
-SUBROUTINE FUSE_RMSE(XPAR,RMSE,OUTPUT_FLAG,MPARAM_FLAG)
+SUBROUTINE FUSE_RMSE(XPAR,RMSE,OUTPUT_FLAG,MPARAM_FLAG,ERR,MESSAGE)
 ! ---------------------------------------------------------------------------------------
 ! Creator:
 ! --------
 ! Martyn Clark, 2009
+! Modified by Brian Henn to include snow model, 6/2013
 ! ---------------------------------------------------------------------------------------
 ! Purpose:
 ! --------
@@ -13,9 +14,10 @@ SUBROUTINE FUSE_RMSE(XPAR,RMSE,OUTPUT_FLAG,MPARAM_FLAG)
 !   input: model parameter set
 !  output: root mean squared error
 ! ---------------------------------------------------------------------------------------
-USE nrtype                                             ! variable types, etc.
+USE nrtype,only:SP,LGT                                 ! variable types, etc.
 ! data modules
 USE model_defn, ONLY:NSTATE,SMODL                      ! number of state variables
+USE model_defnames                                     ! integer model definitions
 USE multiparam, ONLY:LPARAM,NUMPAR,MPARAM              ! list of model parameters
 USE multiforce, ONLY:MFORCE,AFORCE,DELTIM,ISTART,&     ! model forcing data
                      NUMTIM                            ! model forcing data (continued)
@@ -24,14 +26,14 @@ USE multistate, ONLY:fracstate0,TSTATE,MSTATE,FSTATE,& ! model states
 USE multiroute, ONLY:MROUTE,AROUTE                     ! routed runoff
 USE multistats, ONLY:MSTATS,PCOUNT,MOD_IX              ! access model statistics; counter for param set
 ! informational modules
-USE par_insert_module                                  ! insert parameters into data structures                          
-USE str_2_xtry_module                                  ! provide access to the routine str_2_xtry
+USE par_insert_module,only:PUT_PARSET                  ! insert parameters into data structures                          
+USE str_2_xtry_module,only:STR_2_XTRY                  ! provide access to the routine str_2_xtry
 ! interface blocks
 USE interfaceb, ONLY:ode_int,fuse_solve                ! provide access to FUSE_SOLVE through ODE_INT
 ! model numerix structures
-USE model_numerix
-USE fuse_deriv_module
-USE fdjac_ode_module
+!USE model_numerix
+!USE fuse_deriv_module
+!USE fdjac_ode_module
 IMPLICIT NONE
 ! input
 REAL(SP),DIMENSION(:),INTENT(IN)       :: XPAR         ! model parameter set
@@ -39,6 +41,8 @@ LOGICAL(LGT), INTENT(IN)               :: OUTPUT_FLAG  ! .TRUE. if desire time s
 LOGICAL(LGT), INTENT(IN), OPTIONAL     :: MPARAM_FLAG  ! .FALSE. (used to turn off writing statistics)
 ! output
 REAL(SP),INTENT(OUT)                   :: RMSE         ! root mean squared error
+INTEGER(I4B),INTENT(OUT)               :: ERR          ! error indicator
+CHARACTER(LEN=256),INTENT(OUT)         :: MESSAGE      ! error message
 ! internal
 REAL(SP)                               :: T1,T2        ! CPU time
 INTEGER(I4B)                           :: ITIM         ! loop through time series
@@ -51,14 +55,17 @@ REAL(SP), DIMENSION(:,:), ALLOCATABLE  :: J            ! used to compute the Jac
 REAL(SP), DIMENSION(:), ALLOCATABLE    :: DSDT         ! used to compute the ODE (just as a test)
 INTEGER(I4B)                           :: ITEST,JTEST  ! used to compute a grid of residuals
 REAL(SP)                               :: TEST_A,TEST_B ! used to compute a grid of residuals
-INTEGER(I4B)                           :: IERR         ! error code
-INTEGER(I4B), PARAMETER                :: CLEN=1024    ! length of character string
-CHARACTER(LEN=CLEN)                    :: MESSAGE      ! error message
-INTEGER(I4B),PARAMETER::UNT=6  !1701 ! 6
+
 ! ---------------------------------------------------------------------------------------
+ERR=0
+
 ! allocate state vectors
-ALLOCATE(STATE0(NSTATE),STATE1(NSTATE),STAT=IERR)
-IF (IERR.NE.0) STOP ' problem allocating space for state vectors in fuse_rmse '
+ALLOCATE(STATE0(NSTATE),STATE1(NSTATE),STAT=ERR)
+
+IF (ERR.NE.0) THEN
+  print *, 'f-fuse_rmse/problem allocating state vectors'
+  !return
+ENDIF
 ! increment parameter counter for model output (shared in module MULTISTATS)
 IF (.NOT.PRESENT(MPARAM_FLAG)) THEN
  PCOUNT = PCOUNT + 1
@@ -69,10 +76,10 @@ ENDIF
 CALL PUT_PARSET(XPAR)
 !DO IPAR=1,NUMPAR; WRITE(*,'(A11,1X,F9.3)') LPARAM(IPAR), XPAR(IPAR); END DO
 ! compute derived model parameters (bucket sizes, etc.)
-CALL PAR_DERIVE(IERR,message)
-IF (IERR.NE.0) then
-  message= ' problem allocating space for state vectors in fuse_rmse '
- PRINT *, TRIM(MESSAGE); STOP
+CALL PAR_DERIVE(ERR,message)
+IF (ERR.NE.0) then
+ message= 'f-FUSE_RMSE/problem allocating state vectors'
+ return
 endif
 ! initialize model states and model time step
 CALL INIT_STATE(fracState0)            ! fracState0 is shared in MODULE multistate
@@ -84,32 +91,28 @@ CALL INIT_STATS()
 CALL CPU_TIME(T1)
 ! loop through time
 DO ITIM=1,NUMTIM            ! (NUMTIM is shared in MODULE multiforce)
+ ! PRINT *, "FUSE_RMSE, ITIM = ",ITIM
  ! run model for one time step
  MFORCE = AFORCE(ITIM)      ! assign model forcing data
  MSTATE = FSTATE            ! refresh model states 
  CALL INITFLUXES()          ! set weighted sum of fluxes to zero
- ! testing
- !if (itim.eq.392) then
- !allocate(j(2,2),dsdt(2))
- !do itest=695000,696000
- ! do jtest=544000,545000
-  !do itest=5500,7500,5
-  ! do jtest=4500,6500,5
-    !test_a = real(itest,kind(sp))/10000._dp; test_b=real(jtest,kind(sp))/10000._dp
-    !test_a = real(itest,kind(sp))/100._dp; test_b=real(jtest,kind(sp))/100._dp
-    !state1 = (/test_a,test_b/)
-    !dsdt = fuse_deriv(state1)
-    !call fdjac_ode(state1,dsdt,j)
-    !state1 = (/test_a,test_b/)   ! (modified in fdjac_ode)
-    !write(*,'(10(f14.10,1x))') state0, state1, dsdt, state1 - (state0 + dsdt), j(1,1), j(2,2)
-   !end do
-  !end do
-  !deallocate(j,dsdt)
-  !stop
- !endif
+ ! if snow model, call UPDATE_SWE first to calculate snow fluxes and update snow bands 
+ ! using explicit Euler approach; if not, call QRAINERROR
+ SELECT CASE(SMODL%iSNOWM)
+  CASE(iopt_temp_index)
+   CALL UPDATE_SWE(DELTIM)
+  CASE(iopt_no_snowmod)
+   CALL QRAINERROR()
+  CASE DEFAULT
+   message="f-fuse_rmse/SMODL%iSNOWM must be either iopt_temp_index or iopt_no_snowmod"
+   return
+ END SELECT
  ! temporally integrate the ordinary differential equations
- CALL ODE_INT(FUSE_SOLVE,STATE0,STATE1,DT_SUB,DT_FULL,IERR,MESSAGE)
- IF (IERR.NE.0) THEN; PRINT *, TRIM(MESSAGE); PAUSE; ENDIF
+ CALL ODE_INT(FUSE_SOLVE,STATE0,STATE1,DT_SUB,DT_FULL,ERR,MESSAGE)
+ IF (ERR.NE.0) THEN
+  message="f-fuse_rmse/&"//message
+  return
+ ENDIF
  ! perform overland flow routing
  CALL Q_OVERLAND()
  ! save state
@@ -117,24 +120,20 @@ DO ITIM=1,NUMTIM            ! (NUMTIM is shared in MODULE multiforce)
  ! save instantaneous and routed runoff
  AROUTE(ITIM)%Q_INSTNT = MROUTE%Q_INSTNT  ! save instantaneous runoff
  AROUTE(ITIM)%Q_ROUTED = MROUTE%Q_ROUTED  ! save routed runoff
- !if (itim.ge.300) &
- !WRITE(*,'(I10,1X,I4,1X,4(I2,1X),F9.3,1X,F20.1,1X,4(F11.3,1X),I7)') &
- ! ITIM, AFORCE(ITIM), AROUTE(ITIM)%Q_ROUTED, NUM_FUNCS
- !if (itim.gt.400) stop
- !WRITE(*,'(I10,1X,4(F15.8,1X))') ITIM, FSTATE%WATR_1, FSTATE%WATR_2, MPARAM%MAXWATR_1, MPARAM%MAXWATR_2
  IF (AROUTE(ITIM)%Q_ROUTED.LT.0._sp) STOP ' Q_ROUTED is less than zero '
  IF (AROUTE(ITIM)%Q_ROUTED.GT.1000._sp) STOP ' Q_ROUTED is enormous '
  ! compute summary statistics
  CALL COMP_STATS()
  ! write model output
  IF (OUTPUT_FLAG) THEN
+  !PRINT *, 'OUTPUT_FLAG is TRUE, now writing model output'
   CALL PUT_OUTPUT(PCOUNT,MOD_IX,ITIM)
   !WRITE(*,'(I10,1X,2(F15.8,1X))') ITIM, FSTATE%WATR_1, FSTATE%WATR_2
   !WRITE(*,'(I10,1X,I4,1X,4(I2,1X),F9.3,1X,F20.1,1X,4(F11.3,1X))') ITIM, AFORCE(ITIM), AROUTE(ITIM)%Q_ROUTED
  ENDIF
 END DO  ! (itim)
 CALL CPU_TIME(T2)
-!print *, t2-t1
+WRITE(*,*) "TIME ELAPSED = ", t2-t1
 ! calculate mean summary statistics
 CALL MEAN_STATS() 
 RMSE = MSTATS%RAW_RMSE
@@ -150,7 +149,11 @@ ELSE
  ENDIF
 ENDIF
 ! deallocate state vectors
-DEALLOCATE(STATE0,STATE1,STAT=IERR); IF (IERR.NE.0) STOP ' problem deallocating state vectors in fuse_rmse '
+DEALLOCATE(STATE0,STATE1,STAT=ERR)
+IF (ERR.NE.0)THEN
+ message='f-fuse_rmse/problem deallocating state vectors'
+ return
+ENDIF
 ! ---------------------------------------------------------------------------------------
 END SUBROUTINE FUSE_RMSE
 END MODULE FUSE_RMSE_MODULE

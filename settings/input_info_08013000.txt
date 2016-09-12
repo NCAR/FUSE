@@ -1,3 +1,0 @@
-input_08013000.txt          ! name of data file
-8 5 6 7                     ! number of columns and column numbers (for ppt, pet, and q)
-3 7306 7670 10957           ! number header lines, start index, end of warm-up, end index

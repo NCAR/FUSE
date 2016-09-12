@@ -10,7 +10,7 @@ PROGRAM URS_DRIVER
 ! ---------------------------------------------------------------------------------------
 USE nrtype                                                ! variable types, etc.
 USE fuse_fileManager,only:fuse_SetDirsUndPhiles,&         ! sets directories and filenames
-     OUTPUT_PATH,FORCINGINFO,MBANDS_INFO
+     OUTPUT_PATH,SETNGS_PATH,FORCINGINFO,MBANDS_INFO
 ! data modules
 USE model_defn,nstateFUSE=>nstate                         ! model definition structures
 USE model_defnames                                        ! defines the integer model options
@@ -31,7 +31,7 @@ IMPLICIT NONE
 ! ---------------------------------------------------------------------------------------
 ! (0) GET COMMAND-LINE ARGUMENTS...
 ! ---------------------------------------------------------------------------------------
-CHARACTER(LEN=12)                      :: MBASIN_ID='            ' ! MOPEX basin ID
+CHARACTER(LEN=12)                      :: MBASIN_ID='      ' ! MOPEX basin ID
 CHARACTER(LEN=6)                       :: FMODEL_ID='      ' ! integer defining FUSE model
 CHARACTER(LEN=6)                       :: NSOLUTION='      ' ! numerical solution (0=explicit Euler; 1=explicit Heun; 2=implicit Euler; 3=implicit Heun, 4=semi-implicit)
 CHARACTER(LEN=6)                       :: FADAPTIVE='      ' ! identifier for adaptive sub-steps (0=fixed, 1=adaptive)
@@ -42,6 +42,8 @@ CHARACTER(LEN=6)                       :: NUMPARSET='      ' ! number of paramet
 ! ---------------------------------------------------------------------------------------
 ! (1) SETUP MODELS FOR SIMULATION -- POPULATE DATA STRUCTURES
 ! ---------------------------------------------------------------------------------------
+! fuse_file_manager
+CHARACTER(LEN=1024)                    :: FFMFILE      	  ! name of fuse_file_manager file
 ! get model forcing data
 INTEGER(I4B)                           :: NTIM            ! number of time steps
 INTEGER(I4B)                           :: INFERN_START    ! start of inference period
@@ -87,14 +89,20 @@ IF (LEN_TRIM(TRUNC_ABS).EQ.0) STOP '5th command-line argument is missing (TRUNC_
 IF (LEN_TRIM(TRUNC_REL).EQ.0) STOP '6th command-line argument is missing (TRUNC_REL)'
 IF (LEN_TRIM(TSTEP_LEN).EQ.0) STOP '7th command-line argument is missing (TSTEP_LEN)'
 IF (LEN_TRIM(NUMPARSET).EQ.0) STOP '8th command-line argument is missing (NUMPARSET)'
+
+! set path to fuse_file_manager
+FFMFILE=TRIM(SETNGS_PATH)//TRIM(MBASIN_ID)//'_fuse_file_manager.txt'
+print *, 'fuse_file_manager:', TRIM(FFMFILE)
+
 ! get directories and filenames for control files
-call fuse_SetDirsUndPhiles("fuse_MusterDirektor.txt",err=err,message=message)
+call fuse_SetDirsUndPhiles(fuseFileManagerIn=FFMFILE,err=err,message=message)
+
 if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
 CALL GETNUMERIX(ERR,MESSAGE)              ! defines method/parameters used for numerical solution
 ! define basin desired
 ! convert command-line arguments to integer flags and real numbers
-FORCINGINFO = 'forcing.info.'//TRIM(MBASIN_ID)//'.txt'
-MBANDS_INFO = 'elevbands.info.'//TRIM(MBASIN_ID)//'.txt'
+FORCINGINFO = TRIM(MBASIN_ID)//'_input_info.txt'
+MBANDS_INFO = TRIM(MBASIN_ID)//'_elev_bands_info.txt'
 READ(FMODEL_ID,*) FUSE_ID                 ! integer defining FUSE model
 READ(NSOLUTION,*) SOLUTION_METHOD         ! numerical solution (0=implicit, 1=explicit)
 READ(FADAPTIVE,*) TEMPORAL_ERROR_CONTROL  ! identifier for adaptive sub-steps (0=fixed, 1=adaptive)

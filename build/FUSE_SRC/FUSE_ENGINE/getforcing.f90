@@ -16,7 +16,7 @@ SUBROUTINE GETFORCING(INFERN_START,NTIM,err,message)
 use nrtype,only:I4B,LGT,SP
 use utilities_dmsl_kit_FUSE,only:getSpareUnit,stripTrailString
 USE fuse_fileManager,only:INPUT_PATH,SETNGS_PATH,FORCINGINFO     ! defines data directory 
-USE multiforce,only:AFORCE,DELTIM,ISTART,NUMTIM       ! model forcing structures
+USE multiforce,only:AFORCE,DELTIM,ISTART,NUMTIM,NA_VALUE      ! model forcing structures
 USE multiroute,only:AROUTE                            ! model routing structure
 IMPLICIT NONE
 ! dummies
@@ -51,7 +51,7 @@ REAL(SP),DIMENSION(:),ALLOCATABLE      :: TMPDAT      ! one line of data
 err=0
 
 CFILE = TRIM(SETNGS_PATH)//TRIM(FORCINGINFO)      ! control file info shared in MODULE directory
-print *, 'Forcing info file:', CFILE
+print *, 'Forcing info file:', TRIM(CFILE)
 INQUIRE(FILE=CFILE,EXIST=LEXIST)  ! check that control file exists
 
 IF (.NOT.LEXIST) THEN
@@ -70,12 +70,17 @@ OPEN(IUNIT,FILE=CFILE,STATUS='old')
 READ(IUNIT,'(A)') FNAME_INPUT                        ! get input filename
 READ(IUNIT,*) NCOL,IX_PPT,IX_PET,IX_OBSQ,IX_TEMP        ! number of columns and column numbers
 READ(IUNIT,*) NHEAD,WARM_START,INFERN_START,INFERN_END  ! n header, start warm-up, start inference, end inference
+READ(IUNIT,*) NA_VALUE                                  ! NA values, e.g. -9999
 CLOSE(IUNIT)
 
-! subtract the header lines from the data indices
-WARM_START   = WARM_START   - NHEAD
-INFERN_START = INFERN_START - NHEAD
-INFERN_END   = INFERN_END   - NHEAD
+PRINT *, 'NA_VALUE', NA_VALUE
+
+! subtract the header lines from the data indices ! THIS IS ONLY NECESSARY WHEN THE I=1 IS THE FIRST LINE OF THE FILE, BUT NOT WHEN IT IS THE FIRST LINE OF THE TIME SERIES
+! WARM_START   = WARM_START   - NHEAD
+! INFERN_START = INFERN_START - NHEAD
+! INFERN_END   = INFERN_END   - NHEAD
+
+print *, 'Length of simulation period: about', (INFERN_END - INFERN_START)/365,'years'
 ! fill extra characters in filename with white space
 CALL stripTrailString(string=FNAME_INPUT,trailStart='!')
 ! ---------------------------------------------------------------------------------------
@@ -104,7 +109,7 @@ AROUTE(1:NSTEPS)%Q_ACCURATE = -9999._SP
 ! read data
 JTIME = 0
 FFILE = TRIM(INPUT_PATH)//FNAME_INPUT
-print *, 'Forcing file:', FFILE
+print *, 'Forcing file:', TRIM(FFILE)
 
 INQUIRE(FILE=FFILE,EXIST=LEXIST)  ! check that control file exists
 IF (.NOT.LEXIST) THEN
@@ -118,16 +123,17 @@ IF (err/=0) THEN
 ENDIF
 OPEN(IUNIT,FILE=FFILE,STATUS='old')
 
-print *, 'Number of header lines', NHEAD
 ! read header
 DO IHEAD=1,NHEAD
  IF (IHEAD.EQ.NHEAD-1) THEN ! the last line of the header contains the time step
   READ(IUNIT,*) DELTIM   ! time interval of the data (shared in module multiforce)
-  print *, 'Time step:', DELTIM
+  !print *, 'Time step:', DELTIM
  ELSE
   READ(IUNIT,*) TMPTXT   ! descriptive text
  ENDIF
 END DO
+
+print *, 'Time interval of the data:', DELTIM
 ! read data
 DO ITIME=1,INFERN_END
  READ(IUNIT,*) TMPDAT
@@ -150,6 +156,12 @@ DO ITIME=1,INFERN_END
  ENDIF
 END DO
 CLOSE(IUNIT)
+
+PRINT *, 'Date of first time step of warmup period:', AFORCE(1)%IY, AFORCE(1)%IM, AFORCE(1)%ID       
+PRINT *, 'T at first time step of warmup period:', AFORCE(1)%TEMP
+PRINT *, 'PET at first time step of warmup period:', AFORCE(1)%PET
+PRINT *, 'Q_OBS at first time step of warmup period:', AFORCE(1)%OBSQ
+
 ! correct the index for start of inference
 INFERN_START = (INFERN_START-WARM_START)+1
 ISTART       = INFERN_START ! (shared in MODULE multiforce)

@@ -80,9 +80,12 @@ MESSAGE ='SELECTMODL/everything is fine'
 ! check if there is a need to read data from file
 
 IF (PRESENT(FUSE_ID)) THEN
- READ_FILE = (FUSE_ID < 1)
+ !READ_FILE = (FUSE_ID < 1)
+ READ_FILE = .TRUE.
+ print *, 'FUSE model ID found, but still reading model decision file'
 ELSE
  READ_FILE = .TRUE.
+ print *, 'FUSE model ID *not* found, now reading model decision file'
 ENDIF
 ! read in control file
 IF (READ_FILE) THEN
@@ -107,6 +110,7 @@ IF (READ_FILE) THEN
  DO IDEC=1,NDEC
   READ(IUNIT,KEY) M_CHOICE, DECISION
   !WRITE(*,KEY) M_CHOICE, DECISION 
+  PRINT *, 'Model choices read from file: ', DECISION, '-> ', M_CHOICE 
   SELECT CASE (DECISION)
   CASE('RFERR'); SMODL%iRFERR = desc_str2int(M_CHOICE)
   CASE('ARCH1'); SMODL%iARCH1 = desc_str2int(M_CHOICE)

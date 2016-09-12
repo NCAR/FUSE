@@ -3,6 +3,7 @@ SUBROUTINE DEF_PARAMS(NMOD)
 ! Creator:
 ! --------
 ! Martyn Clark, 2007
+! Modified by Nans Addor to include snow routine
 ! ---------------------------------------------------------------------------------------
 ! Purpose:
 ! --------
@@ -31,12 +32,13 @@ include 'netcdf.inc'                                  ! use netCDF libraries
 ! ---------------------------------------------------------------------------------------
 CALL PARDESCRIBE()               ! get list of parameter descriptions
 ! ---------------------------------------------------------------------------------------
+PRINT *, 'Define NetCDF output files -- parameter variables = ', TRIM(FNAME_NETCDF)
 ! open file
 IERR = NF_CREATE(TRIM(FNAME_NETCDF),NF_CLOBBER,NCID); CALL HANDLE_ERR(IERR)
  ! define dimensions
  IERR = NF_DEF_DIM(NCID,'mod',NMOD,NMOD_DIM); CALL HANDLE_ERR(IERR)
  IERR = NF_DEF_DIM(NCID,'par',NF_UNLIMITED,NPAR_DIM); CALL HANDLE_ERR(IERR)
- IERR = NF_DEF_DIM(NCID,'model_differences',8,NDIF_DIM); CALL HANDLE_ERR(IERR)
+ IERR = NF_DEF_DIM(NCID,'model_differences',9,NDIF_DIM); CALL HANDLE_ERR(IERR) !TODO: this should not be hard-coded
  IERR = NF_DEF_DIM(NCID,'model_name_length',10,NAME_DIM); CALL HANDLE_ERR(IERR)
  IERR = NF_DEF_DIM(NCID,'error_message_length',LEN(MSTATS%ERR_MESSAGE),ERRM_DIM)
  CALL HANDLE_ERR(IERR)

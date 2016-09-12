@@ -44,9 +44,11 @@ I=I+1; VNAME(I)='free_2a    '; LNAME(I)='free storage in the primary baseflow re
 I=I+1; VNAME(I)='free_2b    '; LNAME(I)='free storage in the secondary baseflow reservoir   '; VUNIT(I)='mm           '
 I=I+1; VNAME(I)='watr_2     '; LNAME(I)='total storage in the lower layer                   '; VUNIT(I)='mm           '
 
-print *, SMODL%iSNOWM
-
 IF(SMODL%iSNOWM.EQ.iopt_temp_index) THEN !loop through snow model bands
+
+ print *, 'Creating variables for the snow model'
+ print *, 'N_BANDS', N_BANDS
+
  DO ISNW=1,N_BANDS ! output each for each snow model band
   WRITE(TXT_ISNW,'(I2)') ISNW              ! convert band no. to text
   IF (ISNW.LT.10) TXT_ISNW(1:1) = '0'      ! pad with zeros 
@@ -57,7 +59,11 @@ IF(SMODL%iSNOWM.EQ.iopt_temp_index) THEN !loop through snow model bands
   I=I+1; VNAME(I)='snwmelt_z'//TXT_ISNW  ! then the melt series
   LNAME(I)='band snowpack melt, in water equivalent            '; VUNIT(I)='mm timestep-1'
  END DO
+
+
 ENDIF
+
+
 ! model fluxes
 I=I+1; VNAME(I)='eff_ppt    '; LNAME(I)='effective precipitation rate                       '; VUNIT(I)='mm timestep-1'
 I=I+1; VNAME(I)='satarea    '; LNAME(I)='saturated area                                     '; VUNIT(I)='-            '
@@ -101,6 +107,10 @@ I=I+1; VNAME(I)='max_iterns' ; LNAME(I)='maximum number of iterations in implici
 ! model runoff (for BATEA, assumed to be last)
 I=I+1; VNAME(I)='q_instnt   '; LNAME(I)='instantaneous runoff                               '; VUNIT(I)='mm timestep-1'
 I=I+1; VNAME(I)='q_routed   '; LNAME(I)='routed runoff                                      '; VUNIT(I)='mm timestep-1'
+
+
+print *, 'Setting NOUTVAR to', I
 NOUTVAR=I
+
 END SUBROUTINE VARDESCRIBE
 END MODULE metaoutput

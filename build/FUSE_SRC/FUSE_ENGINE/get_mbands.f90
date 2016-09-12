@@ -45,7 +45,7 @@ REAL(SP),DIMENSION(:),ALLOCATABLE      :: TMPDAT      ! one line of data
 ! read in control file
 err=0
 CFILE = TRIM(SETNGS_PATH)//MBANDS_INFO      ! control file info shared in MODULE directory
-print *, 'Elevation bands info file:', CFILE
+print *, 'Elevation bands info file:',TRIM(CFILE)
 
 INQUIRE(FILE=CFILE,EXIST=LEXIST)  ! check that control file exists
 IF (.NOT.LEXIST) THEN
@@ -82,7 +82,7 @@ JBAND = 0
 BFILE = TRIM(INPUT_PATH)//FNAME_INPUT
 INQUIRE(FILE=BFILE,EXIST=LEXIST)  ! check that control file exists
 IF (.NOT.LEXIST) THEN
- message='f-GET_MBANDS/band data file '//TRIM(BFILE)//' does not exist '
+ print *, 'f-GET_MBANDS/band data file '//TRIM(BFILE)//' does not exist '
  err=100; return
 ENDIF
 CALL getSpareUnit(IUNIT,err,message) ! make sure IUNIT is actually available
@@ -99,6 +99,9 @@ DO IHEAD=1,NHEADB
   READ(IUNIT,*) TMPTXT    ! descriptive text
  ENDIF
 END DO
+
+print *, 'Z_FORCING', Z_FORCING
+
 ! read data
 DO IBANDS=1,N_BANDS
  READ(IUNIT,*) TMPDAT

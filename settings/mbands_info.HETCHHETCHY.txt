@@ -1,3 +1,0 @@
-b_hetchhetchy.dat                ! name of band data file
-3 2 3                            ! bands: number of columns and column numbers (for band elevation and area)
-3 30 4 33                        ! bands: number of header lines, number of bands, start index and end index

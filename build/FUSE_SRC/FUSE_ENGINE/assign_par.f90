@@ -187,7 +187,7 @@ SELECT CASE(SMODL%iSNOWM)
   MPAR = MPAR + 1; LPARAM(MPAR)%PARNAME = 'PXTEMP   ' ! rain snow partition temperature
   MPAR = MPAR + 1; LPARAM(MPAR)%PARNAME = 'OPG      ' ! precipitation gradient
   MPAR = MPAR + 1; LPARAM(MPAR)%PARNAME = 'LAPSE    ' ! temperature gradient
- CASE(iopt_no_snowmod) ! if no snow model, no addtional parameters
+ CASE(iopt_no_snowmod) ! if no snow model, no additional parameters
  CASE DEFAULT
   print *, "SMODL%SNOWM must be either 'temp_index' or 'no_snowmod'"
   STOP

@@ -38,6 +38,7 @@ IERR = NF_REDEF(NCID); CALL HANDLE_ERR(IERR)
  ! assign dimensions to indices
  TVAR = (/NTIM_DIM,NMOD_DIM,NPAR_DIM/)   ! dimensions for time-varying output
  ! define time-varying output variables
+
  DO IVAR=1,NOUTVAR
   ! check if there is a need to write the variable
   IF (Q_ONLY) THEN
