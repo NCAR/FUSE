@@ -37,14 +37,14 @@ include 'netcdf.inc'                                  ! use netCDF libraries
 ! open file
 IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,NCID); CALL HANDLE_ERR(IERR)
 
- !print *, 'Writing parameter values to this NetCDF file:', TRIM(FNAME_NETCDF)
+! print *, 'Writing parameter values to this NetCDF file:', TRIM(FNAME_NETCDF)
 
  ! define indices for model output
  INDX = (/IMOD,IPAR/)
  ! loop through model parameters
  DO IVAR=1,NOUTPAR  ! NOUTPAR is stored in module metaparams
   
-  !print *, PNAME(IVAR), '=',PAREXTRACT(PNAME(IVAR))
+ ! print *, PNAME(IVAR), '=',PAREXTRACT(PNAME(IVAR))
 
   XPAR = PAREXTRACT(PNAME(IVAR)); APAR=XPAR                                  ! get parameter PNAME(IVAR)
   IERR = NF_INQ_VARID(NCID,TRIM(PNAME(IVAR)),IVAR_ID); CALL HANDLE_ERR(IERR) ! get variable ID

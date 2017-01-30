@@ -4,6 +4,7 @@ SUBROUTINE UPDATE_SWE(DT)
 ! --------
 ! Brian Henn, as part of FUSE snow model implementation, 6/2013
 ! Based on subroutines QSATEXCESS and UPDATSTATE, by Martyn Clark
+! Modified by Nans Addor to enable distributed modeling, 9/2016
 ! ---------------------------------------------------------------------------------------
 ! Purpose:
 ! --------
@@ -40,13 +41,13 @@ INTEGER(I4B)                           :: ISNW           ! loop through snow mod
 ! ---------------------------------------------------------------------------------------
 ! first calculate day of year for melt factor calculation
 CUMD = real((/ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 /),sp)
-IF (MOD(MFORCE%IY,4).EQ.0) THEN
+IF (MOD(timDat%IY,4).EQ.0) THEN
  LEAP = .TRUE.
  CUMD(3:12) = CUMD(3:12) + 1._sp
 ELSE
  LEAP = .FALSE.
 ENDIF
-JDAY = CUMD(MFORCE%IM) + MFORCE%ID
+JDAY = CUMD(timDat%IM) + timDat%ID
 IF (LEAP) THEN   ! calculate melt factor from MFMAX, MFMIN and day of year
  MF = ((0.5_sp*SIN(((JDAY-81._sp)*2._sp*PI)/366._sp))+0.5_sp)*(MPARAM%MFMAX - MPARAM%MFMIN) + MPARAM%MFMIN
 ELSE 

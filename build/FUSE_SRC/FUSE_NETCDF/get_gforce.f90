@@ -54,6 +54,7 @@ contains
  if(ierr/=0)then
   message=trim(message)//trim(nf90_strerror(ierr))//'[file='//trim(INPUT_PATH)//trim(forcefile)//']'; return
  endif
+ 
  ! get the variable ID for precipitation
  ierr = nf90_inq_varid(ncid, vname_aprecip, ivarid)
  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
@@ -71,6 +72,7 @@ contains
   !MC: number of time steps set by the user
   !if(iDimID==3) numtim = dimLen  ! record dimension (always last)
  end do
+
  ! get variable ID for time
  ierr = nf90_inq_varid(ncid, trim(vname_dtime), iVarID)
  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr))//'[variable='//trim(vname_dtime)//']'; return; endif
@@ -80,6 +82,8 @@ contains
  ! close the NetCDF file
  ierr = nf90_close(ncid)
  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
+
+
 
  contains
   
@@ -232,6 +236,7 @@ contains
  ! initialize error control
  ierr=0; message='get_gforce/'
  ! ---------------------------------------------------------------------------------------
+ 
  ! initialize lCheck
  lCheck=.false.
  ! allocate space for the temporary grid
@@ -251,6 +256,9 @@ contains
  endif
  ! get forcing grids
  do ivar=1,nForce
+
+ !print *, 'Getting forcing grid for', cVec(iVar)%vname
+
   ! check the variable exists
   if(trim(cVec(iVar)%vname)=='undefined')then
    gTemp(:,:,:) = amiss
@@ -263,27 +271,35 @@ contains
    ierr = nf90_get_var(ncid, iVarID, gTemp, start=(/1,1,iTim/), count=(/nSpat1,nSpat2,1/))
    if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
   endif  ! (if the variable exists)
+
   ! save the data in the structure -- and convert fluxes to mm/day
   if( trim(cVec(iVar)%vname) == trim(vname_aprecip) )then; gForce(:,:)%ppt = gTemp(:,:,1)*amult_ppt; lCheck(ilook_aprecip) = .true.; endif
   if( trim(cVec(iVar)%vname) == trim(vname_potevap) )then; gForce(:,:)%pet = gTemp(:,:,1)*amult_pet; lCheck(ilook_potevap) = .true.; endif
+  if( trim(cVec(iVar)%vname) == trim(vname_airtemp) )then; gForce(:,:)%temp = gTemp(:,:,1);       lCheck(ilook_airtemp) = .true.; endif
+  
   ! save the other variables required to compute PET
-  if( trim(cVec(iVar)%vname) == trim(vname_airtemp) )then; ancilF(:,:)%airtemp = gTemp(:,:,1);       lCheck(ilook_airtemp) = .true.; endif
+  !if( trim(cVec(iVar)%vname) == trim(vname_airtemp) )then; ancilF(:,:)%airtemp = gTemp(:,:,1);       lCheck(ilook_airtemp) = .true.; endif
   if( trim(cVec(iVar)%vname) == trim(vname_spechum) )then; ancilF(:,:)%spechum = gTemp(:,:,1);       lCheck(ilook_spechum) = .true.; endif
   if( trim(cVec(iVar)%vname) == trim(vname_airpres) )then; ancilF(:,:)%airpres = gTemp(:,:,1);       lCheck(ilook_airpres) = .true.; endif
   if( trim(cVec(iVar)%vname) == trim(vname_swdown)  )then; ancilF(:,:)%swdown  = gTemp(:,:,1);       lCheck(ilook_swdown)  = .true.; endif
+ 
  end do  ! (loop thru forcing variables)
+ 
  ! close the NetCDF file
  ierr = nf90_close(ncid)
- if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
+ if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif 
+ 
  ! deallocate space for gTemp
  deallocate(gTemp, stat=ierr)
  if(ierr/=0)then; message=trim(message)//'problem deallocating space for gTemp'; return; endif
+ 
  ! check that we got all desired variables
  if(any(lCheck .eqv. .false.))then
-  do ivar=1,nForce; print*, trim(cVec(iVar)%vname), lCheck(ivar); end do
+!  do ivar=1,nForce; print*, trim(cVec(iVar)%vname), lCheck(ivar); end do
   message=trim(message)//'cannot find variable'
   ierr=20; return
  endif
+ 
  end subroutine get_gforce
 
  subroutine date_extractor(refDate,iy,im,id,ih)
@@ -299,6 +315,7 @@ contains
  character(len=4)                    :: cyyyy       ! char year extracted from refDate
  character(len=2)                    :: cmm,cdd,chh ! char month and day and hour extracted from refDate
  integer(i4b)                        :: posit       ! position in refDate string
+ 
  ! strip out time units, if they exist (seconds since , days since , hours since )
  REFD = TRIM(REFDATE)
  POSIT = INDEX(REFDATE, 'since')

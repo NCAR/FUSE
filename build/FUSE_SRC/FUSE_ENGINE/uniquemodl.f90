@@ -1,4 +1,4 @@
-SUBROUTINE UNIQUEMODL(NMOD,err,message)
+SUBROUTINE UNIQUEMODL(NMOD)
 ! ---------------------------------------------------------------------------------------
 ! Creator:
 ! --------
@@ -20,9 +20,7 @@ USE model_defn
 USE model_defnames
 IMPLICIT NONE
 ! Output
-INTEGER(I4B), intent(out)              :: NMOD        ! number of model combinations
-integer(I4B), intent(out)              :: err
-character(*), intent(out)              :: message
+INTEGER(I4B)                           :: NMOD        ! number of model combinations
 ! Internal
 INTEGER(I4B)                           :: ICOUNT      ! loop through unique models
 INTEGER(I4B)                           :: ISW_RFERR   ! loop thru rainfall errors
@@ -83,7 +81,7 @@ LIST_SNOWM(2)%MCOMPONENT = 'temp_index' ! temperature index snow model
 ! f) define evaporation method
 ! g) define interflow method
 ! h) define time delay in runoff
-ERR=0; ICOUNT = 0 ! initialize counter
+ICOUNT = 0 ! initialize counter
 ! loop through snow model options
 DO ISW_SNOWM=1,SIZE(LIST_SNOWM)
 ! (loop through time delay options)
@@ -123,8 +121,8 @@ DO ISW_Q_TDH=1,SIZE(LIST_Q_TDH)
          !write(*,'(i3,1x,7(a10,1x))') icount, amodl(icount)
         ELSE
          ! need to allocate more space
-         message='f-UNIQUEMODL/insufficent space to hold model combinations'
-         err=100; return
+         print *, 'insufficent space to hold model combinations'
+         stop
         ENDIF
        END DO  ! RFERR
       END DO  ! ARCH1

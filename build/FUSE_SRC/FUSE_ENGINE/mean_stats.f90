@@ -54,8 +54,9 @@ ALLOCATE(QOBS(NS),QOBS_MASK(NS),QSIM(NS),STAT=IERR)
 IF (IERR.NE.0) STOP ' PROBLEM ALLOCATING SPACE IN MEAN_STATS.F90 '
 
 ! extract vectors from data structures
-QOBS = AFORCE(ISTART:NUMTIM)%OBSQ
 QSIM = AROUTE(ISTART:NUMTIM)%Q_ROUTED
+QOBS(:) = QSIM(:) + 1.0 ! TODO: LOAD GRIDDED QOBS OR SKIP MODEL EVALUATION WHEN WOBS IS MISSING
+!QOBS = aValid(ISTART:NUMTIM)%OBSQ
 
 ! check for missing QOBS values
 QOBS_MASK = QOBS.ne.REAL(NA_VALUE, KIND(SP)) ! find the time steps for which QOBS is available
@@ -112,9 +113,10 @@ MSTATS%NASH_SUTT = 1. - SS_RAW/(SS_OBS+NO_ZERO)
 ! compute RMSE between "more accurate" and "less accurate" solutions
 ! NA: note that this section uses only simulated discharge, hence uses NS, QSIM and QOBS
 ! instead of NUM_AVAIL, QOBS_AVAIL and QSIM_AVAIL, respectively
-QOBS = AROUTE(ISTART:NUMTIM)%Q_ACCURATE
-RAWD(:) = QSIM(:) - QOBS(:); SS_RAW  = DOT_PRODUCT(RAWD,RAWD)    ! = SUM( RAWD(:)*RAWD(:) )
-MSTATS%NUM_RMSE = SQRT( SS_RAW / REAL(NS, KIND(SP)) )
+!QOBS = AROUTE(ISTART:NUMTIM)%Q_ACCURATE ! TODO: MISSING AT THE MOMENT
+!RAWD(:) = QSIM(:) - QOBS(:)
+!SS_RAW  = DOT_PRODUCT(RAWD,RAWD)    ! = SUM( RAWD(:)*RAWD(:) )
+!MSTATS%NUM_RMSE = SQRT( SS_RAW / REAL(NS, KIND(SP)) )
 ! compute summary statistics for efficiency
 MSTATS%NUM_FUNCS     = MSTATS%NUM_FUNCS     / REAL(NUMTIM, KIND(SP)) ! number of function calls
 MSTATS%NUM_JACOBIAN  = MSTATS%NUM_JACOBIAN  / REAL(NUMTIM, KIND(SP)) ! number of times Jacobian is calculated

@@ -9,6 +9,7 @@ PURE FUNCTION VAREXTRACT(VARNAME)
 ! --------
 ! Martyn Clark, 2007
 ! Modified by Brian Henn to include snow model, 6/2013
+! Modified by Nans Addor to enable distributed modeling, 9/2016
 ! ---------------------------------------------------------------------------------------
 ! Purpose:
 ! --------
@@ -35,9 +36,10 @@ XVAR=-9999._sp
 SELECT CASE (TRIM(VARNAME))
  ! extract forcing data
  CASE ('ppt')        ; XVAR = MFORCE%PPT
-CASE ('temp')       ; XVAR = MFORCE%TEMP
+ CASE ('temp')       ; XVAR = MFORCE%TEMP
  CASE ('pet')        ; XVAR = MFORCE%PET
- CASE ('obsq')       ; XVAR = MFORCE%OBSQ
+ ! extract response data
+ CASE ('obsq')       ; XVAR = valDat%OBSQ
  ! extract model states
  CASE ('tens_1')     ; XVAR = FSTATE%TENS_1
  CASE ('tens_1a')    ; XVAR = FSTATE%TENS_1A

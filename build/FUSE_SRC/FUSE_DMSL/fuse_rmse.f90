@@ -6,6 +6,8 @@ SUBROUTINE FUSE_RMSE(XPAR,DISTRIBUTED,RMSE,OUTPUT_FLAG,MPARAM_FLAG)
 ! Creator:
 ! --------
 ! Martyn Clark, 2009
+! Modified by Brian Henn to include snow model, 6/2013
+! Modified by Nans Addor to enable distributed modeling, 9/2016
 ! ---------------------------------------------------------------------------------------
 ! Purpose:
 ! --------
@@ -16,6 +18,7 @@ SUBROUTINE FUSE_RMSE(XPAR,DISTRIBUTED,RMSE,OUTPUT_FLAG,MPARAM_FLAG)
 USE nrtype                                               ! variable types, etc.
 ! data modules
 USE model_defn, ONLY:NSTATE,SMODL                        ! number of state variables
+USE model_defnames                                       ! integer model definitions
 USE multiparam, ONLY:LPARAM,NUMPAR,MPARAM                ! list of model parameters
 USE multiforce, ONLY:MFORCE,AFORCE,DELTIM,ISTART,&       ! model forcing data
                      NUMTIM,warmup_beg                   ! model forcing data (continued)
@@ -79,6 +82,7 @@ ELSE
 ENDIF
 ! add parameter set to the data structure
 CALL PUT_PARSET(XPAR)
+print *, 'Parameter set added to data structure'
 !DO IPAR=1,NUMPAR; WRITE(*,'(A11,1X,F9.3)') LPARAM(IPAR), XPAR(IPAR); END DO
 ! compute derived model parameters (bucket sizes, etc.)
 CALL PAR_DERIVE(ERR,MESSAGE)
@@ -90,6 +94,8 @@ do iSpat1=1,nSpat1
   gState(iSpat1,iSpat2) = FSTATE       ! put the state into the 2-d structure
  end do
 end do
+print *, 'Model state initialized'
+
 ! initialize model time step
 DT_SUB  = DELTIM                       ! init stepsize to full step (DELTIM shared in module multiforce)
 DT_FULL = DELTIM                       ! init stepsize to full step (DELTIM shared in module multiforce)
@@ -98,22 +104,27 @@ CALL INIT_STATS()
 CALL CPU_TIME(T1)
 ! --------------------------------------------------------------------------------------------------------
 ! loop through time
+
+print *, 'Running the model'
 DO ITIM=1,NUMTIM            ! (NUMTIM is shared in MODULE multiforce)
  ! if not distributed (i.e., lumped)
  if(.not.distributed)then
   ! retrieve data from memory
   gForce(1,1) = aForce(iTim)
- else ! distributed
+ else ! distributed 
+
   ! get the model time
   call get_modtim(warmup_beg+itim,ierr,message)
   if(ierr/=0)then; print*, trim(cmessage); stop; endif
   ! get the gridded model forcing data
+
   call get_gforce(warmup_beg+itim,ierr,cmessage)
   if(ierr/=0)then; print*, trim(cmessage); stop; endif
   ! compute potential ET
   if(computePET) call getPETgrid(ierr,cmessage)
   if(ierr/=0)then; print*, trim(cmessage); stop; endif
  endif
+
  ! -------------------------------------------------------------------------------------------------------
  ! loop through grid points, and run the model for one time step
  do iSpat1=1,nSpat1
@@ -127,11 +138,25 @@ DO ITIM=1,NUMTIM            ! (NUMTIM is shared in MODULE multiforce)
    CALL STR_2_XTRY(FSTATE,STATE0)      ! get the vector of states from the FSTATE structure
    ! initialize model fluxes
    CALL INITFLUXES()                   ! set weighted sum of fluxes to zero
+
+   ! if snow model, call UPDATE_SWE first to calculate snow fluxes and update snow bands 
+   ! using explicit Euler approach; if not, call QRAINERROR
+    SELECT CASE(SMODL%iSNOWM)
+    CASE(iopt_temp_index)
+     CALL UPDATE_SWE(DELTIM)
+    CASE(iopt_no_snowmod)
+     CALL QRAINERROR()
+    CASE DEFAULT
+     message="f-fuse_rmse/SMODL%iSNOWM must be either iopt_temp_index or iopt_no_snowmod"
+     return
+   END SELECT
+
    ! temporally integrate the ordinary differential equations
    CALL ODE_INT(FUSE_SOLVE,STATE0,STATE1,DT_SUB,DT_FULL,IERR,MESSAGE)
    IF (IERR.NE.0) THEN; PRINT *, TRIM(MESSAGE); PAUSE; ENDIF
    ! perform overland flow routing
    CALL Q_OVERLAND()
+
    ! save the state
    CALL XTRY_2_STR(STATE1,FSTATE)      ! update FSTATE
    gState(iSpat1,iSpat2) = FSTATE      ! put the state into the 2-d structure
@@ -140,12 +165,14 @@ DO ITIM=1,NUMTIM            ! (NUMTIM is shared in MODULE multiforce)
     aForce(iTim)%ppt = sum(gForce(:,:)%ppt)/real(size(gForce), kind(sp))
     aForce(iTim)%pet = sum(gForce(:,:)%pet)/real(size(gForce), kind(sp))
    endif
+
    ! save instantaneous and routed runoff
    AROUTE(ITIM)%Q_INSTNT = MROUTE%Q_INSTNT  ! save instantaneous runoff
    AROUTE(ITIM)%Q_ROUTED = MROUTE%Q_ROUTED  ! save routed runoff
    ! sanity check
    IF (AROUTE(ITIM)%Q_ROUTED.LT.0._sp) STOP ' Q_ROUTED is less than zero '
    IF (AROUTE(ITIM)%Q_ROUTED.GT.1000._sp) STOP ' Q_ROUTED is enormous '
+
    ! compute summary statistics
    CALL COMP_STATS()
    ! write model output
@@ -157,14 +184,18 @@ DO ITIM=1,NUMTIM            ! (NUMTIM is shared in MODULE multiforce)
   end do  ! (looping thru 2nd spatial dimension)
  end do  ! (looping thru 1st spatial dimension)
 END DO  ! (itim)
+
 ! get timing information
 CALL CPU_TIME(T2)
-!print *, t2-t1
+WRITE(*,*) "TIME ELAPSED = ", t2-t1
 ! calculate mean summary statistics
+
 CALL MEAN_STATS() 
 RMSE = MSTATS%RAW_RMSE
 WRITE(unt,'(2(I6,1X),3(F20.15,1X))') MOD_IX, PCOUNT, MSTATS%RAW_RMSE, MSTATS%NASH_SUTT, MSTATS%NUM_FUNCS
 ! write model parameters and summary statistics
+
+
 IF (.NOT.PRESENT(MPARAM_FLAG)) THEN
  CALL PUT_PARAMS(PCOUNT,MOD_IX)  ! PCOUNT = index for parameter set; ONEMOD=1 (just one model structure)
  CALL PUT_SSTATS(PCOUNT,MOD_IX)

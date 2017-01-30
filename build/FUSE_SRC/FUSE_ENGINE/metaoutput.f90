@@ -60,9 +60,7 @@ IF(SMODL%iSNOWM.EQ.iopt_temp_index) THEN !loop through snow model bands
   LNAME(I)='band snowpack melt, in water equivalent            '; VUNIT(I)='mm timestep-1'
  END DO
 
-
 ENDIF
-
 
 ! model fluxes
 I=I+1; VNAME(I)='eff_ppt    '; LNAME(I)='effective precipitation rate                       '; VUNIT(I)='mm timestep-1'
@@ -108,8 +106,7 @@ I=I+1; VNAME(I)='max_iterns' ; LNAME(I)='maximum number of iterations in implici
 I=I+1; VNAME(I)='q_instnt   '; LNAME(I)='instantaneous runoff                               '; VUNIT(I)='mm timestep-1'
 I=I+1; VNAME(I)='q_routed   '; LNAME(I)='routed runoff                                      '; VUNIT(I)='mm timestep-1'
 
-
-print *, 'Setting NOUTVAR to', I
+print *, 'Setting NOUTVAR (number of forcing, state and flux variables) to', I
 NOUTVAR=I
 
 END SUBROUTINE VARDESCRIBE

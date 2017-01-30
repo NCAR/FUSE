@@ -26,6 +26,7 @@ MODULE multistate
  ! --------------------------------------------------------------------------------------
  ! variable definitions
  ! --------------------------------------------------------------------------------------
+ type(statev),dimension(:,:),pointer   :: gState     ! (grid of model states)
  TYPE(STATEV)                          :: ASTATE     ! (model states at the start of full timestep)
  TYPE(STATEV)                          :: FSTATE     ! (model states at start of sub-timestep)
  TYPE(STATEV)                          :: MSTATE     ! (model states at start/middle of sub-timestep)

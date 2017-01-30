@@ -73,6 +73,8 @@ I=I+1; PNAME(I)='POWLAMB    '; PDESC(I)='mean value of power-transformed topogra
 I=I+1; PNAME(I)='MAXPOW     '; PDESC(I)='max value of power-transformed topographic index   '; PUNIT(I)='m**(1/n)'
 ! model bands parameters
 IF(SMODL%iSNOWM.EQ.iopt_temp_index) THEN !loop through snow model bands
+ I=I+1; PNAME(I)='N_BANDS    '; PDESC(I)='number of basin bands in model                     '; PUNIT(I)='=       '
+ I=I+1; PNAME(I)='Z_FORCING  '; PDESC(I)='elevation of model forcing data                    '; PUNIT(I)='m       '
  DO IBAND=1,N_BANDS
   WRITE(TXT_IBAND,'(I2)') IBAND              ! convert band no. to text
   IF (IBAND.LT.10) TXT_IBAND(1:1) = '0'      ! pad with zeros 
@@ -80,8 +82,6 @@ IF(SMODL%iSNOWM.EQ.iopt_temp_index) THEN !loop through snow model bands
   I=I+1; PNAME(I)='AF'//TXT_IBAND//'       '; PDESC(I)='basin band area fraction                           '; PUNIT(I)='-       '
  END DO
 ENDIF
-I=I+1; PNAME(I)='N_BANDS    '; PDESC(I)='number of basin bands in model                     '; PUNIT(I)='=       '
-I=I+1; PNAME(I)='Z_FORCING  '; PDESC(I)='elevation of model forcing data                    '; PUNIT(I)='m       '
 ! numerical solution parameters
 I=I+1; PNAME(I)='SOLUTION   '; PDESC(I)='0=explicit euler; 1=implicit euler                 '; PUNIT(I)='-       '
 I=I+1; PNAME(I)='TIMSTEP_TYP'; PDESC(I)='0=fixed time steps; 1=adaptive time steps          '; PUNIT(I)='-       '

@@ -7,7 +7,7 @@ perc_f2sat QPERC     ! (5) percolation
 sequential ESOIL     ! (6) evaporation
 intflwnone QINTF     ! (7) interflow
 rout_gamma Q_TDH     ! (8) time delay in runoff
-temp_index SNOWM     ! (9) snow model
+no_snowmod SNOWM     ! (9) snow model
 0                    ! naming convention for model (0=full, 1=index + numrx)
 ---------------------------------------------------------------------------
 ---------------------------------------------------------------------------

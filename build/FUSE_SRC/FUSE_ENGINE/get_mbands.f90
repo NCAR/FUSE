@@ -49,8 +49,8 @@ print *, 'Elevation bands info file:',TRIM(CFILE)
 
 INQUIRE(FILE=CFILE,EXIST=LEXIST)  ! check that control file exists
 IF (.NOT.LEXIST) THEN
- message='f-GET_MBANDS/control file "'//TRIM(CFILE)//'" for band data does not exist ' 
- err=100; return
+	print *, 'f-GET_MBANDS/control file ',TRIM(CFILE),' for band data does not exist ' 
+	STOP 
 ENDIF
 ! read in parameters of the control files
 CALL getSpareUnit(IUNIT,err,message) ! make sure IUNIT is actually available

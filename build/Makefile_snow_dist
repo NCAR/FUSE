@@ -15,6 +15,9 @@ F_MASTER = /home/naddor/fuse/
 # Core directory that contains FUSE source code
 F_KORE_DIR = $(F_MASTER)build/FUSE_SRC/
 
+# Location of the compiled modules
+MOD_PATH = $(F_MASTER)build/
+
 # Define the directory for the executables
 EXE_PATH = $(F_MASTER)bin
 #
@@ -25,7 +28,7 @@ EXE_PATH = $(F_MASTER)bin
 # Define directories
 NUMREC_DIR = $(F_KORE_DIR)FUSE_NR
 HOOKUP_DIR = $(F_KORE_DIR)FUSE_HOOK
-DRIVER_DIR = $(F_KORE_DIR)FUSE_DRIVERS
+DRIVER_DIR = $(F_KORE_DIR)FUSE_DMSL
 NETCDF_DIR = $(F_KORE_DIR)FUSE_NETCDF
 ENGINE_DIR = $(F_KORE_DIR)FUSE_ENGINE
 #
@@ -43,9 +46,10 @@ FUSE_NRUTIL= \
 NRUTIL = $(patsubst %, $(NUMREC_DIR)/%, $(FUSE_NRUTIL))
 
 # Data modules
-FUSE_DATAMS= \
-	model_defn.f90 \
+FUSE_DATAMS=    \
+        model_defn.f90 \
 	model_defnames.f90 \
+	multiconst.f90 \
 	multiforce.f90 \
 	multibands.f90 \
 	multiparam.f90 \
@@ -112,6 +116,7 @@ SOLVER = $(patsubst %, $(ENGINE_DIR)/%, $(FUSE_SOLVER))
 
 # Define routines for FUSE preliminaries
 FUSE_PRELIM= \
+	ascii_util.f90 \
 	uniquemodl.f90 \
 	getnumerix.f90 \
 	getparmeta.f90 \
@@ -129,8 +134,18 @@ FUSE_PRELIM= \
 PRELIM = $(patsubst %, $(ENGINE_DIR)/%, $(FUSE_PRELIM))
 
 # Define routines for the FUSE model runs
-FUSE_MODRUN = \
-	getforcing.f90 \
+# 	force_info.f90 \ # for dist
+#	getf_ascii.f90 \ # for dist
+#	clrsky_rad.f90 \ # for dist
+#	getPETgrid.f90 \ # for dist
+#	getforcing.f90 \ # still needed?
+
+FUSE_MODRUN= \
+	conv_funcs.f90 \
+	force_info.f90 \
+	getf_ascii.f90 \
+	clrsky_rad.f90 \
+	getPETgrid.f90 \
 	get_mbands.f90 \
 	initfluxes.f90 \
 	ode_int.f90 \
@@ -141,15 +156,16 @@ MODRUN = $(patsubst %, $(ENGINE_DIR)/%, $(FUSE_MODRUN))
 
 # Define NetCDF routines
 FUSE_NETCDF = \
-	handle_err.f90 \
-	extractor.f90 juldayss.f90 caldatss.f90 \
-	get_smodel.f90 \
-	def_params.f90 \
-	def_output.f90 \
-	def_sstats.f90 \
-	put_params.f90 \
-	put_output.f90 \
-	put_sstats.f90
+    handle_err.f90 \
+    extractor.f90 juldayss.f90 caldatss.f90 \
+    get_gforce.f90 \
+    get_smodel.f90 \
+    def_params.f90 \
+    def_output.f90 \
+    def_sstats.f90 \
+    put_params.f90 \
+    put_output.f90 \
+    put_sstats.f90
 NETCDF = $(patsubst %, $(NETCDF_DIR)/%, $(FUSE_NETCDF))
 
 # ... and stitch it all together...
@@ -162,57 +178,71 @@ FUSE_ALL = $(UTILMS) $(NRUTIL) $(DATAMS) $(INFOMS) \
 #========================================================================
 
 # Define the NetCDF libraries and path to include files
-# LIBNETCDF = -L/usr/share/info -lnetcdff -lnetcdf
-# INCNETCDF = -I/usr/include
+# Note 1: the order of the libraries matters, e.g. -lcurl should come
+# before netcdf libraries 
+# Note 2: on hydro-c1, /usr/local is a copy (via symbolic link) of /opt
 
-# 2. netCDF on NCAR "hydro" cluster
-HDF_PATH  = /opt/hdf5
+
+# Define the Fortran Compiler
+FC = ifort
+
+# Define the NetCDF libraries and path to include files
+ifeq "$(FC)" "gfortran"
+ HDF_PATH  = /usr/local/hdf5
+ NCDF_PATH = /usr/local/netcdf-4.2/gcc-4.4.5
+ LOCL_PATH = /usr/local
+ LIBNETCDF = -L$(NCDF_PATH)/lib -lnetcdff -lnetcdf -L$(HDF_PATH)/lib -lhdf5_hl -lhdf5 -L$(LOCL_PATH)/lib -lsz -lz
+ INCNETCDF = -I$(NCDF_PATH)/include -I$(HDF_PATH)/include
+endif
+ifeq "$(FC)" "ifort"
+ HDF_PATH  = /opt/hdf5
 NCDF_PATH = /opt/netcdf4-intel
 SZ_PATH = /opt/szip-2.1
 Z_PATH = /opt/zlib-1.2.8
 LIBNETCDF = -lcurl -L$(NCDF_PATH)/lib -lnetcdff -lnetcdf -L$(HDF_PATH)/lib -lhdf5_hl -lhdf5 -L$(SZ_PATH)/lib -lsz -L$(Z_PATH)/lib -lz
 INCNETCDF = -I$(NCDF_PATH)/include -I$(HDF_PATH)/include
 
+endif
+ifeq "$(FC)" "pgf90"
+ LIBNETCDF = -L/usr/local/netcdf4-pgi/lib -lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -lsz -lz
+ INCNETCDF = -I/usr/local/netcdf4-pgi/include
+endif
+
 # Define the driver program and associated subroutines for the fidelity test
-FUSE__SNOW_DRIVER = \
+FUSE__URS_DRIVER = \
 	sobol.f90 \
-	fuse_rmse.f90 \
-	URS_driver.f90
-SNOW_DRIVER = $(patsubst %, $(DRIVER_DIR)/%, $(FUSE__SNOW_DRIVER))
+    fuse_rmse.f90 \
+        distributed_driver.f90
+URS_DRIVER = $(patsubst %, $(DRIVER_DIR)/%, $(FUSE__URS_DRIVER))
 
 # Define the executables
-SNOW_DRIVER__EX = fuse_snow.exe
+URS_DRIVER__EX = fuse_snow_dist.exe
 
 #========================================================================
 # PART 3: Compile the puppy
 #========================================================================
 
-# Define the Fortran Compiler
-FC = ifort
-
-# Define flags - http://wiki.seas.harvard.edu/geos-chem/index.php/Intel_Fortran_Compiler#Optimization_level_for_debugging
+# Define flags
+ifeq "$(FC)" "gfortran"
+ FLAGS = -static -Wall -g -ffree-line-length-none
+endif
 ifeq "$(FC)" "ifort"
- FLAGS1 = -warn all -noerror_limit -FR -O0 -auto -WB -traceback -g -fltconsistency
- FLAGS2 = -debug -warn all -noerror_limit -check all -FR -O0 -auto -WB -traceback -g -fltconsistency -heap-arrays 
  FLAGS_NORMA = -cpp -w -O2 -auto -noalign -convert big_endian -vec-report0 -fp-model source 
  FLAGS_DEBUG = -debug all -g -O0 -check bounds -check arg_temp_created -traceback -fpe0 -ftrapuv -heap-arrays
 endif
 
 ifeq "$(FC)" "pgf90"
- FLAGS = -Bstatic -Mbackslash -g -Mchkptr -Mchkstk -Mpgicoff -Minform=inform -Ktrap=divz
+ FLAGS1 = -Bstatic -Mbackslash -g -Mchkptr -Mchkstk -Mpgicoff -Minform=inform -Ktrap=divz,inv -Mprof=lines,time
+ FLAGS = -Bstatic -Mbackslash -g -Mchkptr -Mchkstk -Mpgicoff -Minform=inform -Ktrap=divz,inv
 endif
-
-#FLAGS = -O3 -W -v
-
-#.SUFFIXES: .f .o .f90
 
 # Compile
 all: compile_URS install_URS clean
 
 # compile FUSE into a static library
 compile_URS:
-	$(FC) $(FLAGS_DEBUG) $(FUSE_ALL) $(SNOW_DRIVER) \
-	$(LIBNETCDF) $(INCNETCDF) -o $(SNOW_DRIVER__EX)
+	$(FC) $(FLAGS_DEBUG) $(FUSE_ALL) $(URS_DRIVER) \
+	$(LIBNETCDF) $(INCNETCDF) -o $(URS_DRIVER__EX)
 
 # Remove object files
 clean:
@@ -221,4 +251,4 @@ clean:
 #
 # Copy the executable to the bin directory
 install_URS:
-	mv $(SNOW_DRIVER__EX) $(EXE_PATH)
+		mv $(URS_DRIVER__EX) $(EXE_PATH)
