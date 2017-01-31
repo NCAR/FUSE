@@ -22,12 +22,13 @@ contains
  ! -----------------
  ! MODULE multiforce -- populate dimension lengths
  ! ---------------------------------------------------------------------------------------
- USE fuse_fileManager,only:SETNGS_PATH,FORCINGINFO,&   ! defines data directory 
+ USE fuse_fileManager,only:SETNGS_PATH,FORCINGINFO,&   ! defines data directory
                            INPUT_PATH
  USE multiforce,only:forcefile,vname_aprecip           ! model forcing structures
  USE multiforce,only:nspat1,nspat2!,numtim             ! dimension lengths
  USE multiforce,only:vname_dtime                       ! variable name: time sice reference time
  USE multiforce,only:timeUnits                         ! units string for time
+ USE multiforce,only:ncid_forc                         ! NetCDF forcing file ID
  IMPLICIT NONE
  ! output
  integer(i4b), intent(out)              :: ierr        ! error code
@@ -37,7 +38,7 @@ contains
  INTEGER(I4B)                           :: I           ! looping
  CHARACTER(LEN=lenPath)                 :: cmessage    ! message of downwind routine
  ! internal: NetCDF read
- integer(i4b)                           :: ncid        ! NetCDF file ID
+ !integer(i4b)                           :: ncid        ! NetCDF file ID
  integer(i4b)                           :: ivarid      ! NetCDF variable ID
  integer(i4b),parameter                 :: ndims=3     ! number of dimensions for precipitation
  integer(i4b),dimension(ndims)          :: dimids_ppt  ! vector of dimension IDs for precipitation
@@ -48,23 +49,23 @@ contains
  ierr=0; message='read_ginfo/'
  print*, trim(message)//'file = '//trim(INPUT_PATH)//trim(forcefile)
  ! ---------------------------------------------------------------------------------------
- print *, 'Now getting forcing from', trim(INPUT_PATH)//trim(forcefile)
+ print *, 'Getting grid info from ', trim(INPUT_PATH)//trim(forcefile)
  ! open NetCDF file
- ierr = nf90_open(trim(INPUT_PATH)//trim(forcefile), nf90_nowrite, ncid)
+ ierr = nf90_open(trim(INPUT_PATH)//trim(forcefile), nf90_nowrite, ncid_forc)
  if(ierr/=0)then
   message=trim(message)//trim(nf90_strerror(ierr))//'[file='//trim(INPUT_PATH)//trim(forcefile)//']'; return
  endif
- 
+
  ! get the variable ID for precipitation
- ierr = nf90_inq_varid(ncid, vname_aprecip, ivarid)
+ ierr = nf90_inq_varid(ncid_forc, vname_aprecip, ivarid)
  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
  ! get the dimension IDs for precipitation
- call get_dimIds(ncid, ivarid, ndims, dimids_ppt, ierr, cmessage)
+ call get_dimIds(ncid_forc, ivarid, ndims, dimids_ppt, ierr, cmessage)
  if(ierr/=0)then; message=trim(message)//trim(cmessage); return; endif
  ! loop through variable dimensions
  do iDimID=1,ndims
   ! get the dimension lengths
-  ierr = nf90_inquire_dimension(ncid,dimids_ppt(iDimID),len=dimLen)
+  ierr = nf90_inquire_dimension(ncid_forc,dimids_ppt(iDimID),len=dimLen)
   if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
   ! save the dimension lengths
   if(iDimID==1) nspat1 = dimLen  ! 1st spatial dimension
@@ -74,19 +75,17 @@ contains
  end do
 
  ! get variable ID for time
- ierr = nf90_inq_varid(ncid, trim(vname_dtime), iVarID)
+ ierr = nf90_inq_varid(ncid_forc, trim(vname_dtime), iVarID)
  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr))//'[variable='//trim(vname_dtime)//']'; return; endif
  ! get time units
- ierr = nf90_get_att(ncid, iVarID, 'units', timeUnits)
+ ierr = nf90_get_att(ncid_forc, iVarID, 'units', timeUnits)
  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr))//'[variable='//trim(vname_dtime)//']'; return; endif
  ! close the NetCDF file
- ierr = nf90_close(ncid)
+ ierr = nf90_close(ncid_forc)
  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
 
-
-
  contains
-  
+
   ! --------------------------------------------------------------------------------------
   subroutine get_dimIds(ncid, varid, nexpect, varDimIDs, ierr, message)
   ! used to get the vector of dimension ids for a given variable
@@ -131,12 +130,13 @@ contains
  ! -----------------
  ! MODULE multiforce -- populate structure timDat%(*)
  ! ---------------------------------------------------------------------------------------
- USE fuse_fileManager,only:INPUT_PATH                   ! defines data directory 
+ USE fuse_fileManager,only:INPUT_PATH                   ! defines data directory
  USE multiforce,only:forcefile                          ! name of forcing file
  USE multiforce,only:vname_dtime                        ! variable name: time sice reference time
  USE multiforce,only:timDat                             ! time data strructure
  USE multiforce,only:jdayRef                            ! reference time (days)
  USE multiforce,only:timeUnits                          ! units string for time
+
  IMPLICIT NONE
  ! input
  integer(i4b), intent(in)                :: itim        ! index of model time step
@@ -194,7 +194,7 @@ contains
  ! -----------------
  ! MODULE multiforce -- populate structure GFORCE(*,*)%(*)
  ! ---------------------------------------------------------------------------------------
- USE fuse_fileManager,only:INPUT_PATH                   ! defines data directory 
+ USE fuse_fileManager,only:INPUT_PATH                   ! defines data directory
  USE multiforce,only:forcefile                          ! name of forcing file
  USE multiforce,only:vname_aprecip                      ! variable name: precipitation
  USE multiforce,only:vname_airtemp                      ! variable name: temperature
@@ -206,6 +206,7 @@ contains
  USE multiforce,only:amult_ppt,amult_pet                ! multipliers o convert to mm/day
  USE multiforce,only:gForce                             ! gridded forcing data
  USE multiforce,only:ancilF                             ! ancillary forcing data
+
  IMPLICIT NONE
  ! input
  integer(i4b), intent(in)                :: itim        ! index of model time step
@@ -236,7 +237,7 @@ contains
  ! initialize error control
  ierr=0; message='get_gforce/'
  ! ---------------------------------------------------------------------------------------
- 
+
  ! initialize lCheck
  lCheck=.false.
  ! allocate space for the temporary grid
@@ -249,11 +250,13 @@ contains
  cVec(ilook_spechum)%vname = trim(vname_spechum)  ! variable name: specific humidity
  cVec(ilook_airpres)%vname = trim(vname_airpres)  ! variable name: surface pressure
  cVec(ilook_swdown)%vname  = trim(vname_swdown)   ! variable name: downward shortwave radiation
- ! open NetCDF file
+
+ ! open NetCDF file <- now in fuse_rmse
  ierr = nf90_open(trim(INPUT_PATH)//trim(forcefile), nf90_nowrite, ncid)
- if(ierr/=0)then
+  if(ierr/=0)then
   message=trim(message)//trim(nf90_strerror(ierr))//'[file='//trim(INPUT_PATH)//trim(forcefile)//']'; return
- endif
+endif
+
  ! get forcing grids
  do ivar=1,nForce
 
@@ -276,30 +279,30 @@ contains
   if( trim(cVec(iVar)%vname) == trim(vname_aprecip) )then; gForce(:,:)%ppt = gTemp(:,:,1)*amult_ppt; lCheck(ilook_aprecip) = .true.; endif
   if( trim(cVec(iVar)%vname) == trim(vname_potevap) )then; gForce(:,:)%pet = gTemp(:,:,1)*amult_pet; lCheck(ilook_potevap) = .true.; endif
   if( trim(cVec(iVar)%vname) == trim(vname_airtemp) )then; gForce(:,:)%temp = gTemp(:,:,1);       lCheck(ilook_airtemp) = .true.; endif
-  
+
   ! save the other variables required to compute PET
   !if( trim(cVec(iVar)%vname) == trim(vname_airtemp) )then; ancilF(:,:)%airtemp = gTemp(:,:,1);       lCheck(ilook_airtemp) = .true.; endif
   if( trim(cVec(iVar)%vname) == trim(vname_spechum) )then; ancilF(:,:)%spechum = gTemp(:,:,1);       lCheck(ilook_spechum) = .true.; endif
   if( trim(cVec(iVar)%vname) == trim(vname_airpres) )then; ancilF(:,:)%airpres = gTemp(:,:,1);       lCheck(ilook_airpres) = .true.; endif
   if( trim(cVec(iVar)%vname) == trim(vname_swdown)  )then; ancilF(:,:)%swdown  = gTemp(:,:,1);       lCheck(ilook_swdown)  = .true.; endif
- 
+
  end do  ! (loop thru forcing variables)
- 
- ! close the NetCDF file
+
+ ! close the NetCDF file <- now in fuse_rmse
  ierr = nf90_close(ncid)
- if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif 
- 
+ if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
+
  ! deallocate space for gTemp
  deallocate(gTemp, stat=ierr)
  if(ierr/=0)then; message=trim(message)//'problem deallocating space for gTemp'; return; endif
- 
+
  ! check that we got all desired variables
  if(any(lCheck .eqv. .false.))then
 !  do ivar=1,nForce; print*, trim(cVec(iVar)%vname), lCheck(ivar); end do
   message=trim(message)//'cannot find variable'
   ierr=20; return
  endif
- 
+
  end subroutine get_gforce
 
  subroutine date_extractor(refDate,iy,im,id,ih)
@@ -315,7 +318,7 @@ contains
  character(len=4)                    :: cyyyy       ! char year extracted from refDate
  character(len=2)                    :: cmm,cdd,chh ! char month and day and hour extracted from refDate
  integer(i4b)                        :: posit       ! position in refDate string
- 
+
  ! strip out time units, if they exist (seconds since , days since , hours since )
  REFD = TRIM(REFDATE)
  POSIT = INDEX(REFDATE, 'since')
@@ -406,7 +409,7 @@ contains
  !                 The Art of Scientific Computing (2nd Ed.)  Cambridge
  !                 University Press, 933pp.
  !-----------------------------------------------------------------------
- !       Modified by David Rupp 2006-March-07 to account for hours 
+ !       Modified by David Rupp 2006-March-07 to account for hours
  !       Output is yyyy, mm, dd, hh
  !-----------------------------------------------------------------------
  IMPLICIT NONE
@@ -426,7 +429,7 @@ contains
  ! gets the hours, (remaining decimal)*24
  hours = (juliandd-julian)*24
  ih = int(hours)  ! convert to an integer
- ! get the minutes, (remaining decimal)*60  
+ ! get the minutes, (remaining decimal)*60
  minutes = (hours-ih)*60
  imin = int(minutes)
  ! get the seconds (keep as a decimal
@@ -454,4 +457,4 @@ contains
  END SUBROUTINE caldatss
 
 
-end module get_gforce_module 
+end module get_gforce_module

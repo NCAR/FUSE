@@ -9,35 +9,43 @@ PROGRAM DISTRIBUTED_DRIVER
 ! Driver program to run FUSE as a distributed model with a snow module
 ! ---------------------------------------------------------------------------------------
 USE nrtype                                                ! variable types, etc.
+USE netcdf                                                ! NetCDF library
 USE fuse_fileManager,only:fuse_SetDirsUndPhiles,&         ! sets directories and filenames
-     OUTPUT_PATH,SETNGS_PATH,MBANDS_INFO, &
-          OUTPUT_PATH,FORCINGINFO
+          SETNGS_PATH,MBANDS_INFO, &
+          OUTPUT_PATH,FORCINGINFO,INPUT_PATH
+
 ! data modules
 USE model_defn,nstateFUSE=>nstate                         ! model definition structures
 USE model_defnames                                        ! defines the integer model options
+USE multiforce, ONLY: forcefile,vname_aprecip              ! model forcing structures
 USE multiforce, ONLY: AFORCE, aValid                      ! time series of lumped forcing/response data
 USE multiforce, ONLY: GFORCE, nspat1, nspat2              ! spatial array of gridded forcing data
 USE multiforce, only: ancilF                              ! ancillary forcing data
 USE multiforce, ONLY: valDat                              ! response data
 USE multiforce, only: DELTIM
 USE multiforce, only: ISTART, NUMTIM                      ! index for start of inference, number of data steps
+USE multiforce, only: ncid_forc                           ! NetCDF forcing file ID
+
 !USE multiforce, ONLY: AFORCE, DELTIM, NUMTIM              ! data interval = maximum model time step - now redundant
 USE multibands                                            ! basin band stuctures
 USE multiparam, ONLY: LPARAM, PARATT, NUMPAR              ! parameter metadata structures
 USE multistate, only: gState                              ! gridded state variables
 USE multiroute, ONLY: AROUTE                              ! model routing structures
 USE multistats                                            ! model statistics structures
+
 ! informational modules
 USE selectmodl_module                                     ! reads model control file
 USE getpar_str_module                                     ! extracts parameter metadata
 USE par_insert_module                                     ! inserts model parameters
 USE force_info_module,only:force_info                     ! get forcing info for NetCDF files
 USE get_gforce_module,only:read_ginfo                     ! get dimension lengths from the NetCDF file
-USE getf_ascii_module,only:prelim_asc                     ! get preliminary data from the ASCII file 
+USE getf_ascii_module,only:prelim_asc                     ! get preliminary data from the ASCII file
 USE getf_ascii_module,only:close_file                     ! close ASCII file
-USE getf_ascii_module,only:read_ascii                     ! read ascii forcing data for a given time step 
+USE getf_ascii_module,only:read_ascii                     ! read ascii forcing data for a given time step
+
 ! model numerix
 USE model_numerix                                         ! defines decisions on model numerix
+
 ! access to model simulation modules
 USE fuse_rmse_module                                      ! run model and compute the root mean squared error
 IMPLICIT NONE
@@ -186,6 +194,12 @@ IF(SPATIAL_OPTION == LUMPED)THEN
 ELSE
  print *, 'Running FUSE as a distributed model'
 
+ ! open NetCDF forcing file
+ err = nf90_open(trim(INPUT_PATH)//trim(forcefile), nf90_nowrite, ncid_forc)
+ if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
+
+ PRINT *, 'NCID is', ncid_forc
+
  ! get the grid info (dimensions) from the NetCDF file
  call read_ginfo(err,message)
  if(err/=0)then; write(*,*) trim(message); stop; endif
@@ -194,7 +208,9 @@ ELSE
  if(err/=0)then; write(*,*) 'unable to allocate space for forcing grid GFORCE'; stop; endif
 ENDIF
 print*, 'spatial dimensions = ', nSpat1, nSpat2
-print*, 'indices for start of inference and number of time steps', istart, numtim 
+print*, 'indices for start of inference and number of time steps', istart, numtim
+print*, 'netCDF ID for forcing file', ncid_forc
+
 ! Define model attributes (valid for all models)
 CALL UNIQUEMODL(NMOD)           ! get nmod unique models
 CALL GETPARMETA(ERR,MESSAGE)    ! read parameter metadata (parameter bounds etc.)
@@ -205,7 +221,7 @@ IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 ! Define list of states and parameters for the current model
 ! Read data from the "BATEA-compliant" ASCII files
 ! CALL GETFORCING(INFERN_START,NTIM) ! read forcing data - not needed anymore
-IF (SMODL%iSNOWM.EQ.iopt_temp_index) CALL GET_MBANDS(err,message) ! read band data if snow model 
+IF (SMODL%iSNOWM.EQ.iopt_temp_index) CALL GET_MBANDS(err,message) ! read band data if snow model
 CALL ASSIGN_STT()        ! state definitions are stored in module model_defn
 CALL ASSIGN_FLX()        ! flux definitions are stored in module model_defn
 CALL ASSIGN_PAR()        ! parameter definitions are stored in module multiparam
@@ -241,5 +257,13 @@ CALL FUSE_RMSE(APAR,SPATIAL_FLAG,RMSE,OUTPUT_FLAG)
 print *, 'Done with FUSE_RMSE'
 ! and, deallocate space
 DEALLOCATE(APAR,BL,BU,URAND)
+
+! close the NetCDF file
+IF(SPATIAL_OPTION /= LUMPED)THEN
+  PRINT *, 'Closing forcing file'
+  err = nf90_close(ncid_forc)
+  if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
+ENDIF
+
 STOP
 END PROGRAM DISTRIBUTED_DRIVER

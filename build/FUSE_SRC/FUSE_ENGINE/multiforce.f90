@@ -10,7 +10,7 @@ MODULE multiforce
  USE nrtype
  SAVE
  ! --------------------------------------------------------------------------------------
- ! the time data structure (will have no spatial dimension) 
+ ! the time data structure (will have no spatial dimension)
  TYPE TDATA
   INTEGER(I4B)                         :: IY         ! year
   INTEGER(I4B)                         :: IM         ! month
@@ -39,7 +39,7 @@ MODULE multiforce
   REAL(SP)                             :: PET        ! energy input: potential ET (mm day-1)
  ENDTYPE FDATA
  ! --------------------------------------------------------------------------------------
- ! general 
+ ! general
  INTEGER(I4B),PARAMETER                :: STRLEN=256 ! length of the character string
  ! time data structures
  type(tData)                           :: timDat     ! model time structure
@@ -65,11 +65,13 @@ MODULE multiforce
  real(sp)                              :: xlon                      ! longitude (degrees)
  real(sp)                              :: ylat                      ! latitude (degrees)
  ! dimension information
- integer(i4b)                          :: nSpat1=-1                 ! number of points in 1st spatial dimension 
+ integer(i4b)                          :: nSpat1=-1                 ! number of points in 1st spatial dimension
  integer(i4b)                          :: nSpat2=-1                 ! number of points in 2nd spatial dimension
  integer(i4b)                          :: nsteps=-1                 ! number of data steps
  ! filename
  character(len=StrLen)                 :: forcefile='undefined'     ! name of forcing file
+ ! NetCDF
+ integer(i4b)                          :: ncid_forc=-1              ! NetCDF forcing file ID
  ! name of time variables
  character(len=StrLen)                 :: vname_iy   ='undefined'   ! name of variable for year
  character(len=StrLen)                 :: vname_im   ='undefined'   ! name of variable for month
@@ -104,6 +106,6 @@ MODULE multiforce
  real(sp)                              :: amult_q=-1._dp            ! convert runoff to mm/day
  ! missing values
  INTEGER(I4B)                          :: NA_VALUE  		    ! integer designating missing values
- 
+
  ! --------------------------------------------------------------------------------------
 END MODULE multiforce
