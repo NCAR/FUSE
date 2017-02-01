@@ -17,7 +17,7 @@ USE fuse_fileManager,only:fuse_SetDirsUndPhiles,&         ! sets directories and
 ! data modules
 USE model_defn,nstateFUSE=>nstate                         ! model definition structures
 USE model_defnames                                        ! defines the integer model options
-USE multiforce, ONLY: forcefile,vname_aprecip              ! model forcing structures
+USE multiforce, ONLY: forcefile,vname_aprecip             ! model forcing structures
 USE multiforce, ONLY: AFORCE, aValid                      ! time series of lumped forcing/response data
 USE multiforce, ONLY: GFORCE, nspat1, nspat2              ! spatial array of gridded forcing data
 USE multiforce, only: ancilF                              ! ancillary forcing data
@@ -25,6 +25,7 @@ USE multiforce, ONLY: valDat                              ! response data
 USE multiforce, only: DELTIM
 USE multiforce, only: ISTART, NUMTIM                      ! index for start of inference, number of data steps
 USE multiforce, only: ncid_forc                           ! NetCDF forcing file ID
+USE multiforce, only: ncid_var                            ! NetCDF forcing variable ID
 
 !USE multiforce, ONLY: AFORCE, DELTIM, NUMTIM              ! data interval = maximum model time step - now redundant
 USE multibands                                            ! basin band stuctures
@@ -39,6 +40,7 @@ USE getpar_str_module                                     ! extracts parameter m
 USE par_insert_module                                     ! inserts model parameters
 USE force_info_module,only:force_info                     ! get forcing info for NetCDF files
 USE get_gforce_module,only:read_ginfo                     ! get dimension lengths from the NetCDF file
+USE get_gforce_module,only:get_varid                      ! get netCDF ID for forcing variables
 USE getf_ascii_module,only:prelim_asc                     ! get preliminary data from the ASCII file
 USE getf_ascii_module,only:close_file                     ! close ASCII file
 USE getf_ascii_module,only:read_ascii                     ! read ascii forcing data for a given time step
@@ -145,8 +147,8 @@ CALL GETNUMERIX(ERR,MESSAGE)              ! defines method/parameters used for n
 ! define basin desired
 FORCINGINFO = TRIM(DatString)//'_input_info.txt'
 MBANDS_INFO = TRIM(DatString)//'_elev_bands_info.txt'
-! convert command-line arguments to integer flags and real numbers
 
+! convert command-line arguments to integer flags and real numbers
 READ(FMODEL_ID,*) FUSE_ID                 ! integer defining FUSE model
 READ(F_SPATIAL,*) SPATIAL_OPTION          ! spatial option (0=lumped, 1= distributed)
 !READ(NSOLUTION,*) SOLUTION_METHOD         ! numerical solution (0=implicit, 1=explicit)
@@ -167,8 +169,8 @@ if(err/=0)then; write(*,*) trim(message); stop; endif
 ! allocate space for the basin-average time series
 allocate(aForce(numtim),aRoute(numtim),aValid(numtim),stat=err)
 if(err/=0)then; write(*,*) 'unable to allocate space for basin-average time series [aForce,aRoute]'; stop; endif
-! get dimensions of the grid
 
+! get dimensions of the grid
 IF(SPATIAL_OPTION == LUMPED)THEN
 	print *, 'Running FUSE as a lumped model'
  ! specify as a 1x1 grid
@@ -193,31 +195,39 @@ IF(SPATIAL_OPTION == LUMPED)THEN
  print*, istart,numtim
 ELSE
  print *, 'Running FUSE as a distributed model'
-
  ! open NetCDF forcing file
  err = nf90_open(trim(INPUT_PATH)//trim(forcefile), nf90_nowrite, ncid_forc)
  if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
-
  PRINT *, 'NCID is', ncid_forc
 
  ! get the grid info (dimensions) from the NetCDF file
- call read_ginfo(err,message)
+ call read_ginfo(ncid_forc,err,message)
  if(err/=0)then; write(*,*) trim(message); stop; endif
+
  ! allocate space for the forcing grid and states
  allocate(ancilF(nspat1,nspat2), gForce(nspat1,nspat2), gState(nspat1,nspat2), stat=err)
  if(err/=0)then; write(*,*) 'unable to allocate space for forcing grid GFORCE'; stop; endif
+
+ ! get variable ID from the NetCDF file
+ call get_varID(ncid_forc,err,message)
+ if(err/=0)then; write(*,*) 'unable to get NetCDF variables ID'; stop; endif
+
 ENDIF
+
 print*, 'spatial dimensions = ', nSpat1, nSpat2
 print*, 'indices for start of inference and number of time steps', istart, numtim
 print*, 'netCDF ID for forcing file', ncid_forc
+print *, 'netCDF ID for second forcing variable:', ncid_var(2)
 
 ! Define model attributes (valid for all models)
 CALL UNIQUEMODL(NMOD)           ! get nmod unique models
 CALL GETPARMETA(ERR,MESSAGE)    ! read parameter metadata (parameter bounds etc.)
 IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
+
 ! Identify a single model (read control file ../fuse_zDecisions.txt)
 CALL SELECTMODL(ERR=ERR,MESSAGE=MESSAGE)
 IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
+
 ! Define list of states and parameters for the current model
 ! Read data from the "BATEA-compliant" ASCII files
 ! CALL GETFORCING(INFERN_START,NTIM) ! read forcing data - not needed anymore
@@ -225,12 +235,15 @@ IF (SMODL%iSNOWM.EQ.iopt_temp_index) CALL GET_MBANDS(err,message) ! read band da
 CALL ASSIGN_STT()        ! state definitions are stored in module model_defn
 CALL ASSIGN_FLX()        ! flux definitions are stored in module model_defn
 CALL ASSIGN_PAR()        ! parameter definitions are stored in module multiparam
+
 ! compute derived model parameters (bucket sizes, etc.)
 CALL PAR_DERIVE(ERR,MESSAGE)
 IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
+
 ! Define output file names (shared in MODULE model_defn)
 FNAME_NETCDF = TRIM(OUTPUT_PATH)//TRIM(DatString)//'__'//TRIM(SMODL%MNAME)//'.nc'
 write(*,'(a)') trim(fname_netcdf)
+
 ! Define NetCDF output files (only write parameters and summary statistics)
 ONEMOD=1                 ! one file per model (i.e., model dimension = 1)
 PCOUNT=0                 ! counter for parameter sets evaluated (shared in MODULE multistats)
@@ -239,6 +252,7 @@ CALL DEF_PARAMS(ONEMOD)  ! define model parameters (initial CREATE)
 CALL DEF_SSTATS()        ! define summary statistics (REDEF)
 
 IF (OUTPUT_FLAG) CALL DEF_OUTPUT(NUMTIM,nSpat1,nSpat2)    ! define model time series (REDEF)
+
 ! ---------------------------------------------------------------------------------------
 ! (2) RUN MODEL FOR THE CURRENT PARAMETER SET WITH DIFFERENT NUMERIX OPTIONS
 ! ---------------------------------------------------------------------------------------
@@ -251,10 +265,12 @@ DO IPAR=1,NUMPAR
  APAR(IPAR) = PARAM_META%PARDEF
  if(PARAM_META%PARFIT) print*, LPARAM(IPAR)%PARNAME, PARAM_META%PARDEF
 END DO
+
 ! run zee model
 print *, 'Entering FUSE_RMSE'
-CALL FUSE_RMSE(APAR,SPATIAL_FLAG,RMSE,OUTPUT_FLAG)
+CALL FUSE_RMSE(APAR,SPATIAL_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
 print *, 'Done with FUSE_RMSE'
+
 ! and, deallocate space
 DEALLOCATE(APAR,BL,BU,URAND)
 

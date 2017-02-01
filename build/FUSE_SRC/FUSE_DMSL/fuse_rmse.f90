@@ -1,7 +1,7 @@
 MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
   IMPLICIT NONE
 CONTAINS
-  SUBROUTINE FUSE_RMSE(XPAR,DISTRIBUTED,RMSE,OUTPUT_FLAG,MPARAM_FLAG)
+  SUBROUTINE FUSE_RMSE(XPAR,DISTRIBUTED,NCID_FORC,RMSE,OUTPUT_FLAG,MPARAM_FLAG)
     ! ---------------------------------------------------------------------------------------
     ! Creator:
     ! --------
@@ -23,6 +23,7 @@ CONTAINS
     USE multiforce, ONLY:MFORCE,AFORCE,DELTIM,ISTART,&       ! model forcing data
          NUMTIM,warmup_beg                   ! model forcing data (continued)
     USE multiforce, ONLY:nspat1,nspat2                       ! spatial dimensions
+    USE multiforce, ONLY:ncid_var                            ! NetCDF ID for forcing variables
     USE multiforce, ONLY:gForce                              ! gridded forcing data
     USE multistate, ONLY:fracstate0,TSTATE,MSTATE,FSTATE,&   ! model states
          HSTATE                              ! model states (continued)
@@ -46,13 +47,13 @@ CONTAINS
     ! input
     REAL(SP),DIMENSION(:),INTENT(IN)       :: XPAR           ! model parameter set
     LOGICAL(LGT), INTENT(IN)               :: DISTRIBUTED    ! .TRUE. if doing distributed simulations
+    INTEGER(I4B), INTENT(IN)               :: NCID_FORC      ! NetCDF ID for the forcing file
     LOGICAL(LGT), INTENT(IN)               :: OUTPUT_FLAG    ! .TRUE. if desire time series output
     LOGICAL(LGT), INTENT(IN), OPTIONAL     :: MPARAM_FLAG    ! .FALSE. (used to turn off writing statistics)
     ! output
     REAL(SP),INTENT(OUT)                   :: RMSE           ! root mean squared error
     ! internal
     LOGICAL(lgt),PARAMETER                 :: computePET=.FALSE. ! flag to compute PET
-    integer(i4b)                           :: ncid           ! NetCDF forcing file ID
     REAL(SP)                               :: T1,T2          ! CPU time
     INTEGER(I4B)                           :: ITIM           ! loop through time series
     INTEGER(I4B)                           :: iSpat1,iSpat2  ! loop through spatial dimensions
@@ -81,6 +82,7 @@ CONTAINS
     ELSE
        IF (MPARAM_FLAG) PCOUNT = PCOUNT + 1
     ENDIF
+
     ! add parameter set to the data structure
     CALL PUT_PARSET(XPAR)
     PRINT *, 'Parameter set added to data structure'
@@ -115,11 +117,11 @@ CONTAINS
        ELSE ! distributed
 
           ! get the model time
-          CALL get_modtim(warmup_beg+itim,ierr,message)
+          CALL get_modtim(warmup_beg+itim,ncid_forc,ierr,message)
           IF(ierr/=0)THEN; PRINT*, TRIM(cmessage); STOP; ENDIF
 
              ! get the gridded model forcing data
-             CALL get_gforce(warmup_beg+itim,ierr,cmessage)
+             CALL get_gforce(warmup_beg+itim,ncid_forc,ierr,cmessage)
              IF(ierr/=0)THEN; PRINT*, TRIM(cmessage); STOP; ENDIF
                 ! compute potential ET
                 IF(computePET) CALL getPETgrid(ierr,cmessage)

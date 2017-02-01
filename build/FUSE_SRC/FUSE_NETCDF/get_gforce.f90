@@ -6,9 +6,10 @@ private
 public::read_ginfo
 public::get_modtim
 public::get_gforce
+public::get_varid
 contains
 
- SUBROUTINE read_ginfo(ierr,message)
+ SUBROUTINE read_ginfo(ncid,ierr,message)
  ! ---------------------------------------------------------------------------------------
  ! Creator:
  ! --------
@@ -28,9 +29,10 @@ contains
  USE multiforce,only:nspat1,nspat2!,numtim             ! dimension lengths
  USE multiforce,only:vname_dtime                       ! variable name: time sice reference time
  USE multiforce,only:timeUnits                         ! units string for time
- USE multiforce,only:ncid_forc                         ! NetCDF forcing file ID
  IMPLICIT NONE
- ! output
+ ! input
+ integer(i4b),intent(in)                :: ncid        ! NetCDF file ID
+! output
  integer(i4b), intent(out)              :: ierr        ! error code
  character(*), intent(out)              :: message     ! error message
  ! internal: general
@@ -38,7 +40,6 @@ contains
  INTEGER(I4B)                           :: I           ! looping
  CHARACTER(LEN=lenPath)                 :: cmessage    ! message of downwind routine
  ! internal: NetCDF read
- !integer(i4b)                           :: ncid        ! NetCDF file ID
  integer(i4b)                           :: ivarid      ! NetCDF variable ID
  integer(i4b),parameter                 :: ndims=3     ! number of dimensions for precipitation
  integer(i4b),dimension(ndims)          :: dimids_ppt  ! vector of dimension IDs for precipitation
@@ -47,25 +48,18 @@ contains
  ! ---------------------------------------------------------------------------------------
  ! initialize error control
  ierr=0; message='read_ginfo/'
- print*, trim(message)//'file = '//trim(INPUT_PATH)//trim(forcefile)
  ! ---------------------------------------------------------------------------------------
- print *, 'Getting grid info from ', trim(INPUT_PATH)//trim(forcefile)
- ! open NetCDF file
- ierr = nf90_open(trim(INPUT_PATH)//trim(forcefile), nf90_nowrite, ncid_forc)
- if(ierr/=0)then
-  message=trim(message)//trim(nf90_strerror(ierr))//'[file='//trim(INPUT_PATH)//trim(forcefile)//']'; return
- endif
 
  ! get the variable ID for precipitation
- ierr = nf90_inq_varid(ncid_forc, vname_aprecip, ivarid)
+ ierr = nf90_inq_varid(ncid, vname_aprecip, ivarid)
  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
  ! get the dimension IDs for precipitation
- call get_dimIds(ncid_forc, ivarid, ndims, dimids_ppt, ierr, cmessage)
+ call get_dimIds(ncid, ivarid, ndims, dimids_ppt, ierr, cmessage)
  if(ierr/=0)then; message=trim(message)//trim(cmessage); return; endif
  ! loop through variable dimensions
  do iDimID=1,ndims
   ! get the dimension lengths
-  ierr = nf90_inquire_dimension(ncid_forc,dimids_ppt(iDimID),len=dimLen)
+  ierr = nf90_inquire_dimension(ncid,dimids_ppt(iDimID),len=dimLen)
   if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
   ! save the dimension lengths
   if(iDimID==1) nspat1 = dimLen  ! 1st spatial dimension
@@ -75,14 +69,11 @@ contains
  end do
 
  ! get variable ID for time
- ierr = nf90_inq_varid(ncid_forc, trim(vname_dtime), iVarID)
+ ierr = nf90_inq_varid(ncid, trim(vname_dtime), iVarID)
  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr))//'[variable='//trim(vname_dtime)//']'; return; endif
  ! get time units
- ierr = nf90_get_att(ncid_forc, iVarID, 'units', timeUnits)
+ ierr = nf90_get_att(ncid, iVarID, 'units', timeUnits)
  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr))//'[variable='//trim(vname_dtime)//']'; return; endif
- ! close the NetCDF file
- ierr = nf90_close(ncid_forc)
- if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
 
  contains
 
@@ -115,8 +106,78 @@ contains
 
  end subroutine read_ginfo
 
+  SUBROUTINE get_varID(ncid,ierr,message)
+  ! ---------------------------------------------------------------------------------------
+  ! Creator:
+  ! --------
+  ! Nans Addor, 2017
+  ! ---------------------------------------------------------------------------------------
+  ! Purpose:
+  ! --------
+  ! Get NetCDF ID for each variable of the forcing file
+  ! ---------------------------------------------------------------------------------------
+  ! Modules Modified:
+  ! -----------------
+  ! MODULE multiforce -- populate structure ncid_var%(*)
+  ! ---------------------------------------------------------------------------------------
+  USE multiforce, only: nForce                           ! number of forcing variables
+  USE multiforce, only: ncid_var                         ! NetCDF forcing variable ID
 
- SUBROUTINE get_modtim(itim,ierr,message)
+  USE multiforce,only:forcefile                          ! name of forcing file
+  USE multiforce,only:vname_aprecip                      ! variable name: precipitation
+  USE multiforce,only:vname_airtemp                      ! variable name: temperature
+  USE multiforce,only:vname_spechum                      ! variable name: specific humidity
+  USE multiforce,only:vname_airpres                      ! variable name: surface pressure
+  USE multiforce,only:vname_swdown                       ! variable name: downward shortwave radiation
+  USE multiforce,only:vname_potevap                      ! variable name: potential ET
+
+  USE multiforce,only:ilook_aprecip                      ! variable indice: precipitation
+  USE multiforce,only:ilook_airtemp                      ! variable indice: temperature
+  USE multiforce,only:ilook_spechum                      ! variable indice: specific humidity
+  USE multiforce,only:ilook_airpres                      ! variable indice: surface pressure
+  USE multiforce,only:ilook_swdown                       ! variable indice: downward shortwave radiation
+  USE multiforce,only:ilook_potevap                      ! variable indice: potential ET
+  IMPLICIT NONE
+
+  ! input
+  integer(i4b), intent(in)                :: ncid        ! NetCDF file ID
+  ! output
+  integer(i4b), intent(out)               :: ierr        ! error code
+  character(*), intent(out)               :: message     ! error message
+  ! internal
+  integer(i4b),parameter                  :: strLen=1024 ! length of character string
+  type names
+   character(len=strLen)                  :: vname       ! singlecharacter strings
+  end type names
+  type(names),dimension(nForce)           :: cVec        ! names of character strings
+  integer(i4b)                            :: iVar        ! loop through forcing data
+
+  ! ---------------------------------------------------------------------------------------
+  ! initialize error control
+  ierr=0; message='get_varID/'
+
+  ! get the vector of variable names
+  cVec(ilook_aprecip)%vname = trim(vname_aprecip)  ! variable name: precipitation
+  cVec(ilook_potevap)%vname = trim(vname_potevap)  ! variable name: potential ET
+  cVec(ilook_airtemp)%vname = trim(vname_airtemp)  ! variable name: temperature
+  cVec(ilook_spechum)%vname = trim(vname_spechum)  ! variable name: specific humidity
+  cVec(ilook_airpres)%vname = trim(vname_airpres)  ! variable name: surface pressure
+  cVec(ilook_swdown)%vname  = trim(vname_swdown)   ! variable name: downward shortwave radiation
+
+  !do ivar=1,nForce
+  do ivar=1,3
+
+    ! get the variable ID
+    ierr = nf90_inq_varid(ncid, trim(cVec(iVar)%vname), ncid_var(ivar))
+    if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr))//'[variable='//trim(cVec(iVar)%vname)//']'; return; endif
+
+    print *, 'NetCDF ID for ', trim(cVec(iVar)%vname),' : ', ncid_var(ivar)
+
+  END DO
+
+ END SUBROUTINE get_varID
+
+ SUBROUTINE get_modtim(itim,ncid,ierr,message)
  ! ---------------------------------------------------------------------------------------
  ! Creator:
  ! --------
@@ -140,13 +201,13 @@ contains
  IMPLICIT NONE
  ! input
  integer(i4b), intent(in)                :: itim        ! index of model time step
+ integer(i4b), intent(in)                :: ncid        ! NetCDF file ID
  ! output
  integer(i4b), intent(out)               :: ierr        ! error code
  character(*), intent(out)               :: message     ! error message
  ! internal
  integer(i4b),parameter                  :: strLen=1024 ! length of character string
  character(len=strLen)                   :: cmessage    ! error message of downwind routine
- integer(i4b)                            :: ncid        ! NetCDF file ID
  integer(i4b)                            :: iVarID      ! NetCDF variable ID
  integer(i4b)                            :: iy,im,id    ! time of year
  integer(i4b)                            :: ih          ! time of day
@@ -154,33 +215,30 @@ contains
  ! ---------------------------------------------------------------------------------------
  ! initialize error control
  ierr=0; message='get_modtim/'
- ! open NetCDF file
- ierr = nf90_open(trim(INPUT_PATH)//trim(forcefile), nf90_nowrite, ncid)
- if(ierr/=0)then
-  message=trim(message)//trim(nf90_strerror(ierr))//'[file='//trim(INPUT_PATH)//trim(forcefile)//']'; return
- endif
+
  ! get variable ID for time
  ierr = nf90_inq_varid(ncid, trim(vname_dtime), iVarID)
  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr))//'[variable='//trim(vname_dtime)//']'; return; endif
+
  ! identify reference time
  call date_extractor(timeUnits,iy,im,id,ih)
  call juldayss(iy,im,id,ih,jdayRef,ierr,cmessage)
  if(ierr/=0)then; message=trim(message)//trim(cmessage); return; endif
+
  ! get the time
  ierr = nf90_get_var(ncid, iVarID, aTime, start=(/iTim/), count=(/1/))
  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
+
  ! put the time into the structure
  timDat%dtime = aTime(1)
+
  ! compute the year, month, day, hour, minute, second
  call caldatss(jdayRef+timDat%dtime,timDat%iy,timDat%im,timDat%id,timDat%ih,timDat%imin,timDat%dsec)
  print*, timDat%iy,timDat%im,timDat%id,timDat%ih,timDat%imin,timDat%dsec
- ! close the NetCDF file
- ierr = nf90_close(ncid)
- if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
+
  END SUBROUTINE get_modtim
 
-
- SUBROUTINE get_gforce(itim,ierr,message)
+ SUBROUTINE get_gforce(itim,ncid_forc,ierr,message)
  ! ---------------------------------------------------------------------------------------
  ! Creator:
  ! --------
@@ -202,37 +260,41 @@ contains
  USE multiforce,only:vname_airpres                      ! variable name: surface pressure
  USE multiforce,only:vname_swdown                       ! variable name: downward shortwave radiation
  USE multiforce,only:vname_potevap                      ! variable name: potential ET
+
+ USE multiforce,only:ilook_aprecip                      ! variable indice: precipitation
+ USE multiforce,only:ilook_airtemp                      ! variable indice: temperature
+ USE multiforce,only:ilook_spechum                      ! variable indice: specific humidity
+ USE multiforce,only:ilook_airpres                      ! variable indice: surface pressure
+ USE multiforce,only:ilook_swdown                       ! variable indice: downward shortwave radiation
+ USE multiforce,only:ilook_potevap                      ! variable indice: potential ET
+
  USE multiforce,only:nspat1,nspat2                      ! dimension lengths
+ USE multiforce,only:ncid_var                           ! NetCDF ID for forcing variables
  USE multiforce,only:amult_ppt,amult_pet                ! multipliers o convert to mm/day
  USE multiforce,only:gForce                             ! gridded forcing data
  USE multiforce,only:ancilF                             ! ancillary forcing data
+ USE multiforce,only:nForce                             ! number of forcing variables
 
  IMPLICIT NONE
  ! input
  integer(i4b), intent(in)                :: itim        ! index of model time step
+ integer(i4b), intent(in)                :: ncid_forc   ! NetCDF ID for the forcing file
+
  ! output
  integer(i4b), intent(out)               :: ierr        ! error code
  character(*), intent(out)               :: message     ! error message
  ! internal
  real(sp),parameter                      :: amiss=-9999._sp ! value for missing data
  integer(i4b),parameter                  :: strLen=1024 ! length of character string
- integer(i4b),parameter                  :: nForce=6    ! number of forcing variables
  integer(i4b)                            :: iVar        ! loop through forcing data
  real(sp),dimension(:,:,:),allocatable   :: gTemp       ! temporary grid
  type names
   character(len=strLen)                  :: vname       ! singlecharacter strings
  end type names
  type(names),dimension(nForce)           :: cVec        ! names of character strings
- integer(i4b)                            :: ncid        ! NetCDF file ID
  integer(i4b)                            :: iVarID      ! NetCDF variable ID
- ! named variables
  logical(lgt),dimension(nForce)          :: lCheck      ! check the existence of variables
- integer(i4b),parameter                  :: ilook_aprecip=1  ! named element in lCheck
- integer(i4b),parameter                  :: ilook_potevap=2  ! named element in lCheck
- integer(i4b),parameter                  :: ilook_airtemp=3  ! named element in lCheck
- integer(i4b),parameter                  :: ilook_spechum=4  ! named element in lCheck
- integer(i4b),parameter                  :: ilook_airpres=5  ! named element in lCheck
- integer(i4b),parameter                  :: ilook_swdown =6  ! named element in lCheck
+
  ! ---------------------------------------------------------------------------------------
  ! initialize error control
  ierr=0; message='get_gforce/'
@@ -240,9 +302,11 @@ contains
 
  ! initialize lCheck
  lCheck=.false.
+
  ! allocate space for the temporary grid
  allocate(gTemp(nSpat1,nSpat2,1), stat=ierr)
  if(ierr/=0)then; message=trim(message)//'problem allocating space for gTemp'; return; endif
+
  ! get the vector of variable names
  cVec(ilook_aprecip)%vname = trim(vname_aprecip)  ! variable name: precipitation
  cVec(ilook_potevap)%vname = trim(vname_potevap)  ! variable name: potential ET
@@ -251,57 +315,49 @@ contains
  cVec(ilook_airpres)%vname = trim(vname_airpres)  ! variable name: surface pressure
  cVec(ilook_swdown)%vname  = trim(vname_swdown)   ! variable name: downward shortwave radiation
 
- ! open NetCDF file <- now in fuse_rmse
- ierr = nf90_open(trim(INPUT_PATH)//trim(forcefile), nf90_nowrite, ncid)
-  if(ierr/=0)then
-  message=trim(message)//trim(nf90_strerror(ierr))//'[file='//trim(INPUT_PATH)//trim(forcefile)//']'; return
-endif
-
  ! get forcing grids
- do ivar=1,nForce
+ ! do ivar=1,nForce
+ do ivar=1,3
 
- !print *, 'Getting forcing grid for', cVec(iVar)%vname
+  ! print *, 'Now extracting ', trim(cVec(iVar)%vname)
 
   ! check the variable exists
-  if(trim(cVec(iVar)%vname)=='undefined')then
-   gTemp(:,:,:) = amiss
-  ! read the data
-  else
+  !if(trim(cVec(iVar)%vname)=='undefined')then
+  ! gTemp(:,:,:) = amiss
+  !else
+
    ! get the variable ID
-   ierr = nf90_inq_varid(ncid, trim(cVec(iVar)%vname), iVarID)
-   if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr))//'[variable='//trim(cVec(iVar)%vname)//']'; return; endif
+   !ierr = nf90_inq_varid(ncid_forc, trim(cVec(iVar)%vname), iVarID)
+   !if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr))//'[variable='//trim(cVec(iVar)%vname)//']'; return; endif
+
    ! get the data
-   ierr = nf90_get_var(ncid, iVarID, gTemp, start=(/1,1,iTim/), count=(/nSpat1,nSpat2,1/))
+   ierr = nf90_get_var(ncid_forc, ncid_var(ivar), gTemp, start=(/1,1,iTim/), count=(/nSpat1,nSpat2,1/))
    if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
-  endif  ! (if the variable exists)
+  !endif  ! (if the variable exists)
 
   ! save the data in the structure -- and convert fluxes to mm/day
-  if( trim(cVec(iVar)%vname) == trim(vname_aprecip) )then; gForce(:,:)%ppt = gTemp(:,:,1)*amult_ppt; lCheck(ilook_aprecip) = .true.; endif
-  if( trim(cVec(iVar)%vname) == trim(vname_potevap) )then; gForce(:,:)%pet = gTemp(:,:,1)*amult_pet; lCheck(ilook_potevap) = .true.; endif
-  if( trim(cVec(iVar)%vname) == trim(vname_airtemp) )then; gForce(:,:)%temp = gTemp(:,:,1);       lCheck(ilook_airtemp) = .true.; endif
+  if(trim(cVec(iVar)%vname) == trim(vname_aprecip) )then; gForce(:,:)%ppt = gTemp(:,:,1)*amult_ppt; lCheck(ilook_aprecip) = .true.; endif
+  if(trim(cVec(iVar)%vname) == trim(vname_potevap) )then; gForce(:,:)%pet = gTemp(:,:,1)*amult_pet; lCheck(ilook_potevap) = .true.; endif
+  if(trim(cVec(iVar)%vname) == trim(vname_airtemp) )then; gForce(:,:)%temp = gTemp(:,:,1);       lCheck(ilook_airtemp) = .true.; endif
 
   ! save the other variables required to compute PET
   !if( trim(cVec(iVar)%vname) == trim(vname_airtemp) )then; ancilF(:,:)%airtemp = gTemp(:,:,1);       lCheck(ilook_airtemp) = .true.; endif
-  if( trim(cVec(iVar)%vname) == trim(vname_spechum) )then; ancilF(:,:)%spechum = gTemp(:,:,1);       lCheck(ilook_spechum) = .true.; endif
-  if( trim(cVec(iVar)%vname) == trim(vname_airpres) )then; ancilF(:,:)%airpres = gTemp(:,:,1);       lCheck(ilook_airpres) = .true.; endif
-  if( trim(cVec(iVar)%vname) == trim(vname_swdown)  )then; ancilF(:,:)%swdown  = gTemp(:,:,1);       lCheck(ilook_swdown)  = .true.; endif
+  !if( trim(cVec(iVar)%vname) == trim(vname_spechum) )then; ancilF(:,:)%spechum = gTemp(:,:,1);       lCheck(ilook_spechum) = .true.; endif
+  !if( trim(cVec(iVar)%vname) == trim(vname_airpres) )then; ancilF(:,:)%airpres = gTemp(:,:,1);       lCheck(ilook_airpres) = .true.; endif
+  !if( trim(cVec(iVar)%vname) == trim(vname_swdown)  )then; ancilF(:,:)%swdown  = gTemp(:,:,1);       lCheck(ilook_swdown)  = .true.; endif
 
  end do  ! (loop thru forcing variables)
-
- ! close the NetCDF file <- now in fuse_rmse
- ierr = nf90_close(ncid)
- if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
 
  ! deallocate space for gTemp
  deallocate(gTemp, stat=ierr)
  if(ierr/=0)then; message=trim(message)//'problem deallocating space for gTemp'; return; endif
 
  ! check that we got all desired variables
- if(any(lCheck .eqv. .false.))then
+ !if(any(lCheck .eqv. .false.))then
 !  do ivar=1,nForce; print*, trim(cVec(iVar)%vname), lCheck(ivar); end do
-  message=trim(message)//'cannot find variable'
-  ierr=20; return
- endif
+!  message=trim(message)//'cannot find variable'
+!  ierr=20; return
+! endif
 
  end subroutine get_gforce
 

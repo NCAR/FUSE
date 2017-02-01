@@ -70,9 +70,7 @@ MODULE multiforce
  integer(i4b)                          :: nsteps=-1                 ! number of data steps
  ! filename
  character(len=StrLen)                 :: forcefile='undefined'     ! name of forcing file
- ! NetCDF
- integer(i4b)                          :: ncid_forc=-1              ! NetCDF forcing file ID
- ! name of time variables
+! name of time variables
  character(len=StrLen)                 :: vname_iy   ='undefined'   ! name of variable for year
  character(len=StrLen)                 :: vname_im   ='undefined'   ! name of variable for month
  character(len=StrLen)                 :: vname_id   ='undefined'   ! name of variable for day
@@ -80,14 +78,27 @@ MODULE multiforce
  character(len=StrLen)                 :: vname_imin ='undefined'   ! name of variable for minute
  character(len=StrLen)                 :: vname_dsec ='undefined'   ! name of variable for second
  character(len=StrLen)                 :: vname_dtime='undefined'   ! name of variable for time
- ! variable names
+ ! number of forcing variables
+  integer(i4b),parameter                :: nForce=6                 ! see lines below, does not include Q
+ ! forcing variable names
  character(len=StrLen)                 :: vname_aprecip='undefined' ! variable name: precipitation
+ character(len=StrLen)                 :: vname_potevap='undefined' ! variable name: potential ET
  character(len=StrLen)                 :: vname_airtemp='undefined' ! variable name: temperature
  character(len=StrLen)                 :: vname_spechum='undefined' ! variable name: specific humidity
  character(len=StrLen)                 :: vname_airpres='undefined' ! variable name: surface pressure
  character(len=StrLen)                 :: vname_swdown ='undefined' ! variable name: downward shortwave radiation
- character(len=StrLen)                 :: vname_potevap='undefined' ! variable name: potential ET
  character(len=StrLen)                 :: vname_q      ='undefined' ! variable name: runoff
+ ! indices for forcing variables
+ integer(i4b),parameter                :: ilook_aprecip=1  ! named element in lCheck
+ integer(i4b),parameter                :: ilook_potevap=2  ! named element in lCheck
+ integer(i4b),parameter                :: ilook_airtemp=3  ! named element in lCheck
+ integer(i4b),parameter                :: ilook_spechum=4  ! named element in lCheck
+ integer(i4b),parameter                :: ilook_airpres=5  ! named element in lCheck
+ integer(i4b),parameter                :: ilook_swdown =6  ! named element in lCheck
+ ! NetCDF
+ integer(i4b)                          :: ncid_forc=-1              ! NetCDF forcing file ID
+ integer(i4b),dimension(nForce)        :: ncid_var                  ! NetCDF forcing variable ID
+
  ! indices for time data (only used in ASCII files)
  integer(i4b)                          :: ivarid_iy=-1              ! variable ID for year
  integer(i4b)                          :: ivarid_im=-1              ! variable ID for month
@@ -105,7 +116,7 @@ MODULE multiforce
  real(sp)                              :: amult_pet=-1._dp          ! convert potential ET to mm/day
  real(sp)                              :: amult_q=-1._dp            ! convert runoff to mm/day
  ! missing values
- INTEGER(I4B)                          :: NA_VALUE  		    ! integer designating missing values
+ INTEGER(I4B)                          :: NA_VALUE  		            ! integer designating missing values
 
  ! --------------------------------------------------------------------------------------
 END MODULE multiforce
