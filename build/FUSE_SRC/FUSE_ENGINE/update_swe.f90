@@ -19,7 +19,7 @@ USE nrtype                                            ! variable types, etc.
 USE model_defn                                        ! model definition structure
 USE model_defnames                                    ! integer model definitions
 USE multiparam                                        ! model parameters
-USE multibands                                        ! model basin band structure 
+USE multibands                                        ! model basin band structure
 USE multiforce                                        ! model forcing
 USE multistate                                        ! model states
 USE multi_flux                                        ! model fluxes
@@ -50,26 +50,28 @@ ENDIF
 JDAY = CUMD(timDat%IM) + timDat%ID
 IF (LEAP) THEN   ! calculate melt factor from MFMAX, MFMIN and day of year
  MF = ((0.5_sp*SIN(((JDAY-81._sp)*2._sp*PI)/366._sp))+0.5_sp)*(MPARAM%MFMAX - MPARAM%MFMIN) + MPARAM%MFMIN
-ELSE 
+ELSE
  MF = ((0.5_sp*SIN(((JDAY-80._sp)*2._sp*PI)/365._sp))+0.5_sp)*(MPARAM%MFMAX - MPARAM%MFMIN) + MPARAM%MFMIN
 ENDIF
+
 ! loop through model bands
 DO ISNW=1,N_BANDS
- ! calculate forcing data for each band
 
+ ! calculate forcing data for each band
  DZ = MBANDS(ISNW)%Z_MID - Z_FORCING
  TEMP_Z = MFORCE%TEMP + DZ*MPARAM%LAPSE/1000._sp ! adjust for elevation using lapse rate
  IF (DZ.GT.0._sp) THEN ! adjust for elevation using OPG
-  PRECIP_Z = MFORCE%PPT * (1._sp + DZ*MPARAM%OPG/1000._sp) 
+  PRECIP_Z = MFORCE%PPT * (1._sp + DZ*MPARAM%OPG/1000._sp)
  ELSE
-  PRECIP_Z = MFORCE%PPT / (1._sp - DZ*MPARAM%OPG/1000._sp) 
+  PRECIP_Z = MFORCE%PPT / (1._sp - DZ*MPARAM%OPG/1000._sp)
  ENDIF
- IF ((MBANDS(ISNW)%SWE.GT.0._sp).AND.(TEMP_Z.GT.MPARAM%MBASE)) THEN 
+ IF ((MBANDS(ISNW)%SWE.GT.0._sp).AND.(TEMP_Z.GT.MPARAM%MBASE)) THEN
   ! calculate the initial snowmelt rate from the melt factor and the temperature
   MBANDS(ISNW)%SNOWMELT = MF*(TEMP_Z - MPARAM%MBASE) ! MBANDS%SNOWMELT has units of mm day-1
  ELSE
   MBANDS(ISNW)%SNOWMELT = 0.0_sp
  ENDIF
+
  ! calculate the accumulation rate from the forcing data
  IF (TEMP_Z.LT.MPARAM%PXTEMP) THEN
   SELECT CASE(SMODL%iRFERR)
@@ -80,10 +82,11 @@ DO ISNW=1,N_BANDS
    CASE DEFAULT       ! check for errors
     print *, "SMODL%iRFERR must be either iopt_additive_e or iopt_multiplc_e"
     STOP
-  END SELECT   
+  END SELECT
  ELSE
   MBANDS(ISNW)%SNOWACCMLTN = 0.0_sp
  ENDIF
+
  ! update SWE, and check to ensure non-negative values
  MBANDS(ISNW)%DSWE_DT = MBANDS(ISNW)%SNOWACCMLTN - MBANDS(ISNW)%SNOWMELT
  IF ((MBANDS(ISNW)%SWE + MBANDS(ISNW)%DSWE_DT*DT).GE.0._sp) THEN
@@ -92,20 +95,21 @@ DO ISNW=1,N_BANDS
   MBANDS(ISNW)%SNOWMELT = MBANDS(ISNW)%SWE/DT + MBANDS(ISNW)%SNOWACCMLTN
   MBANDS(ISNW)%SWE = 0.0_sp
  ENDIF
+
  ! calculate rainfall plus snowmelt
  IF (TEMP_Z.GT.MPARAM%PXTEMP) THEN
   SELECT CASE(SMODL%iRFERR)
    CASE(iopt_additive_e) ! additive rainfall error
   M_FLUX%EFF_PPT = M_FLUX%EFF_PPT + MBANDS(ISNW)%AF * &
-   (MAX(0.0_sp, PRECIP_Z + MPARAM%RFERR_ADD) + MBANDS(ISNW)%SNOWMELT) 
+   (MAX(0.0_sp, PRECIP_Z + MPARAM%RFERR_ADD) + MBANDS(ISNW)%SNOWMELT)
    CASE(iopt_multiplc_e) ! multiplicative rainfall error
   M_FLUX%EFF_PPT = M_FLUX%EFF_PPT + MBANDS(ISNW)%AF * &
    (PRECIP_Z * MPARAM%RFERR_MLT +  MBANDS(ISNW)%SNOWMELT)
    CASE DEFAULT       ! check for errors
     print *, "SMODL%iRFERR must be either iopt_additive_e or iopt_multiplc_e"
     STOP
-  END SELECT 
- ELSE 
+  END SELECT
+ ELSE
   M_FLUX%EFF_PPT = M_FLUX%EFF_PPT + MBANDS(ISNW)%AF * MBANDS(ISNW)%SNOWMELT
  ENDIF
 END DO

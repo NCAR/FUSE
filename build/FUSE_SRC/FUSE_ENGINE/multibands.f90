@@ -9,10 +9,12 @@ MODULE multibands
   REAL(SP)                             :: SWE             ! band snowpack water equivalent (mm)
   REAL(SP)                             :: SNOWACCMLTN     ! new snow accumulation in band (mm day-1)
   REAL(SP)                             :: SNOWMELT        ! snowmelt in band (mm day-1)
-  REAL(SP)                             :: DSWE_DT         ! rate of change of band SWE (mm day-1) 
+  REAL(SP)                             :: DSWE_DT         ! rate of change of band SWE (mm day-1)
  ENDTYPE BANDS
  ! --------------------------------------------------------------------------------------
  TYPE(BANDS),DIMENSION(:),ALLOCATABLE  :: MBANDS          ! basin band information
+ type(BANDS),dimension(:,:,:),ALLOCATABLE :: MBANDS_3d  ! basin band information with a time dimension
+
  INTEGER(I4B)                          :: N_BANDS=0       ! number of bands, initialize to zero
  REAL(SP)                              :: Z_FORCING       ! elevation of forcing data (m)
  ! --------------------------------------------------------------------------------------

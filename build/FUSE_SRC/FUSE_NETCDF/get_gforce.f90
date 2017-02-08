@@ -6,6 +6,7 @@ private
 public::read_ginfo
 public::get_modtim
 public::get_gforce
+public::get_gforce_3d
 public::get_varid
 contains
 
@@ -193,7 +194,7 @@ contains
  ! ---------------------------------------------------------------------------------------
  USE fuse_fileManager,only:INPUT_PATH                   ! defines data directory
  USE multiforce,only:forcefile                          ! name of forcing file
- USE multiforce,only:vname_dtime                        ! variable name: time sice reference time
+ USE multiforce,only:vname_dtime                        ! variable name: time since reference time
  USE multiforce,only:timDat                             ! time data strructure
  USE multiforce,only:jdayRef                            ! reference time (days)
  USE multiforce,only:timeUnits                          ! units string for time
@@ -246,7 +247,7 @@ contains
  ! ---------------------------------------------------------------------------------------
  ! Purpose:
  ! --------
- ! Read NetCDF forcing data for a given time step
+ ! Read NetCDF gridded forcing data for a given time step
  ! ---------------------------------------------------------------------------------------
  ! Modules Modified:
  ! -----------------
@@ -292,7 +293,6 @@ contains
   character(len=strLen)                  :: vname       ! singlecharacter strings
  end type names
  type(names),dimension(nForce)           :: cVec        ! names of character strings
- integer(i4b)                            :: iVarID      ! NetCDF variable ID
  logical(lgt),dimension(nForce)          :: lCheck      ! check the existence of variables
 
  ! ---------------------------------------------------------------------------------------
@@ -319,21 +319,9 @@ contains
  ! do ivar=1,nForce
  do ivar=1,3
 
-  ! print *, 'Now extracting ', trim(cVec(iVar)%vname)
-
-  ! check the variable exists
-  !if(trim(cVec(iVar)%vname)=='undefined')then
-  ! gTemp(:,:,:) = amiss
-  !else
-
-   ! get the variable ID
-   !ierr = nf90_inq_varid(ncid_forc, trim(cVec(iVar)%vname), iVarID)
-   !if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr))//'[variable='//trim(cVec(iVar)%vname)//']'; return; endif
-
    ! get the data
-   ierr = nf90_get_var(ncid_forc, ncid_var(ivar), gTemp, start=(/1,1,iTim/), count=(/nSpat1,nSpat2,1/))
+   ierr = nf90_get_var(ncid_forc, ncid_var(ivar), gTemp, start=(/1,1,iTim/), count=(/nSpat1,nSpat2,1/)); CALL HANDLE_ERR(IERR)
    if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
-  !endif  ! (if the variable exists)
 
   ! save the data in the structure -- and convert fluxes to mm/day
   if(trim(cVec(iVar)%vname) == trim(vname_aprecip) )then; gForce(:,:)%ppt = gTemp(:,:,1)*amult_ppt; lCheck(ilook_aprecip) = .true.; endif
@@ -352,14 +340,112 @@ contains
  deallocate(gTemp, stat=ierr)
  if(ierr/=0)then; message=trim(message)//'problem deallocating space for gTemp'; return; endif
 
- ! check that we got all desired variables
- !if(any(lCheck .eqv. .false.))then
-!  do ivar=1,nForce; print*, trim(cVec(iVar)%vname), lCheck(ivar); end do
-!  message=trim(message)//'cannot find variable'
-!  ierr=20; return
-! endif
-
  end subroutine get_gforce
+
+ SUBROUTINE get_gforce_3d(itim_start,numtim,ncid_forc,ierr,message)
+ ! ---------------------------------------------------------------------------------------
+ ! Creator:
+ ! --------
+ ! Nans Addor, based on Martyn Clark's get_gforce
+ ! ---------------------------------------------------------------------------------------
+ ! Purpose:
+ ! --------
+ ! Read NetCDF gridded forcing data for a range of time steps
+ ! ---------------------------------------------------------------------------------------
+ ! Modules Modified:
+ ! -----------------
+ ! MODULE multiforce -- populate structure GFORCE_3d(*,*)%(*)
+ ! ---------------------------------------------------------------------------------------
+ USE fuse_fileManager,only:INPUT_PATH                   ! defines data directory
+ USE multiforce,only:forcefile                          ! name of forcing file
+ USE multiforce,only:vname_aprecip                      ! variable name: precipitation
+ USE multiforce,only:vname_airtemp                      ! variable name: temperature
+ USE multiforce,only:vname_spechum                      ! variable name: specific humidity
+ USE multiforce,only:vname_airpres                      ! variable name: surface pressure
+ USE multiforce,only:vname_swdown                       ! variable name: downward shortwave radiation
+ USE multiforce,only:vname_potevap                      ! variable name: potential ET
+
+ USE multiforce,only:ilook_aprecip                      ! variable indice: precipitation
+ USE multiforce,only:ilook_airtemp                      ! variable indice: temperature
+ USE multiforce,only:ilook_spechum                      ! variable indice: specific humidity
+ USE multiforce,only:ilook_airpres                      ! variable indice: surface pressure
+ USE multiforce,only:ilook_swdown                       ! variable indice: downward shortwave radiation
+ USE multiforce,only:ilook_potevap                      ! variable indice: potential ET
+
+ USE multiforce,only:nspat1,nspat2                      ! dimension lengths
+ USE multiforce,only:ncid_var                           ! NetCDF ID for forcing variables
+ USE multiforce,only:amult_ppt,amult_pet                ! multipliers o convert to mm/day
+ USE multiforce,only:gForce_3d                          ! gridded forcing data
+ USE multiforce,only:ancilF_3d                          ! ancillary forcing data
+ USE multiforce,only:nForce                             ! number of forcing variables
+
+ IMPLICIT NONE
+ ! input
+ integer(i4b), intent(in)                :: itim_start  ! index of model time step - start of the period to extract
+ integer(i4b), intent(in)                :: numtim      ! number of model time steps to extract
+ integer(i4b), intent(in)                :: ncid_forc   ! NetCDF ID for the forcing file
+ ! output
+ integer(i4b), intent(out)               :: ierr        ! error code
+ character(*), intent(out)               :: message     ! error message
+ ! internal
+ real(sp),parameter                      :: amiss=-9999._sp ! value for missing data
+ integer(i4b),parameter                  :: strLen=1024 ! length of character string
+ integer(i4b)                            :: iVar        ! loop through forcing data
+ real(sp),dimension(:,:,:),allocatable   :: gTemp       ! temporary 3d grid
+ type names
+  character(len=strLen)                  :: vname       ! singlecharacter strings
+ end type names
+ type(names),dimension(nForce)           :: cVec        ! names of character strings
+ logical(lgt),dimension(nForce)          :: lCheck      ! check the existence of variables
+
+ ! ---------------------------------------------------------------------------------------
+ ! initialize error control
+ ierr=0; message='get_gforce_3d/'
+ ! ---------------------------------------------------------------------------------------
+
+ ! initialize lCheck
+ lCheck=.false.
+
+ ! allocate space for the temporary grid
+ allocate(gTemp(nSpat1,nSpat2,numtim), stat=ierr)
+ if(ierr/=0)then; message=trim(message)//'problem allocating space for gTemp'; return; endif
+
+  print *, 'shape(gTemp) = ', shape(gTemp)
+
+ ! get the vector of variable names
+ cVec(ilook_aprecip)%vname = trim(vname_aprecip)  ! variable name: precipitation
+ cVec(ilook_potevap)%vname = trim(vname_potevap)  ! variable name: potential ET
+ cVec(ilook_airtemp)%vname = trim(vname_airtemp)  ! variable name: temperature
+ cVec(ilook_spechum)%vname = trim(vname_spechum)  ! variable name: specific humidity
+ cVec(ilook_airpres)%vname = trim(vname_airpres)  ! variable name: surface pressure
+ cVec(ilook_swdown)%vname  = trim(vname_swdown)   ! variable name: downward shortwave radiation
+
+ ! get forcing grids
+ ! do ivar=1,nForce
+ do ivar=1,3
+
+   ! get the data
+   ierr = nf90_get_var(ncid_forc, ncid_var(ivar), gTemp, start=(/1,1,itim_start/), count=(/nSpat1,nSpat2,numtim/)); CALL HANDLE_ERR(IERR)
+   if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
+
+  ! save the data in the structure -- and convert fluxes to mm/day
+  if(trim(cVec(iVar)%vname) == trim(vname_aprecip) )then; gForce_3d(:,:,:)%ppt = gTemp(:,:,:)*amult_ppt; lCheck(ilook_aprecip) = .true.; endif
+  if(trim(cVec(iVar)%vname) == trim(vname_potevap) )then; gForce_3d(:,:,:)%pet = gTemp(:,:,:)*amult_pet; lCheck(ilook_potevap) = .true.; endif
+  if(trim(cVec(iVar)%vname) == trim(vname_airtemp) )then; gForce_3d(:,:,:)%temp = gTemp(:,:,:);       lCheck(ilook_airtemp) = .true.; endif
+
+  ! save the other variables required to compute PET
+  !if( trim(cVec(iVar)%vname) == trim(vname_airtemp) )then; ancilF(:,:)%airtemp = gTemp(:,:,1);       lCheck(ilook_airtemp) = .true.; endif
+  !if( trim(cVec(iVar)%vname) == trim(vname_spechum) )then; ancilF(:,:)%spechum = gTemp(:,:,1);       lCheck(ilook_spechum) = .true.; endif
+  !if( trim(cVec(iVar)%vname) == trim(vname_airpres) )then; ancilF(:,:)%airpres = gTemp(:,:,1);       lCheck(ilook_airpres) = .true.; endif
+  !if( trim(cVec(iVar)%vname) == trim(vname_swdown)  )then; ancilF(:,:)%swdown  = gTemp(:,:,1);       lCheck(ilook_swdown)  = .true.; endif
+
+ end do  ! (loop thru forcing variables)
+
+ ! deallocate space for gTemp
+ deallocate(gTemp, stat=ierr)
+ if(ierr/=0)then; message=trim(message)//'problem deallocating space for gTemp'; return; endif
+
+ end subroutine get_gforce_3d
 
  subroutine date_extractor(refDate,iy,im,id,ih)
  ! used to extract the date from a units string
@@ -455,7 +541,6 @@ contains
             + real(ih,  KIND(sp) )/24._sp
  end SUBROUTINE juldayss
 
-
  SUBROUTINE caldatss(juliandd,iyyy,im,id,ih,imin,asec)
  !-----------------------------------------------------------------------
  !       Based on code from "Numerical Recipes in Fortran-77
@@ -511,6 +596,5 @@ contains
  if(iyyy.le.0)iyyy=iyyy-1
  if(julian.lt.0)iyyy=iyyy-100*(1-julian/36525)
  END SUBROUTINE caldatss
-
 
 end module get_gforce_module

@@ -20,7 +20,7 @@ contains
  ! -----------------
  ! MODULE multiforce -- populate variable names and time steps
  ! ---------------------------------------------------------------------------------------
- USE fuse_fileManager,only:SETNGS_PATH,FORCINGINFO,&        ! defines data directory 
+ USE fuse_fileManager,only:SETNGS_PATH,FORCINGINFO,&        ! defines data directory
                            INPUT_PATH
  USE ascii_util_module,only:file_open                       ! open file (performs a few checks as well)
  USE ascii_util_module,only:get_vlines                      ! get a list of character strings from non-comment lines
@@ -144,12 +144,12 @@ contains
    case('<vname_imin>');    vname_imin    = trim(cData);              lCheck(iVname_imin)     = .true.
    case('<vname_dsec>');    vname_dsec    = trim(cData);              lCheck(iVname_dsec)     = .true.
    case('<vname_dtime>');   vname_dtime   = trim(cData);              lCheck(iVname_dtime)    = .true.
-   case('<vname_aprecip>'); vname_aprecip = trim(cData);              lCheck(iVname_aprecip)  = .true.   
-   case('<vname_airtemp>'); vname_airtemp = trim(cData);              lCheck(iVname_airtemp)  = .true.   
-   case('<vname_spechum>'); vname_spechum = trim(cData);              lCheck(iVname_spechum)  = .true.   
-   case('<vname_airpres>'); vname_airpres = trim(cData);              lCheck(iVname_airpres)  = .true.   
-   case('<vname_swdown>');  vname_swdown  = trim(cData);              lCheck(iVname_swdown)   = .true.   
-   case('<vname_potevap>'); vname_potevap = trim(cData);              lCheck(iVname_potevap)  = .true.   
+   case('<vname_aprecip>'); vname_aprecip = trim(cData);              lCheck(iVname_aprecip)  = .true.
+   case('<vname_airtemp>'); vname_airtemp = trim(cData);              lCheck(iVname_airtemp)  = .true.
+   case('<vname_spechum>'); vname_spechum = trim(cData);              lCheck(iVname_spechum)  = .true.
+   case('<vname_airpres>'); vname_airpres = trim(cData);              lCheck(iVname_airpres)  = .true.
+   case('<vname_swdown>');  vname_swdown  = trim(cData);              lCheck(iVname_swdown)   = .true.
+   case('<vname_potevap>'); vname_potevap = trim(cData);              lCheck(iVname_potevap)  = .true.
    case('<vname_q>');       vname_q       = trim(cData);              lCheck(iVname_q)        = .true.
    case('<units_aprecip>'); units_aprecip = trim(cData);              lCheck(iUnits_aprecip)  = .true.
    case('<units_airtemp>'); units_airtemp = trim(cData);              lCheck(iUnits_airtemp)  = .true.
@@ -170,7 +170,7 @@ contains
     ierr=20; message=trim(message)//'do not have a case for string ['//trim(cName)//']'; return
   endselect
   ! check if there were any errors in the internal read statements
-  if(ierr/=0)then 
+  if(ierr/=0)then
    message=trim(message)//'problem reading data for variable '//trim(cName)//'[data='//trim(cData)//']'
    ierr=50; return
   endif
@@ -188,7 +188,7 @@ contains
   write(*,'(a,1x,a,1x,L1)')    '<vname_ih>',      trim(vname_ih),      lCheck(iVname_ih)
   write(*,'(a,1x,a,1x,L1)')    '<vname_imin>',    trim(vname_imin),    lCheck(iVname_im)
   write(*,'(a,1x,a,1x,L1)')    '<vname_dsec>',    trim(vname_dsec),    lCheck(iVname_dsec)
-  write(*,'(a,1x,a,1x,L1)')    '<vname_dtime>',   trim(vname_dtime),   lCheck(iVname_dtime)   
+  write(*,'(a,1x,a,1x,L1)')    '<vname_dtime>',   trim(vname_dtime),   lCheck(iVname_dtime)
   write(*,'(a,1x,a,1x,L1)')    '<vname_aprecip>', trim(vname_aprecip), lCheck(iVname_aprecip)
   write(*,'(a,1x,a,1x,L1)')    '<vname_airtemp>', trim(vname_airtemp), lCheck(iVname_airtemp)
   write(*,'(a,1x,a,1x,L1)')    '<vname_spechum>', trim(vname_spechum), lCheck(iVname_spechum)
@@ -272,6 +272,4 @@ contains
  end select
  end subroutine get_multiplier
 
-
-
-end module force_info_module 
+end module force_info_module

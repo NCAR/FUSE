@@ -8,5 +8,6 @@ MODULE multiroute
  END TYPE RUNOFF
  REAL(SP), DIMENSION(NTDH_MAX)         :: FUTURE     ! runoff placed in future time steps
  TYPE(RUNOFF), DIMENSION(:), POINTER   :: AROUTE     ! runoff for all time steps
+ TYPE(RUNOFF),dimension(:,:,:), POINTER   :: AROUTE_3d     ! runoff for all time steps on a grid
  TYPE(RUNOFF)                          :: MROUTE     ! runoff for one time step
 END MODULE multiroute

@@ -3,7 +3,6 @@
 ! --------
 ! Martyn Clark
 ! Modified by Brian Henn to include snow model, 6/2013
-! Modified by Nans Addor to deal with missing values, 8/2016
 ! Modified by Nans Addor to enable distributed modeling, 9/2016
 ! ---------------------------------------------------------------------------------------
 MODULE multiforce
@@ -52,6 +51,9 @@ MODULE multiforce
  TYPE(FDATA)                           :: MFORCE     ! model forcing data for a single time step
  type(fData), dimension(:,:), pointer  :: gForce     ! model forcing data for a 2-d grid
  type(aData), dimension(:,:), pointer  :: ancilF     ! ancillary forcing data for the 2-d grid
+ type(fData), dimension(:,:,:), pointer  :: gForce_3d  ! model forcing data for a 3-d grid - let's add time
+ type(aData), dimension(:,:,:), pointer  :: ancilF_3d  ! ancillary forcing data for the 3-d grid - because time is timeless
+
  ! timing information
  real(sp)                              :: jdayRef                   ! reference time (days)
  real(sp)                              :: deltim=-1._dp             ! length of time step (days)
@@ -70,7 +72,7 @@ MODULE multiforce
  integer(i4b)                          :: nsteps=-1                 ! number of data steps
  ! filename
  character(len=StrLen)                 :: forcefile='undefined'     ! name of forcing file
-! name of time variables
+ ! name of time variables
  character(len=StrLen)                 :: vname_iy   ='undefined'   ! name of variable for year
  character(len=StrLen)                 :: vname_im   ='undefined'   ! name of variable for month
  character(len=StrLen)                 :: vname_id   ='undefined'   ! name of variable for day
@@ -79,7 +81,7 @@ MODULE multiforce
  character(len=StrLen)                 :: vname_dsec ='undefined'   ! name of variable for second
  character(len=StrLen)                 :: vname_dtime='undefined'   ! name of variable for time
  ! number of forcing variables
-  integer(i4b),parameter                :: nForce=6                 ! see lines below, does not include Q
+ integer(i4b),parameter                :: nForce=6                 ! see lines below, does not include Q
  ! forcing variable names
  character(len=StrLen)                 :: vname_aprecip='undefined' ! variable name: precipitation
  character(len=StrLen)                 :: vname_potevap='undefined' ! variable name: potential ET
@@ -116,7 +118,8 @@ MODULE multiforce
  real(sp)                              :: amult_pet=-1._dp          ! convert potential ET to mm/day
  real(sp)                              :: amult_q=-1._dp            ! convert runoff to mm/day
  ! missing values
- INTEGER(I4B)                          :: NA_VALUE  		            ! integer designating missing values
+ INTEGER(I4B),parameter                :: NA_VALUE=-9999            ! integer designating missing values - TODO: retrieve from NetCDF file
+ REAL(SP),parameter                    :: NA_VALUE_SP=-9999            ! integer designating missing values - TODO: retrieve from NetCDF file
 
  ! --------------------------------------------------------------------------------------
 END MODULE multiforce

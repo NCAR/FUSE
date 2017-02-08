@@ -27,6 +27,7 @@ MODULE multistate
  ! variable definitions
  ! --------------------------------------------------------------------------------------
  type(statev),dimension(:,:),pointer   :: gState     ! (grid of model states)
+ type(statev),dimension(:,:,:),pointer :: gState_3d  ! (grid of model states with a time dimension)
  TYPE(STATEV)                          :: ASTATE     ! (model states at the start of full timestep)
  TYPE(STATEV)                          :: FSTATE     ! (model states at start of sub-timestep)
  TYPE(STATEV)                          :: MSTATE     ! (model states at start/middle of sub-timestep)
@@ -41,7 +42,10 @@ MODULE multistate
  TYPE(M_TIME)                          :: HSTATE     ! (time interval to advance model states)
  ! --------------------------------------------------------------------------------------
 
-! initial store fraction (initialization)
-real(sp),parameter::fracState0=0.25_sp
+ ! NetCDF
+ integer(i4b)                          :: ncid_out=-1              ! NetCDF output file ID
+
+ ! initial store fraction (initialization)
+ real(sp),parameter::fracState0=0.25_sp
 
 END MODULE multistate

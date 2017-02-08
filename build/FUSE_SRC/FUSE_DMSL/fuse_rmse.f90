@@ -24,12 +24,16 @@ CONTAINS
          NUMTIM,warmup_beg                   ! model forcing data (continued)
     USE multiforce, ONLY:nspat1,nspat2                       ! spatial dimensions
     USE multiforce, ONLY:ncid_var                            ! NetCDF ID for forcing variables
-    USE multiforce, ONLY:gForce                              ! gridded forcing data
+    USE multiforce, ONLY:gForce,gForce_3d                    ! gridded forcing data
     USE multistate, ONLY:fracstate0,TSTATE,MSTATE,FSTATE,&   ! model states
          HSTATE                              ! model states (continued)
-    USE multistate, ONLY:gState                              ! gridded state variables
-    USE multiroute, ONLY:MROUTE,AROUTE                       ! routed runoff
+    USE multiforce, only:NA_VALUE, NA_VALUE_SP              ! NA_VALUE for the forcing
+    USE multistate, ONLY:gState,gState_3d                    ! gridded state variables
+    USE multiroute, ONLY:MROUTE,AROUTE,AROUTE_3d             ! routed runoff
     USE multistats, ONLY:MSTATS,PCOUNT,MOD_IX                ! access model statistics; counter for param set
+    USE multi_flux                                           ! model fluxes
+    USE multibands                                           ! elevation bands for snow modeling
+
     ! code modules
     USE get_gforce_module,ONLY:get_modtim                    ! get model time for a given time step
     USE get_gforce_module,ONLY:get_gforce                    ! get gridded forcing data for a given time step
@@ -83,6 +87,8 @@ CONTAINS
        IF (MPARAM_FLAG) PCOUNT = PCOUNT + 1
     ENDIF
 
+    PRINT *, 'PCOUNT is', PCOUNT
+
     ! add parameter set to the data structure
     CALL PUT_PARSET(XPAR)
     PRINT *, 'Parameter set added to data structure'
@@ -90,14 +96,20 @@ CONTAINS
     ! compute derived model parameters (bucket sizes, etc.)
     CALL PAR_DERIVE(ERR,MESSAGE)
     IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
-    ! initialize model states
+    ! initialize model states over the 2D gridded domain'
     DO iSpat1=1,nSpat1
        DO iSpat2=1,nSpat2
-          CALL INIT_STATE(fracState0)          ! fracState0 is shared in MODULE multistate
-          gState(iSpat1,iSpat2) = FSTATE       ! put the state into the 2-d structure
+          CALL INIT_STATE(fracState0)             ! define FSTATE - fracState0 is shared in MODULE multistate
+          !gState(iSpat1,iSpat2) = FSTATE         ! put the state into the 2-d structure
+          gState_3d(iSpat1,iSpat2,1) = FSTATE     ! put the state into the 2-3 structure
        END DO
     END DO
-    PRINT *, 'Model state initialized'
+    PRINT *, 'Model states initialized over the 2D gridded domain'
+
+    ! allocate 3d data structures for fluxes and snow
+    allocate(W_FLUX_3d(nspat1,nspat2,numtim))
+    allocate(MBANDS_3d(nspat1,nspat2,numtim))
+    !W_FLUX_3d = NA_VALUE_SP
 
     ! initialize model time step
     DT_SUB  = DELTIM                       ! init stepsize to full step (DELTIM shared in module multiforce)
@@ -105,111 +117,134 @@ CONTAINS
     ! initialize summary statistics
     CALL INIT_STATS()
     CALL CPU_TIME(T1)
-    ! --------------------------------------------------------------------------------------------------------
 
     ! loop through time
     PRINT *, 'Running the model'
     DO ITIM=1,NUMTIM            ! (NUMTIM is shared in MODULE multiforce)
-       ! if not distributed (i.e., lumped)
-       IF(.NOT.distributed)THEN
-          ! retrieve data from memory
-          gForce(1,1) = aForce(iTim)
-       ELSE ! distributed
 
-          ! get the model time
-          CALL get_modtim(warmup_beg+itim,ncid_forc,ierr,message)
-          IF(ierr/=0)THEN; PRINT*, TRIM(cmessage); STOP; ENDIF
+     ! if not distributed (i.e., lumped)
+     IF(.NOT.distributed)THEN
+        ! retrieve data from memory
+        gForce(1,1) = aForce(iTim)
+     ELSE ! distributed
 
-             ! get the gridded model forcing data
-             CALL get_gforce(warmup_beg+itim,ncid_forc,ierr,cmessage)
-             IF(ierr/=0)THEN; PRINT*, TRIM(cmessage); STOP; ENDIF
-                ! compute potential ET
-                IF(computePET) CALL getPETgrid(ierr,cmessage)
-                IF(ierr/=0)THEN; PRINT*, TRIM(cmessage); STOP; ENDIF
-                ENDIF
+       ! get the model time - does it do anything else than displaying time?
+       CALL get_modtim(warmup_beg+itim,ncid_forc,ierr,message)
+       IF(ierr/=0)THEN; PRINT*, TRIM(cmessage); STOP; ENDIF
 
-                ! -------------------------------------------------------------------------------------------------------
-                ! loop through grid points, and run the model for one time step
-                DO iSpat1=1,nSpat1
-                   DO iSpat2=1,nSpat2
-                      ! extract forcing data
-                      MFORCE = gForce(iSpat1,iSpat2)      ! assign model forcing data
-                      ! extract model states
-                      MSTATE = gState(iSpat1,iSpat2)      ! refresh model states
-                      FSTATE = gState(iSpat1,iSpat2)      ! refresh model states
-                      ! get the vector of model states from the structure
-                      CALL STR_2_XTRY(FSTATE,STATE0)      ! get the vector of states from the FSTATE structure
-                      ! initialize model fluxes
-                      CALL INITFLUXES()                   ! set weighted sum of fluxes to zero
+        ! compute potential ET
+        IF(computePET) CALL getPETgrid(ierr,cmessage)
+        IF(ierr/=0)THEN; PRINT*, TRIM(cmessage); STOP; ENDIF
+        ENDIF
 
-                      ! if snow model, call UPDATE_SWE first to calculate snow fluxes and update snow bands
-                      ! using explicit Euler approach; if not, call QRAINERROR
-                      SELECT CASE(SMODL%iSNOWM)
-                      CASE(iopt_temp_index)
-                         CALL UPDATE_SWE(DELTIM)
-                      CASE(iopt_no_snowmod)
-                         CALL QRAINERROR()
-                      CASE DEFAULT
-                         message="f-fuse_rmse/SMODL%iSNOWM must be either iopt_temp_index or iopt_no_snowmod"
-                         RETURN
-                      END SELECT
+        ! loop through grid points, and run the model for one time step
+        DO iSpat1=1,nSpat1
+           DO iSpat2=1,nSpat2
 
-                      ! temporally integrate the ordinary differential equations
-                      CALL ODE_INT(FUSE_SOLVE,STATE0,STATE1,DT_SUB,DT_FULL,IERR,MESSAGE)
-                      IF (IERR.NE.0) THEN; PRINT *, TRIM(MESSAGE); PAUSE; ENDIF
-                         ! perform overland flow routing
-                         CALL Q_OVERLAND()
+              ! NOTE: MFORCE, MSTATE, MBANDS and MFLUX are all scalars, i.e. have zero dimension
+              ! MFORCE and MSTATE are initialized using 3d data structures, then FUSE is run, then the
+              ! the output is stored in 3d data structures
 
-                         ! save the state
-                         CALL XTRY_2_STR(STATE1,FSTATE)      ! update FSTATE
-                         gState(iSpat1,iSpat2) = FSTATE      ! put the state into the 2-d structure
-                         ! save forcing data
-                         IF(distributed)THEN
-                            aForce(iTim)%ppt = SUM(gForce(:,:)%ppt)/REAL(SIZE(gForce), KIND(sp))
-                            aForce(iTim)%pet = SUM(gForce(:,:)%pet)/REAL(SIZE(gForce), KIND(sp))
-                         ENDIF
+              ! extract forcing data
+              MFORCE = gForce_3d(iSpat1,iSpat2,itim)      ! assign model forcing data
 
-                         ! save instantaneous and routed runoff
-                         AROUTE(ITIM)%Q_INSTNT = MROUTE%Q_INSTNT  ! save instantaneous runoff
-                         AROUTE(ITIM)%Q_ROUTED = MROUTE%Q_ROUTED  ! save routed runoff
+              ! only run FUSE if forcing available
+              IF(MFORCE%temp/=NA_VALUE)THEN
 
-                         ! sanity check
-                         IF (AROUTE(ITIM)%Q_ROUTED.LT.0._sp) STOP ' Q_ROUTED is less than zero '
-                         IF (AROUTE(ITIM)%Q_ROUTED.GT.1000._sp) STOP ' Q_ROUTED is enormous '
+                ! extract model states
+                MSTATE = gState_3d(iSpat1,iSpat2,itim)      ! refresh model states
+                FSTATE = gState_3d(iSpat1,iSpat2,itim)      ! refresh model states
 
-                         ! compute summary statistics
-                         CALL COMP_STATS()
-                         ! write model output
-                         IF (OUTPUT_FLAG) THEN
-                            CALL PUT_OUTPUT(PCOUNT,MOD_IX,iSpat1,iSpat2,ITIM)
-                            !WRITE(*,'(I10,1X,2(F15.8,1X))') ITIM, FSTATE%WATR_1, FSTATE%WATR_2
-                            !WRITE(*,'(I10,1X,I4,1X,4(I2,1X),F9.3,1X,F20.1,1X,4(F11.3,1X))') ITIM, AFORCE(ITIM), AROUTE(ITIM)%Q_ROUTED
-                         ENDIF
-                      END DO  ! (looping thru 2nd spatial dimension)
-                   END DO  ! (looping thru 1st spatial dimension)
-                END DO  ! (itim)
+                ! get the vector of model states from the structure
+                CALL STR_2_XTRY(FSTATE,STATE0)      ! state at the start of the time step (STATE0) set using FSTATE
 
-                ! get timing information
-                CALL CPU_TIME(T2)
-                WRITE(*,*) "TIME ELAPSED = ", t2-t1
-                ! calculate mean summary statistics
+                ! initialize model fluxes
+                CALL INITFLUXES()                   ! set weighted sum of fluxes to zero
 
-                CALL MEAN_STATS()
-                RMSE = MSTATS%RAW_RMSE
-                WRITE(unt,'(2(I6,1X),3(F20.15,1X))') MOD_IX, PCOUNT, MSTATS%RAW_RMSE, MSTATS%NASH_SUTT, MSTATS%NUM_FUNCS
-                ! write model parameters and summary statistics
+                ! if snow model, call UPDATE_SWE first to calculate snow fluxes and update snow bands
+                ! using explicit Euler approach; if not, call QRAINERROR
+                SELECT CASE(SMODL%iSNOWM)
+                CASE(iopt_temp_index)
+                   CALL UPDATE_SWE(DELTIM)
+                CASE(iopt_no_snowmod)
+                   CALL QRAINERROR()
+                CASE DEFAULT
+                   message="f-fuse_rmse/SMODL%iSNOWM must be either iopt_temp_index or iopt_no_snowmod"
+                   RETURN
+                END SELECT
 
-                IF (.NOT.PRESENT(MPARAM_FLAG)) THEN
-                   CALL PUT_PARAMS(PCOUNT,MOD_IX)  ! PCOUNT = index for parameter set; ONEMOD=1 (just one model structure)
-                   CALL PUT_SSTATS(PCOUNT,MOD_IX)
-                ELSE
-                   IF (MPARAM_FLAG) THEN
-                      CALL PUT_PARAMS(PCOUNT,MOD_IX)  ! PCOUNT = index for parameter set; ONEMOD=1 (just one model structure)
-                      CALL PUT_SSTATS(PCOUNT,MOD_IX)
-                   ENDIF
-                ENDIF
-                ! deallocate state vectors
-                DEALLOCATE(STATE0,STATE1,STAT=IERR); IF (IERR.NE.0) STOP ' problem deallocating state vectors in fuse_rmse '
-                ! ---------------------------------------------------------------------------------------
-              END SUBROUTINE FUSE_RMSE
-            END MODULE FUSE_RMSE_MODULE
+                ! temporally integrate the ordinary differential equations
+                CALL ODE_INT(FUSE_SOLVE,STATE0,STATE1,DT_SUB,DT_FULL,IERR,MESSAGE)
+                IF (IERR.NE.0) THEN; PRINT *, TRIM(MESSAGE); PAUSE; ENDIF
+
+               ! perform overland flow routing
+               CALL Q_OVERLAND()
+
+               ! save the state
+               CALL XTRY_2_STR(STATE1,FSTATE)            ! update FSTATE using states at the end of the time step (STATE0)
+               gState_3d(iSpat1,iSpat2,itim+1) = FSTATE  ! put the state into the 3-d structure
+
+               ! save forcing data
+               IF(distributed)THEN
+                  aForce(iTim)%ppt = SUM(gForce_3d(:,:,itim)%ppt)/REAL(SIZE(gForce_3d(:,:,itim)), KIND(sp))
+                  aForce(iTim)%pet = SUM(gForce_3d(:,:,itim)%pet)/REAL(SIZE(gForce_3d(:,:,itim)), KIND(sp))
+               ENDIF
+
+               ! save instantaneous and routed runoff
+               AROUTE(ITIM)%Q_INSTNT = MROUTE%Q_INSTNT  ! save instantaneous runoff
+               AROUTE(ITIM)%Q_ROUTED = MROUTE%Q_ROUTED  ! save routed runoff
+
+               ! sanity check
+               IF (AROUTE(ITIM)%Q_ROUTED.LT.0._sp) STOP ' Q_ROUTED is less than zero '
+               IF (AROUTE(ITIM)%Q_ROUTED.GT.1000._sp) STOP ' Q_ROUTED is enormous '
+
+               ! compute summary statistics
+               CALL COMP_STATS()
+
+               ! save fluxes and snow
+               W_FLUX_3d(iSpat1,iSpat2,itim) = W_FLUX
+               !MBANDS_3d(iSpat1,iSpat2,itim) = MBANDS
+               AROUTE_3d(iSpat1,iSpat2,itim) = MROUTE
+
+             ELSE ! INSERT NA VALUES
+
+               !gState_3d(iSpat1,iSpat2,itim) = NA_VALUE_SP
+               !W_FLUX_3d(iSpat1,iSpat2,itim) = NA_VALUE_SP
+               !AROUTE_3d(iSpat1,iSpat2,itim) = NA_VALUE_SP
+
+             ENDIF ! (is forcing available for this grid cell?)
+          END DO  ! (looping thru 2nd spatial dimension)
+       END DO  ! (looping thru 1st spatial dimension)
+
+    END DO  ! (itim)
+
+    ! write model output
+    PRINT *, 'Write output for all time steps'
+    IF (OUTPUT_FLAG) THEN
+      CALL PUT_GOUTPUT_3D(PCOUNT,MOD_IX,ITIM)
+    ENDIF
+
+    ! get timing information
+    CALL CPU_TIME(T2)
+    WRITE(*,*) "TIME ELAPSED = ", t2-t1
+    ! calculate mean summary statistics
+
+    CALL MEAN_STATS()
+    RMSE = MSTATS%RAW_RMSE
+    WRITE(unt,'(2(I6,1X),3(F20.15,1X))') MOD_IX, PCOUNT, MSTATS%RAW_RMSE, MSTATS%NASH_SUTT, MSTATS%NUM_FUNCS
+    ! write model parameters and summary statistics
+
+    IF (.NOT.PRESENT(MPARAM_FLAG)) THEN
+       CALL PUT_PARAMS(PCOUNT,MOD_IX)  ! PCOUNT = index for parameter set; ONEMOD=1 (just one model structure)
+       CALL PUT_SSTATS(PCOUNT,MOD_IX)
+    ELSE
+       IF (MPARAM_FLAG) THEN
+          CALL PUT_PARAMS(PCOUNT,MOD_IX)  ! PCOUNT = index for parameter set; ONEMOD=1 (just one model structure)
+          CALL PUT_SSTATS(PCOUNT,MOD_IX)
+       ENDIF
+    ENDIF
+    ! deallocate state vectors
+    DEALLOCATE(STATE0,STATE1,STAT=IERR); IF (IERR.NE.0) STOP ' problem deallocating state vectors in fuse_rmse '
+    ! ---------------------------------------------------------------------------------------
+  END SUBROUTINE FUSE_RMSE
+END MODULE FUSE_RMSE_MODULE
