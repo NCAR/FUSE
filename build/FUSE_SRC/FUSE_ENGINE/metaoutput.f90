@@ -15,7 +15,7 @@ USE multibands,ONLY:N_BANDS
 USE model_defn,ONLY:SMODL
 USE model_defnames
 IMPLICIT NONE
-LOGICAL(LGT)                           :: Q_ONLY=.FALSE. ! .TRUE. = restrict attention to simulated runoff
+LOGICAL(LGT)                           :: Q_ONLY=.TRUE. ! .TRUE. = restrict attention to simulated runoff
 CHARACTER(LEN=11), DIMENSION(200)      :: VNAME       ! variable names
 CHARACTER(LEN=52), DIMENSION(200)      :: LNAME       ! variable long names (descrition of variable)
 CHARACTER(LEN=13), DIMENSION(200)      :: VUNIT       ! variable units
@@ -46,12 +46,13 @@ I=I+1; VNAME(I)='watr_2     '; LNAME(I)='total storage in the lower layer       
 
 IF(SMODL%iSNOWM.EQ.iopt_temp_index) THEN !loop through snow model bands
 
- print *, 'Creating variables for the snow model'
- print *, 'N_BANDS', N_BANDS
+ print *, 'Creating variables for the snow model for ', N_BANDS ,'elevation bands'
+
+ I=I+1; VNAME(I)='swe_tot    '; LNAME(I)='total storage as snow                              '; VUNIT(I)='mm           '
 
  DO ISNW=1,N_BANDS ! output each for each snow model band
   WRITE(TXT_ISNW,'(I2)') ISNW              ! convert band no. to text
-  IF (ISNW.LT.10) TXT_ISNW(1:1) = '0'      ! pad with zeros 
+  IF (ISNW.LT.10) TXT_ISNW(1:1) = '0'      ! pad with zeros
   I=I+1; VNAME(I)='swe_z'//TXT_ISNW//' '! first create SWE band series
   LNAME(I)='elevation band snow water equivalent               '; VUNIT(I)='mm           '
   I=I+1; VNAME(I)='snwacml_z'//TXT_ISNW  ! then the accumulation series

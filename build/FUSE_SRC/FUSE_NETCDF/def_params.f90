@@ -56,9 +56,9 @@ IERR = NF_CREATE(TRIM(FNAME_NETCDF),NF_CLOBBER,ncid_out); CALL HANDLE_ERR(IERR)
   CALL HANDLE_ERR(IERR)
   IERR = NF_PUT_ATT_REAL(ncid_out,IVAR_ID,'_FillValue',NF_REAL,1,-9999.); CALL HANDLE_ERR(IERR)
  END DO  ! ivar
- ! define model definitions
+  ! define model definitions
  IERR = NF_DEF_VAR(ncid_out,'model_description',NF_CHAR,3,SVAR,IVAR_ID); CALL HANDLE_ERR(IERR)
- ! define error messages
+  ! define error messages
  IERR = NF_DEF_VAR(ncid_out,'error_message',NF_CHAR,3,EVAR,IVAR_ID); CALL HANDLE_ERR(IERR)
 ! end definitions and close file
 IERR = NF_ENDDEF(ncid_out)

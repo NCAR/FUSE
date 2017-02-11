@@ -61,15 +61,14 @@ QOBS(:) = QSIM(:) + 1.0 ! TODO: LOAD GRIDDED QOBS OR SKIP MODEL EVALUATION WHEN 
 ! check for missing QOBS values
 QOBS_MASK = QOBS.ne.REAL(NA_VALUE, KIND(SP)) ! find the time steps for which QOBS is available
 NUM_AVAIL = COUNT(QOBS_MASK)	! number of time steps for which QOBS is available
-PRINT *, 'Num. time steps for which QOBS available:', NUM_AVAIL, ' out of ', NS
 
-! extract elements from QOBS and QSIM for time steps with QOBS available 
+! extract elements from QOBS and QSIM for time steps with QOBS available
 ALLOCATE(QOBS_AVAIL(NUM_AVAIL),QSIM_AVAIL(NUM_AVAIL),DOBS(NUM_AVAIL),DSIM(NUM_AVAIL),RAWD(NUM_AVAIL),LOGD(NUM_AVAIL),STAT=IERR)
 
 QOBS_AVAIL=PACK(QOBS,QOBS_MASK,QOBS_AVAIL)  ! moves QOBS time steps indicated by QOBS_MASK to QOBS_AVAIL,
 											! if no values is missing (i.e. NS = NUM_AVAIL) then QOBS_AVAIL
 											! should be a copy of QOBS
-QSIM_AVAIL=PACK(QSIM,QOBS_MASK,QSIM_AVAIL)  ! moves QSIM time steps indicated by QOBS_MASK to QSIM_AVAIL 
+QSIM_AVAIL=PACK(QSIM,QOBS_MASK,QSIM_AVAIL)  ! moves QSIM time steps indicated by QOBS_MASK to QSIM_AVAIL
 											! if no values is missing (i.e. NS = NUM_AVAIL) then QSIM_AVAIL
 											! should be a copy of QSIM
 
@@ -95,7 +94,7 @@ SS_LOG  = DOT_PRODUCT(LOGD,LOGD)  ! = SUM( LOGD(:)*LOGD(:) )
 ! compute the mean
 MSTATS%QOBS_MEAN = XB_OBS
 MSTATS%QSIM_MEAN = XB_SIM
-! compute the coefficient of variation 
+! compute the coefficient of variation
 MSTATS%QOBS_CVAR = SQRT( SS_OBS / REAL(NUM_AVAIL-1, KIND(SP)) ) / (XB_OBS+NO_ZERO)
 MSTATS%QSIM_CVAR = SQRT( SS_SIM / REAL(NUM_AVAIL-1, KIND(SP)) ) / (XB_SIM+NO_ZERO)
 ! compute the lag-1 correlation coefficient

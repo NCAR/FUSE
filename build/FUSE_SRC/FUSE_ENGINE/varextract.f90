@@ -302,6 +302,7 @@ SELECT CASE (TRIM(VARNAME))
  CASE ('free_2a')    ; XVAR_3d = gState_3d%FREE_2A
  CASE ('free_2b')    ; XVAR_3d = gState_3d%FREE_2B
  CASE ('watr_2')     ; XVAR_3d = gState_3d%WATR_2
+ CASE ('swe_tot')    ; XVAR_3d = gState_3d%swe_tot
  CASE ('swe_z01')    ; XVAR_3d = MBANDS(1)%SWE
  CASE ('swe_z02')    ; XVAR_3d = MBANDS(2)%SWE
  CASE ('swe_z03')    ; XVAR_3d = MBANDS(3)%SWE

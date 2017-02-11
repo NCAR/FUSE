@@ -4,6 +4,8 @@ MODULE multistate
  ! model state structure
  ! --------------------------------------------------------------------------------------
  TYPE STATEV
+  ! snow layer
+  REAL(SP)                             :: SWE_TOT    ! total storage as snow (mm)
   ! upper layer
   REAL(SP)                             :: WATR_1     ! total storage in layer1 (mm)
   REAL(SP)                             :: TENS_1     ! tension storage in layer1 (mm)

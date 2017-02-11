@@ -26,7 +26,8 @@ INTEGER(I4B)                           :: nSp1_DIM    ! 1st spatial dimension
 INTEGER(I4B)                           :: nSp2_DIM    ! 2nd spatial dimension
 INTEGER(I4B)                           :: NPAR_DIM    ! number of parameter sets
 INTEGER(I4B)                           :: NMOD_DIM    ! number of models
-INTEGER(I4B), DIMENSION(5)             :: TVAR        ! time-varying dimensions
+!INTEGER(I4B), DIMENSION(5)             :: TVAR        ! time-varying dimensions
+INTEGER(I4B), DIMENSION(3)             :: TVAR        ! time-varying dimensions
 INTEGER(I4B)                           :: IVAR        ! loop through variables
 INTEGER(I4B)                           :: IVAR_ID     ! variable ID
 include 'netcdf.inc'                                  ! use netCDF libraries
@@ -46,21 +47,32 @@ IERR = NF_REDEF(ncid_out); CALL HANDLE_ERR(IERR)
  IERR = NF_INQ_DIMID(ncid_out,'mod',NMOD_DIM); CALL HANDLE_ERR(IERR)
  ! assign dimensions to indices - note that this specific dimension order
  ! was selected to optimize access to data
- !TVAR = (/NTIM_DIM,nSp2_DIM,nSp1_DIM,NMOD_DIM,NPAR_DIM/) ! dimensions for time-varying output
- TVAR = (/nSp1_DIM,nSp2_DIM,NTIM_DIM,NMOD_DIM,NPAR_DIM/) ! dimensions for time-varying output
+ TVAR = (/nSp1_DIM,nSp2_DIM,NTIM_DIM/) ! dimensions for time-varying output
 
  ! define time-varying output variables
  DO IVAR=1,NOUTVAR
-  ! check if there is a need to write the variable
+  ! check if there is a need to write the variable - see also put_output
   IF (Q_ONLY) THEN
-   WRITE_VAR=.FALSE.
-   IF (TRIM(VNAME(IVAR)).EQ.'q_routed') WRITE_VAR=.TRUE.
-   IF (TRIM(VNAME(IVAR)).EQ.'watr_1')   WRITE_VAR=.TRUE.
-   IF (TRIM(VNAME(IVAR)).EQ.'watr_2')   WRITE_VAR=.TRUE.
-   IF (.NOT.WRITE_VAR) CYCLE
+     WRITE_VAR=.FALSE.
+     IF (TRIM(VNAME(IVAR)).EQ.'ppt') WRITE_VAR=.TRUE.
+     IF (TRIM(VNAME(IVAR)).EQ.'pet') WRITE_VAR=.TRUE.
+     IF (TRIM(VNAME(IVAR)).EQ.'evap_1') WRITE_VAR=.TRUE.
+     IF (TRIM(VNAME(IVAR)).EQ.'evap_2') WRITE_VAR=.TRUE.
+     IF (TRIM(VNAME(IVAR)).EQ.'q_instnt') WRITE_VAR=.TRUE.
+     !IF (TRIM(VNAME(IVAR)).EQ.'q_routed') WRITE_VAR=.TRUE.
+     IF (TRIM(VNAME(IVAR)).EQ.'watr_1')   WRITE_VAR=.TRUE.
+     IF (TRIM(VNAME(IVAR)).EQ.'watr_2')   WRITE_VAR=.TRUE.
+     IF (TRIM(VNAME(IVAR)).EQ.'swe_tot')   WRITE_VAR=.TRUE.
+     !IF (TRIM(VNAME(IVAR)).EQ.'qsurf') WRITE_VAR=.TRUE.
+     !IF (TRIM(VNAME(IVAR)).EQ.'oflow_1') WRITE_VAR=.TRUE.
+     !IF (TRIM(VNAME(IVAR)).EQ.'qintf_1') WRITE_VAR=.TRUE.
+     !IF (TRIM(VNAME(IVAR)).EQ.'oflow_2') WRITE_VAR=.TRUE.
+     !IF (TRIM(VNAME(IVAR)).EQ.'qbase_2') WRITE_VAR=.TRUE.
+     IF (.NOT.WRITE_VAR) CYCLE
   ENDIF
+
   ! write the variable
-  IERR = NF_DEF_VAR(ncid_out,TRIM(VNAME(IVAR)),NF_REAL,5,TVAR,IVAR_ID); CALL HANDLE_ERR(IERR)
+  IERR = NF_DEF_VAR(ncid_out,TRIM(VNAME(IVAR)),NF_REAL,3,TVAR,IVAR_ID); CALL HANDLE_ERR(IERR)
 
   IERR = NF_PUT_ATT_TEXT(ncid_out,IVAR_ID,'long_name',LEN_TRIM(LNAME(IVAR)),TRIM(LNAME(IVAR)))
   CALL HANDLE_ERR(IERR)

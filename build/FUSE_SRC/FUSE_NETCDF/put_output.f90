@@ -25,7 +25,8 @@ SUBROUTINE PUT_OUTPUT(iSpat1,iSpat2,ITIM,IMOD,IPAR)
   ! internal
   LOGICAL(LGT)                           :: WRITE_VAR   ! used to denote if the variable is written
   INTEGER(I4B)                           :: IERR        ! error code
-  INTEGER(I4B), DIMENSION(5)             :: INDX        ! indices for time series write
+  !INTEGER(I4B), DIMENSION(5)             :: INDX        ! indices for time series write
+  INTEGER(I4B), DIMENSION(3)             :: INDX        ! indices for time series write
   INTEGER(I4B)                           :: IVAR        ! loop through variables
   REAL(SP)                               :: XVAR        ! desired variable (SP NOT NECESSARILY SP)
   REAL(MSP)                              :: AVAR        ! desired variable (SINGLE PRECISION)
@@ -36,17 +37,23 @@ SUBROUTINE PUT_OUTPUT(iSpat1,iSpat2,ITIM,IMOD,IPAR)
   ! open file
   IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
   ! define indices for model output
-  !INDX = (/ITIM,iSpat2,iSpat1,IMOD,IPAR/)
-  INDX = (/iSpat1,iSpat2,ITIM,IMOD,IPAR/)
+!  INDX = (/iSpat1,iSpat2,ITIM,IMOD,IPAR/)
+  INDX = (/iSpat1,iSpat2,ITIM/)
   ! loop through time-varying model output
   DO IVAR=1,NOUTVAR
 
-     ! check if there is a need to write the variable
+     ! check if there is a need to write the variable - see also def_output
      IF (Q_ONLY) THEN
         WRITE_VAR=.FALSE.
-        IF (TRIM(VNAME(IVAR)).EQ.'q_routed') WRITE_VAR=.TRUE.
+        IF (TRIM(VNAME(IVAR)).EQ.'ppt') WRITE_VAR=.TRUE.
+        IF (TRIM(VNAME(IVAR)).EQ.'pet') WRITE_VAR=.TRUE.
+        IF (TRIM(VNAME(IVAR)).EQ.'evap_1') WRITE_VAR=.TRUE.
+        IF (TRIM(VNAME(IVAR)).EQ.'evap_2') WRITE_VAR=.TRUE.
+        IF (TRIM(VNAME(IVAR)).EQ.'q_instnt') WRITE_VAR=.TRUE.
+        !IF (TRIM(VNAME(IVAR)).EQ.'q_routed') WRITE_VAR=.TRUE.
         IF (TRIM(VNAME(IVAR)).EQ.'watr_1')   WRITE_VAR=.TRUE.
         IF (TRIM(VNAME(IVAR)).EQ.'watr_2')   WRITE_VAR=.TRUE.
+        IF (TRIM(VNAME(IVAR)).EQ.'swe_tot')   WRITE_VAR=.TRUE.
         IF (.NOT.WRITE_VAR) CYCLE
      ENDIF
 
@@ -94,8 +101,10 @@ SUBROUTINE PUT_GOUTPUT_3D(IPAR,IMOD,ITIM)
   ! internal
   LOGICAL(LGT)                           :: WRITE_VAR   ! used to denote if the variable is written
   INTEGER(I4B)                           :: IERR        ! error code
-  INTEGER(I4B), DIMENSION(5)             :: IND_START   ! start indices
-  INTEGER(I4B), DIMENSION(5)             :: IND_COUNT   ! count indices
+  !INTEGER(I4B), DIMENSION(5)             :: IND_START   ! start indices
+  !INTEGER(I4B), DIMENSION(5)             :: IND_COUNT   ! count indices
+  INTEGER(I4B), DIMENSION(3)             :: IND_START   ! start indices
+  INTEGER(I4B), DIMENSION(3)             :: IND_COUNT   ! count indices
   INTEGER(I4B)                           :: IVAR        ! loop through variables
   REAL(SP)                               :: XVAR        ! desired variable (SP NOT NECESSARILY SP)
   REAL(MSP)                              :: AVAR        ! desired variable (SINGLE PRECISION)
@@ -109,22 +118,33 @@ SUBROUTINE PUT_GOUTPUT_3D(IPAR,IMOD,ITIM)
   IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
 
   ! define indices for model output
-  !IND_START = (/1,1,1,IMOD,IPAR/)
-  !IND_COUNT = (/numtim,nspat2,nspat1,1,1/)
-  IND_START = (/1,1,1,IMOD,IPAR/) ! The indices are relative to 1, i.e. the first data value of a variable would have index (1, 1, ..., 1)
-  IND_COUNT = (/nspat1,nspat2,numtim,1,1/)
+  !IND_START = (/1,1,1,IMOD,IPAR/) ! The indices are relative to 1, i.e. the first data value of a variable would have index (1, 1, ..., 1)
+  !IND_COUNT = (/nspat1,nspat2,numtim,1,1/)
+  IND_START = (/1,1,1/) ! The indices are relative to 1, i.e. the first data value of a variable would have index (1, 1, ..., 1)
+  IND_COUNT = (/nspat1,nspat2,numtim/)
 
   ! loop through time-varying model output
   DO IVAR=1,NOUTVAR
 
-     ! check if there is a need to write the variable
-     IF (Q_ONLY) THEN
-        WRITE_VAR=.FALSE.
-        IF (TRIM(VNAME(IVAR)).EQ.'q_routed') WRITE_VAR=.TRUE.
-        IF (TRIM(VNAME(IVAR)).EQ.'watr_1')   WRITE_VAR=.TRUE.
-        IF (TRIM(VNAME(IVAR)).EQ.'watr_2')   WRITE_VAR=.TRUE.
-        IF (.NOT.WRITE_VAR) CYCLE
-     ENDIF
+    ! check if there is a need to write the variable - see also def_output
+    IF (Q_ONLY) THEN
+       WRITE_VAR=.FALSE.
+       IF (TRIM(VNAME(IVAR)).EQ.'ppt') WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'pet') WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'evap_1') WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'evap_2') WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'q_instnt') WRITE_VAR=.TRUE.
+       !IF (TRIM(VNAME(IVAR)).EQ.'q_routed') WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'watr_1')   WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'watr_2')   WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'swe_tot')   WRITE_VAR=.TRUE.
+       !IF (TRIM(VNAME(IVAR)).EQ.'qsurf') WRITE_VAR=.TRUE.
+       !IF (TRIM(VNAME(IVAR)).EQ.'oflow_1') WRITE_VAR=.TRUE.
+       !IF (TRIM(VNAME(IVAR)).EQ.'qintf_1') WRITE_VAR=.TRUE.
+       !IF (TRIM(VNAME(IVAR)).EQ.'oflow_2') WRITE_VAR=.TRUE.
+       !IF (TRIM(VNAME(IVAR)).EQ.'qbase_2') WRITE_VAR=.TRUE.
+       IF (.NOT.WRITE_VAR) CYCLE
+    ENDIF
 
      ! write the variable
      XVAR_3d = VAREXTRACT_3d(VNAME(IVAR))          ! get variable

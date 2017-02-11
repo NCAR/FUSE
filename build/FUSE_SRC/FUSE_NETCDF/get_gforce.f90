@@ -4,10 +4,12 @@ USE netcdf
 implicit none
 private
 public::read_ginfo
+public::get_dimIds
 public::get_modtim
 public::get_gforce
 public::get_gforce_3d
 public::get_varid
+
 contains
 
  SUBROUTINE read_ginfo(ncid,ierr,message)
@@ -18,7 +20,8 @@ contains
  ! ---------------------------------------------------------------------------------------
  ! Purpose:
  ! --------
- ! Read NetCDF dimension lengths for NetCDF forcing data
+ ! Read grid info (spatial and temporal dimensions) from the NetCDF file
+
  ! ---------------------------------------------------------------------------------------
  ! Modules Modified:
  ! -----------------
@@ -54,14 +57,18 @@ contains
  ! get the variable ID for precipitation
  ierr = nf90_inq_varid(ncid, vname_aprecip, ivarid)
  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
+
  ! get the dimension IDs for precipitation
  call get_dimIds(ncid, ivarid, ndims, dimids_ppt, ierr, cmessage)
  if(ierr/=0)then; message=trim(message)//trim(cmessage); return; endif
- ! loop through variable dimensions
+
+ ! loop through dimensions
  do iDimID=1,ndims
+
   ! get the dimension lengths
   ierr = nf90_inquire_dimension(ncid,dimids_ppt(iDimID),len=dimLen)
   if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
+
   ! save the dimension lengths
   if(iDimID==1) nspat1 = dimLen  ! 1st spatial dimension
   if(iDimID==2) nspat2 = dimLen  ! 2nd spatial dimension
@@ -76,7 +83,7 @@ contains
  ierr = nf90_get_att(ncid, iVarID, 'units', timeUnits)
  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr))//'[variable='//trim(vname_dtime)//']'; return; endif
 
- contains
+ end subroutine read_ginfo
 
   ! --------------------------------------------------------------------------------------
   subroutine get_dimIds(ncid, varid, nexpect, varDimIDs, ierr, message)
@@ -105,7 +112,6 @@ contains
   end subroutine get_dimIds
   ! --------------------------------------------------------------------------------------
 
- end subroutine read_ginfo
 
   SUBROUTINE get_varID(ncid,ierr,message)
   ! ---------------------------------------------------------------------------------------
@@ -409,8 +415,6 @@ contains
  ! allocate space for the temporary grid
  allocate(gTemp(nSpat1,nSpat2,numtim), stat=ierr)
  if(ierr/=0)then; message=trim(message)//'problem allocating space for gTemp'; return; endif
-
-  print *, 'shape(gTemp) = ', shape(gTemp)
 
  ! get the vector of variable names
  cVec(ilook_aprecip)%vname = trim(vname_aprecip)  ! variable name: precipitation

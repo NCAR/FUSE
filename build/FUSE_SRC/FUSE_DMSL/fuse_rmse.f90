@@ -61,6 +61,7 @@ CONTAINS
     REAL(SP)                               :: T1,T2          ! CPU time
     INTEGER(I4B)                           :: ITIM           ! loop through time series
     INTEGER(I4B)                           :: iSpat1,iSpat2  ! loop through spatial dimensions
+    INTEGER(I4B)                           :: ibands         ! loop through elevation bands
     INTEGER(I4B)                           :: IPAR           ! loop through model parameters
     REAL(SP)                               :: DT_SUB         ! length of sub-step
     REAL(SP)                               :: DT_FULL        ! length of time step
@@ -87,33 +88,50 @@ CONTAINS
        IF (MPARAM_FLAG) PCOUNT = PCOUNT + 1
     ENDIF
 
-    PRINT *, 'PCOUNT is', PCOUNT
-
     ! add parameter set to the data structure
     CALL PUT_PARSET(XPAR)
     PRINT *, 'Parameter set added to data structure'
     !DO IPAR=1,NUMPAR; WRITE(*,'(A11,1X,F9.3)') LPARAM(IPAR), XPAR(IPAR); END DO
+
     ! compute derived model parameters (bucket sizes, etc.)
     CALL PAR_DERIVE(ERR,MESSAGE)
     IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
+
     ! initialize model states over the 2D gridded domain'
     DO iSpat1=1,nSpat1
        DO iSpat2=1,nSpat2
           CALL INIT_STATE(fracState0)             ! define FSTATE - fracState0 is shared in MODULE multistate
           !gState(iSpat1,iSpat2) = FSTATE         ! put the state into the 2-d structure
-          gState_3d(iSpat1,iSpat2,1) = FSTATE     ! put the state into the 2-3 structure
+          gState_3d(iSpat1,iSpat2,1) = FSTATE     ! put the state into the 3_d structure
        END DO
     END DO
     PRINT *, 'Model states initialized over the 2D gridded domain'
 
-    ! allocate 3d data structures for fluxes and snow
-    allocate(W_FLUX_3d(nspat1,nspat2,numtim))
-    allocate(MBANDS_3d(nspat1,nspat2,numtim))
-    !W_FLUX_3d = NA_VALUE_SP
+    ! initialize elevations bands if snow module is on - see init_state.f90 for catchment-scale modeling
+    ! IF (SMODL%iSNOWM.EQ.iopt_temp_index .AND. SPATIAL_OPTION == LUMPED) THEN
+    IF (SMODL%iSNOWM.EQ.iopt_temp_index) THEN
+
+      DO iSpat1=1,nSpat1
+         DO iSpat2=1,nSpat2
+           DO IBANDS=1,N_BANDS
+             MBANDS_VAR_4d(iSpat1,iSpat2,IBANDS,1)%SWE=0.0_sp            ! band snowpack water equivalent (mm)
+             MBANDS_VAR_4d(iSpat1,iSpat2,IBANDS,1)%SNOWACCMLTN=0.0_sp ! new snow accumulation in band (mm day-1)
+             MBANDS_VAR_4d(iSpat1,iSpat2,IBANDS,1)%SNOWMELT=0.0_sp    ! snowmelt in band (mm day-1)
+             MBANDS_VAR_4d(iSpat1,iSpat2,IBANDS,1)%DSWE_DT=0.0_sp     ! rate of change of band SWE (mm day-1)
+           END DO
+         END DO
+      END DO
+      PRINT *, 'Snow states initiatlized over the 2D gridded domain '
+
+    ENDIF
+
+    ! allocate 3d data structures for fluxes
+    allocate(W_FLUX_3d(nspat1,nspat2,numtim+1))
 
     ! initialize model time step
     DT_SUB  = DELTIM                       ! init stepsize to full step (DELTIM shared in module multiforce)
     DT_FULL = DELTIM                       ! init stepsize to full step (DELTIM shared in module multiforce)
+
     ! initialize summary statistics
     CALL INIT_STATS()
     CALL CPU_TIME(T1)
@@ -165,7 +183,18 @@ CONTAINS
                 ! using explicit Euler approach; if not, call QRAINERROR
                 SELECT CASE(SMODL%iSNOWM)
                 CASE(iopt_temp_index)
-                   CALL UPDATE_SWE(DELTIM)
+
+                  ! load data from multidimensional arrays
+                  Z_FORCING          = Z_FORCING_grid(iSpat1,iSpat2)                   ! elevation of forcing data (m)
+                  MBANDS%Z_MID       = MBANDS_INFO_3d(iSpat1,iSpat2,:)%Z_MID           ! band mid-point elevation (m)
+                  MBANDS%AF          = MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF              ! fraction of basin area in band (-)
+                  MBANDS%SWE         = MBANDS_VAR_4d(iSpat1,iSpat2,:,ITIM)%SWE         ! band snowpack water equivalent (mm)
+                  MBANDS%SNOWACCMLTN = MBANDS_VAR_4d(iSpat1,iSpat2,:,ITIM)%SNOWACCMLTN ! new snow accumulation in band (mm day-1)
+                  MBANDS%SNOWMELT    = MBANDS_VAR_4d(iSpat1,iSpat2,:,ITIM)%SNOWMELT    ! snowmelt in band (mm day-1)
+                  MBANDS%DSWE_DT     = MBANDS_VAR_4d(iSpat1,iSpat2,:,ITIM)%DSWE_DT     ! rate of change of band SWE (mm day-1)
+
+                  CALL UPDATE_SWE(DELTIM)
+
                 CASE(iopt_no_snowmod)
                    CALL QRAINERROR()
                 CASE DEFAULT
@@ -180,9 +209,29 @@ CONTAINS
                ! perform overland flow routing
                CALL Q_OVERLAND()
 
+               ! sanity check
+               !IF (AROUTE(ITIM)%Q_ROUTED.LT.0._sp) STOP ' Q_ROUTED is less than zero '
+               !IF (AROUTE(ITIM)%Q_ROUTED.GT.1000._sp) STOP ' Q_ROUTED is enormous '
+
                ! save the state
                CALL XTRY_2_STR(STATE1,FSTATE)            ! update FSTATE using states at the end of the time step (STATE0)
                gState_3d(iSpat1,iSpat2,itim+1) = FSTATE  ! put the state into the 3-d structure
+               W_FLUX_3d(iSpat1,iSpat2,itim+1) = W_FLUX
+               AROUTE_3d(iSpat1,iSpat2,itim+1) = MROUTE      ! save instantaneous and routed runoff
+
+               IF (SMODL%iSNOWM.EQ.iopt_temp_index) THEN
+
+                 gState_3d(iSpat1,iSpat2,itim+1)%SWE_TOT = sum(MBANDS%SWE) ! save SWE summed over all the elevation bands
+
+                 MBANDS_VAR_4d(iSpat1,iSpat2,:,itim+1)%SWE         = MBANDS%SWE          ! update MBANDS_VAR_4D
+                 MBANDS_VAR_4d(iSpat1,iSpat2,:,itim+1)%SNOWACCMLTN = MBANDS%SNOWACCMLTN  !
+                 MBANDS_VAR_4d(iSpat1,iSpat2,:,itim+1)%SNOWMELT    = MBANDS%SNOWMELT     !
+                 MBANDS_VAR_4d(iSpat1,iSpat2,:,itim+1)%DSWE_DT     = MBANDS%DSWE_DT      !
+
+               END IF
+
+               !PRINT *, 'W_FLUX%oflow_1 = ', W_FLUX%oflow_1
+               !PRINT *, 'W_FLUX_3d(iSpat1,iSpat2,itim)%oflow_2 = ', W_FLUX_3d(iSpat1,iSpat2,itim)%oflow_2
 
                ! save forcing data
                IF(distributed)THEN
@@ -190,21 +239,8 @@ CONTAINS
                   aForce(iTim)%pet = SUM(gForce_3d(:,:,itim)%pet)/REAL(SIZE(gForce_3d(:,:,itim)), KIND(sp))
                ENDIF
 
-               ! save instantaneous and routed runoff
-               AROUTE(ITIM)%Q_INSTNT = MROUTE%Q_INSTNT  ! save instantaneous runoff
-               AROUTE(ITIM)%Q_ROUTED = MROUTE%Q_ROUTED  ! save routed runoff
-
-               ! sanity check
-               IF (AROUTE(ITIM)%Q_ROUTED.LT.0._sp) STOP ' Q_ROUTED is less than zero '
-               IF (AROUTE(ITIM)%Q_ROUTED.GT.1000._sp) STOP ' Q_ROUTED is enormous '
-
                ! compute summary statistics
                CALL COMP_STATS()
-
-               ! save fluxes and snow
-               W_FLUX_3d(iSpat1,iSpat2,itim) = W_FLUX
-               !MBANDS_3d(iSpat1,iSpat2,itim) = MBANDS
-               AROUTE_3d(iSpat1,iSpat2,itim) = MROUTE
 
              ELSE ! INSERT NA VALUES
 

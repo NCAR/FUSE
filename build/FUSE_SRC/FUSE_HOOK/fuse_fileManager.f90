@@ -17,9 +17,10 @@ CHARACTER(LEN=fusePathLen)  :: M_DECISIONS='fuse_zDecisions.txt'    ! definition
 CHARACTER(LEN=fusePathLen)  :: CONSTRAINTS='fuse_zConstraints.txt'  ! definition of parameter constraints
 CHARACTER(LEN=fusePathLen)  :: MOD_NUMERIX='fuse_zNumerix.txt'      ! definition of numerical solution technique
 ! additional control files (not needed by the FUSE engines)
-CHARACTER(LEN=fusePathLen)  :: FORCINGINFO='forcing.info.txt'  ! info on forcing data files
-CHARACTER(LEN=fusePathLen)  :: MBANDS_INFO='elevbands.info.txt'  ! info on basin band data files
-CHARACTER(LEN=fusePathLen)  :: BATEA_PARAM='batea_param.txt'  ! definition of BATEA parameters
+CHARACTER(LEN=fusePathLen)  :: FORCINGINFO='forcing.info.txt'       ! info on forcing data files
+CHARACTER(LEN=fusePathLen)  :: MBANDS_INFO='elevbands.info.txt'     ! info on basin band data files
+CHARACTER(LEN=fusePathLen)  :: MBANDS_NC='elev_bands.nc'            ! info on basin band data files on a grid
+CHARACTER(LEN=fusePathLen)  :: BATEA_PARAM='batea_param.txt'        ! definition of BATEA parameters
 !----------------------------------------------------
 contains
 !----------------------------------------------------

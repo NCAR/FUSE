@@ -11,9 +11,8 @@ PROGRAM DISTRIBUTED_DRIVER
 USE nrtype                                                ! variable types, etc.
 USE netcdf                                                ! NetCDF library
 USE fuse_fileManager,only:fuse_SetDirsUndPhiles,&         ! sets directories and filenames
-          SETNGS_PATH,MBANDS_INFO, &
+          SETNGS_PATH,MBANDS_INFO,MBANDS_NC, &
           OUTPUT_PATH,FORCINGINFO,INPUT_PATH
-
 ! data modules
 USE model_defn,nstateFUSE=>nstate                         ! model definition structures
 USE model_defnames                                        ! defines the integer model options
@@ -47,7 +46,7 @@ USE force_info_module,only:force_info                     ! get forcing info for
 USE get_gforce_module,only:read_ginfo                     ! get dimension lengths from the NetCDF file
 USE get_gforce_module,only:get_varid                      ! get netCDF ID for forcing variables
 USE get_gforce_module,only:get_gforce_3d                  ! get forcing
-USE get_mbands_module,only:get_mbands                     ! get elevation bands for snow modeling
+USE get_mbands_module,only:get_mbands, GET_MBANDS_INFO    ! get elevation bands for snow modeling
 USE getf_ascii_module,only:prelim_asc                     ! get preliminary data from the ASCII file
 USE getf_ascii_module,only:close_file                     ! close ASCII file
 USE getf_ascii_module,only:read_ascii                     ! read ascii forcing data for a given time step
@@ -71,6 +70,7 @@ CHARACTER(LEN=6)                       :: F_SPATIAL='      ' ! spatial option (0
 ! ---------------------------------------------------------------------------------------
 ! fuse_file_manager
 CHARACTER(LEN=1024)                    :: FFMFILE      	  ! name of fuse_file_manager file - still needed?
+CHARACTER(LEN=1024)                    :: ELEV_BANDS_NC	  ! name of NetCDF file for elevation bands
 ! get model forcing data
 INTEGER(I4B)                           :: NTIM            ! number of time steps - still needed ?
 INTEGER(I4B)                           :: INFERN_START    ! start of inference period - still needed?
@@ -125,18 +125,19 @@ print*, '2nd command-line argument (FMODEL_ID) = ', FMODEL_ID
 print*, '3rd command-line argument (F_SPATIAL) = ', F_SPATIAL
 
 ! set path to fuse_file_manager
-FFMFILE=TRIM(SETNGS_PATH)//TRIM(DatString)//'_fuse_file_manager.txt' ! still needed?
-print *, 'fuse_file_manager:', TRIM(FFMFILE) ! still needed?
+FFMFILE=TRIM(SETNGS_PATH)//TRIM(DatString)//'_fuse_file_manager.txt'
 
-! get directories and filenames for control files
+! set directories and filenames for control files
 call fuse_SetDirsUndPhiles(fuseFileManagerIn=FFMFILE,err=err,message=message)
-! call fuse_SetDirsUndPhiles(err=err,message=message) ! TODO: check which FileManager is used
-
 if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
-CALL GETNUMERIX(ERR,MESSAGE)              ! defines method/parameters used for numerical solution
-! define basin desired
+
+! defines method/parameters used for numerical solution
+CALL GETNUMERIX(ERR,MESSAGE)
+
+! define basin desired - ?overwrite fuse_SetDirsUndPhiles?
 FORCINGINFO = TRIM(DatString)//'_input_info.txt'
 MBANDS_INFO = TRIM(DatString)//'_elev_bands_info.txt'
+ELEV_BANDS_NC = TRIM(DatString)//'_'//MBANDS_NC
 
 ! convert command-line arguments to integer flags and real numbers
 READ(FMODEL_ID,*) FUSE_ID                 ! integer defining FUSE model
@@ -188,7 +189,7 @@ ELSE
  if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
  PRINT *, 'NCID_FORC is', ncid_forc
 
- ! get the grid info (dimensions) from the NetCDF file
+ ! get the grid info (spatial and temporal dimensions) from the NetCDF file
  call read_ginfo(ncid_forc,err,message)
  if(err/=0)then; write(*,*) trim(message); stop; endif
 
@@ -197,8 +198,12 @@ ELSE
  if(err/=0)then; write(*,*) 'unable to allocate space for forcing grid GFORCE'; stop; endif
 
  ! allocate space for the forcing grid and states with a time dimension
- allocate(ancilF_3d(nspat1,nspat2,numtim), AROUTE_3d(nspat1,nspat2,numtim), gState_3d(nspat1,nspat2,numtim+1),gForce_3d(nspat1,nspat2,numtim), stat=err)
+ allocate(ancilF_3d(nspat1,nspat2,numtim), AROUTE_3d(nspat1,nspat2,numtim+1), gState_3d(nspat1,nspat2,numtim+1),gForce_3d(nspat1,nspat2,numtim), stat=err)
  if(err/=0)then; write(*,*) 'unable to allocate space for 3d structure'; stop; endif
+
+ ! allocate space for elevation bands
+ allocate(MBANDS_VAR_4d(nspat1,nspat2,6,numtim+1),stat=err) ! TODO: replace 6 by N_BANDS
+ if(err/=0)then; write(*,*) 'unable to allocate space for elevation bands'; stop; endif
 
  ! get variable ID from the NetCDF file
  call get_varID(ncid_forc,err,message)
@@ -221,9 +226,21 @@ IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 CALL SELECTMODL(ERR=ERR,MESSAGE=MESSAGE)
 IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 
+! Create elevations bands if snow module is on
+IF (SMODL%iSNOWM.EQ.iopt_temp_index) THEN
+
+  IF(SPATIAL_OPTION == LUMPED)THEN
+
+   CALL GET_MBANDS(err,message) ! read band data from ASCII file - for one basin
+
+  ELSE
+
+   CALL GET_MBANDS_INFO(ELEV_BANDS_NC,err,message) ! read band data from NetCDF file - for a 2D grid
+
+  ENDIF
+ENDIF
+
 ! Define list of states and parameters for the current model
-! Read data from the "BATEA-compliant" ASCII files
-IF (SMODL%iSNOWM.EQ.iopt_temp_index) CALL GET_MBANDS(err,message) ! read band data if snow model
 CALL ASSIGN_STT()        ! state definitions are stored in module model_defn
 CALL ASSIGN_FLX()        ! flux definitions are stored in module model_defn
 CALL ASSIGN_PAR()        ! parameter definitions are stored in module multiparam
@@ -268,7 +285,6 @@ if(err/=0)then; write(*,*) 'Error while extracting 3d forcing'; stop; endif
 CALL SYSTEM_CLOCK(T_end_import_forcing)
 
 print *, 'Forcing loaded in ',T_end_import_forcing-T_start_import_forcing,' milliseconds'
-print *, 'SHAPE(gForce_3d%temp) = ',SHAPE(gForce_3d%temp)
 PRINT *, 'Test import forcing: gForce_3d(57,27,10)%temp = ', gForce_3d(57,27,10)%temp
 
 ! run zee model

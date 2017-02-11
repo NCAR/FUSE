@@ -54,24 +54,35 @@ MODULE multiforce
  type(fData), dimension(:,:,:), pointer  :: gForce_3d  ! model forcing data for a 3-d grid - let's add time
  type(aData), dimension(:,:,:), pointer  :: ancilF_3d  ! ancillary forcing data for the 3-d grid - because time is timeless
 
- ! timing information
- real(sp)                              :: jdayRef                   ! reference time (days)
- real(sp)                              :: deltim=-1._dp             ! length of time step (days)
+ ! timing information - note that numtim_in >= numtim_sim >= numtim_sub
+ integer(i4b)                          :: numtim=-1                  ! number of time steps (in reduced array)
+ !integer(i4b)                          :: numtim_in=-1              ! number of time steps of input (atmospheric forcing)
+ !integer(i4b)                          :: numtim_sim=-1             ! number of time steps of FUSE simulations (including spin-up)
+ !integer(i4b)                          :: numtim_sub=-1             ! number of time steps of subperiod (will be kept in memory)
+ !integer(i4b)                          :: itim_in=-1                ! indice within numtim_in
+ !integer(i4b)                          :: itim_sim=-1               ! indice within numtim_sim
+ !integer(i4b)                          :: itim_sub=-1               ! indice within numtim_sub
+
  integer(i4b)                          :: warmup_beg=-1             ! index for the start of the warm-up period
  integer(i4b)                          :: infern_beg=-1             ! index for the start of the inference period
  integer(i4b)                          :: infern_end=-1             ! index for the end of the inference period
  integer(i4b)                          :: istart=-1                 ! index for start of inference period (in reduced array)
- integer(i4b)                          :: numtim=-1                 ! number of time steps (in reduced array)
+ real(sp)                              :: jdayRef                   ! reference time (days)
+ real(sp)                              :: deltim=-1._dp             ! length of time step (days)
  character(len=strLen)                 :: timeUnits                 ! units string for time
+
  ! lat-lon
  real(sp)                              :: xlon                      ! longitude (degrees)
  real(sp)                              :: ylat                      ! latitude (degrees)
+
  ! dimension information
  integer(i4b)                          :: nSpat1=-1                 ! number of points in 1st spatial dimension
  integer(i4b)                          :: nSpat2=-1                 ! number of points in 2nd spatial dimension
- integer(i4b)                          :: nsteps=-1                 ! number of data steps
+! integer(i4b)                          :: nsteps=-1                 ! number of data steps
+
  ! filename
  character(len=StrLen)                 :: forcefile='undefined'     ! name of forcing file
+
  ! name of time variables
  character(len=StrLen)                 :: vname_iy   ='undefined'   ! name of variable for year
  character(len=StrLen)                 :: vname_im   ='undefined'   ! name of variable for month
@@ -80,8 +91,10 @@ MODULE multiforce
  character(len=StrLen)                 :: vname_imin ='undefined'   ! name of variable for minute
  character(len=StrLen)                 :: vname_dsec ='undefined'   ! name of variable for second
  character(len=StrLen)                 :: vname_dtime='undefined'   ! name of variable for time
+
  ! number of forcing variables
  integer(i4b),parameter                :: nForce=6                 ! see lines below, does not include Q
+
  ! forcing variable names
  character(len=StrLen)                 :: vname_aprecip='undefined' ! variable name: precipitation
  character(len=StrLen)                 :: vname_potevap='undefined' ! variable name: potential ET
@@ -90,6 +103,7 @@ MODULE multiforce
  character(len=StrLen)                 :: vname_airpres='undefined' ! variable name: surface pressure
  character(len=StrLen)                 :: vname_swdown ='undefined' ! variable name: downward shortwave radiation
  character(len=StrLen)                 :: vname_q      ='undefined' ! variable name: runoff
+
  ! indices for forcing variables
  integer(i4b),parameter                :: ilook_aprecip=1  ! named element in lCheck
  integer(i4b),parameter                :: ilook_potevap=2  ! named element in lCheck
@@ -97,6 +111,7 @@ MODULE multiforce
  integer(i4b),parameter                :: ilook_spechum=4  ! named element in lCheck
  integer(i4b),parameter                :: ilook_airpres=5  ! named element in lCheck
  integer(i4b),parameter                :: ilook_swdown =6  ! named element in lCheck
+
  ! NetCDF
  integer(i4b)                          :: ncid_forc=-1              ! NetCDF forcing file ID
  integer(i4b),dimension(nForce)        :: ncid_var                  ! NetCDF forcing variable ID
@@ -108,15 +123,18 @@ MODULE multiforce
  integer(i4b)                          :: ivarid_ih=-1              ! variable ID for hour
  integer(i4b)                          :: ivarid_imin=-1            ! variable ID for minute
  integer(i4b)                          :: ivarid_dsec=-1            ! variable ID for second
+
  ! indices for variables
  integer(i4b)                          :: ivarid_ppt=-1             ! variable ID for precipitation
  integer(i4b)                          :: ivarid_temp=-1            ! variable ID for temperature
  integer(i4b)                          :: ivarid_pet=-1             ! variable ID for potential ET
  integer(i4b)                          :: ivarid_q=-1               ! variable ID for runoff
+
  ! multipliers for variables to convert fluxes to mm/day
  real(sp)                              :: amult_ppt=-1._dp          ! convert precipitation to mm/day
  real(sp)                              :: amult_pet=-1._dp          ! convert potential ET to mm/day
  real(sp)                              :: amult_q=-1._dp            ! convert runoff to mm/day
+
  ! missing values
  INTEGER(I4B),parameter                :: NA_VALUE=-9999            ! integer designating missing values - TODO: retrieve from NetCDF file
  REAL(SP),parameter                    :: NA_VALUE_SP=-9999            ! integer designating missing values - TODO: retrieve from NetCDF file
