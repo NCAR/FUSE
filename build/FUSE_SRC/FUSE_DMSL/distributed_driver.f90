@@ -23,13 +23,15 @@ USE multiforce, ONLY: GFORCE, GFORCE_3d                   ! spatial arrays of gr
 USE multiforce, only: ancilF, ancilF_3d                   ! ancillary forcing data
 USE multiforce, ONLY: valDat                              ! response data
 USE multiforce, only: DELTIM
-USE multiforce, only: ISTART, NUMTIM                      ! index for start of inference, number of data steps
+USE multiforce, only: ISTART                              ! index for start of inference
+USE multiforce, only: numtim_in, itim_in                  ! length of input time series and associated index
+USE multiforce, only: numtim_sim, itim_sim                ! length of simulated time series and associated index
+USE multiforce, only: numtim_sub, itim_sub                ! length of subperiod time series and associated index
 USE multiforce, only: ncid_forc                           ! NetCDF forcing file ID
 USE multiforce, only: ncid_var                            ! NetCDF forcing variable ID
 USE multistate, only: ncid_out                            ! NetCDF output file ID
 USE multiforce, only: NA_VALUE                            ! NA_VALUE for the forcing
 
-!USE multiforce, ONLY: AFORCE, DELTIM, NUMTIM             ! data interval = maximum model time step - now redundant
 USE multibands                                            ! basin band stuctures
 USE multiparam, ONLY: LPARAM, PARATT, NUMPAR              ! parameter metadata structures
 USE multistate, only: gState                              ! gridded state variables
@@ -153,8 +155,11 @@ SPATIAL_FLAG=.TRUE.; IF(SPATIAL_OPTION == LUMPED) SPATIAL_FLAG=.FALSE.
 
 call force_info(err,message)
 if(err/=0)then; write(*,*) trim(message); stop; endif
+
+print*, 'Number of timesteps per subperiod (numtim_sub) = ', numtim_sub
+
 ! allocate space for the basin-average time series
-allocate(aForce(numtim),aRoute(numtim),aValid(numtim),stat=err)
+allocate(aForce(numtim_sub),aRoute(numtim_sub),aValid(numtim_sub),stat=err)
 if(err/=0)then; write(*,*) 'unable to allocate space for basin-average time series [aForce,aRoute]'; stop; endif
 
 ! get dimensions of the grid
@@ -168,7 +173,7 @@ IF(SPATIAL_OPTION == LUMPED)THEN
  ! get the column indices from the ascii file (also read to the start of the file)
  call prelim_asc(err,message); if(err/=0)then; write(*,*) trim(message); stop; endif
  ! get the ASCII forcing data for a given time step
- do iTim=1,numtim
+ do iTim=1,numtim_sim
   ! get the ASCII forcing data for a given time step
   call read_ascii(err,message)
   if(err/=0)then; print*, trim(message); stop; endif
@@ -179,7 +184,7 @@ IF(SPATIAL_OPTION == LUMPED)THEN
  ! close file
  call close_file(err,message)
  if(err/=0)then; print*,trim(message); read(*,*); endif
- print*, istart,numtim
+ print*, istart,numtim_sim
 ELSE
  print *, 'Running FUSE as a distributed model'
  print *, 'Open forcing file:', trim(INPUT_PATH)//trim(forcefile)
@@ -197,12 +202,12 @@ ELSE
  allocate(ancilF(nspat1,nspat2), gForce(nspat1,nspat2), gState(nspat1,nspat2), stat=err)
  if(err/=0)then; write(*,*) 'unable to allocate space for forcing grid GFORCE'; stop; endif
 
- ! allocate space for the forcing grid and states with a time dimension
- allocate(ancilF_3d(nspat1,nspat2,numtim), AROUTE_3d(nspat1,nspat2,numtim+1), gState_3d(nspat1,nspat2,numtim+1),gForce_3d(nspat1,nspat2,numtim), stat=err)
+ ! allocate space for the forcing grid and states with a time dimension - only for subperiod
+ allocate(AROUTE_3d(nspat1,nspat2,numtim_sub+1), gState_3d(nspat1,nspat2,numtim_sub+1),gForce_3d(nspat1,nspat2,numtim_sub), stat=err)
  if(err/=0)then; write(*,*) 'unable to allocate space for 3d structure'; stop; endif
 
  ! allocate space for elevation bands
- allocate(MBANDS_VAR_4d(nspat1,nspat2,6,numtim+1),stat=err) ! TODO: replace 6 by N_BANDS
+ allocate(MBANDS_VAR_4d(nspat1,nspat2,6,numtim_sub+1),stat=err) ! TODO: replace 6 by N_BANDS
  if(err/=0)then; write(*,*) 'unable to allocate space for elevation bands'; stop; endif
 
  ! get variable ID from the NetCDF file
@@ -212,7 +217,6 @@ ELSE
 ENDIF
 
 print*, 'spatial dimensions = ', nSpat1, nSpat2
-print*, 'indices for start of inference and number of time steps', istart, numtim
 print*, 'netCDF ID for forcing file', ncid_forc
 print*, 'NA_VALUE = ', NA_VALUE
 
@@ -256,7 +260,7 @@ PCOUNT=0                 ! counter for parameter sets evaluated (shared in MODUL
 OUTPUT_FLAG = .TRUE.     ! .TRUE. if desire time series output
 CALL DEF_PARAMS(ONEMOD)  ! define model parameters (initial CREATE)
 CALL DEF_SSTATS()        ! define summary statistics (REDEF)
-CALL DEF_OUTPUT(NUMTIM,nSpat1,nSpat2)    ! define model time series (REDEF)
+CALL DEF_OUTPUT(numtim_sim,nSpat1,nSpat2)    ! define model time series (REDEF)
 
 ! ---------------------------------------------------------------------------------------
 ! RUN MODEL FOR THE CURRENT PARAMETER SET
@@ -275,21 +279,10 @@ DO IPAR=1,NUMPAR
  if(PARAM_META%PARFIT) print*, LPARAM(IPAR)%PARNAME, PARAM_META%PARDEF
 END DO
 
-! load distributed forcing - TODO: moved this to the for loop, so that chuncks
-! of years  can be loaded successively and not all at once
-
-CALL SYSTEM_CLOCK(T_start_import_forcing)
-print *, 'Loading forcing for ',numtim,' time steps'
-CALL get_gforce_3d(istart,numtim,ncid_forc,err,message)
-if(err/=0)then; write(*,*) 'Error while extracting 3d forcing'; stop; endif
-CALL SYSTEM_CLOCK(T_end_import_forcing)
-
-print *, 'Forcing loaded in ',T_end_import_forcing-T_start_import_forcing,' milliseconds'
-PRINT *, 'Test import forcing: gForce_3d(57,27,10)%temp = ', gForce_3d(57,27,10)%temp
-
 ! run zee model
 print *, 'Entering FUSE_RMSE'
-CALL FUSE_RMSE(APAR,SPATIAL_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
+!CALL FUSE_RMSE(APAR,SPATIAL_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
+CALL FUSE_RMSE(APAR,SPATIAL_FLAG,NCID_FORC,OUTPUT_FLAG)
 print *, 'Done with FUSE_RMSE'
 
 ! deallocate space
@@ -300,7 +293,8 @@ IF(SPATIAL_OPTION == LUMPED)THEN
 
 ELSE
   DEALLOCATE(gForce, gState)
-  DEALLOCATE(ancilF_3d, gForce_3d, gState_3d,AROUTE_3d)
+  !DEALLOCATE(ancilF_3d, gForce_3d, gState_3d,AROUTE_3d)
+  DEALLOCATE(gForce_3d, gState_3d,AROUTE_3d)
   if(err/=0)then; write(*,*) 'unable to deallocate space for distributed modeling'; stop; endif
 
 ENDIF

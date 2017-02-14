@@ -11,6 +11,7 @@ contains
  ! Creator:
  ! --------
  ! Martyn Clark, 2012
+ ! Modified by Nans Addor to add numtim_sub for distributed modeling, 2017
  ! ---------------------------------------------------------------------------------------
  ! Purpose:
  ! --------
@@ -38,8 +39,10 @@ contains
  USE multiforce,only:deltim                                 ! model timestep (days)
  USE multiforce,only:xlon,ylat                              ! lon-lat coordinates (degrees)
  USE multiforce,only:warmup_beg,infern_beg,infern_end       ! timestep indices
- USE multiforce,only:istart,numtim                          ! index for start of inference, and number steps in the reduced array
+ USE multiforce,only:istart,numtim_sim                      ! index for start of inference, and number steps in the reduced array
  USE multiforce,only:amult_ppt,amult_pet,amult_q            ! used to convert fluxes to mm/day
+ USE multiforce,only:numtim_sub                             ! number of time steps of subperiod (will be kept in memory)
+
  IMPLICIT NONE
  ! output
  integer(i4b), intent(out)              :: ierr                 ! error code
@@ -47,7 +50,7 @@ contains
  ! internal: general
  integer(i4b),parameter                 :: strLen=1024          ! length of character strings
  character(len=strLen)                  :: cmessage             ! message of downwind routine
- character(len=strLen),parameter        :: cVersion='FORCINGINFO.VERSION.2.0' ! version of forcinginfo file
+ character(len=strLen),parameter        :: cVersion='FORCINGINFO.VERSION.2.1' ! version of forcinginfo file
  ! internal: read data from file
  integer(i4b)                           :: iunit                ! file unit
  character(len=strLen)                  :: cfile                ! name of control file
@@ -59,7 +62,7 @@ contains
  integer(i4b)                           :: iend_data            ! end index of data in string charlines(iLine)
  character(len=strLen)                  :: cName,cData          ! name and data from charlines(iLine)
  ! internal: named variables
- integer(i4b),parameter                 :: maxinfo=28           ! maximum number of informational elements
+ integer(i4b),parameter                 :: maxinfo=29           ! maximum number of informational elements
  logical(lgt),dimension(maxinfo)        :: lCheck               ! vector to check that we have the infomation we need
  integer(i4b),parameter                 :: iForcefile     =1    ! named variable for element of lCheck
  integer(i4b),parameter                 :: iVname_iy      =2    ! named variable for element of lCheck
@@ -89,6 +92,7 @@ contains
  integer(i4b),parameter                 :: iWarmup_beg    =26   ! named variable for element of lCheck
  integer(i4b),parameter                 :: iInfern_beg    =27   ! named variable for element of lCheck
  integer(i4b),parameter                 :: iInfern_end    =28   ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iNumtim_sub     =29   ! named variable for element of lCheck
  ! get units strings (used to define variable multipliers)
  character(len=strLen)                  :: units_aprecip='undefined' ! unit string for precipitation
  character(len=strLen)                  :: units_airtemp='undefined' ! unit string for air temperature
@@ -165,6 +169,7 @@ contains
    case('<warmup_beg>'); read(cData,*,iostat=ierr) warmup_beg;        lCheck(iWarmup_beg)     = .true.
    case('<infern_beg>'); read(cData,*,iostat=ierr) infern_beg;        lCheck(iInfern_beg)     = .true.
    case('<infern_end>'); read(cData,*,iostat=ierr) infern_end;        lCheck(iInfern_end)     = .true.
+   case('<numtim_sub>'); read(cData,*,iostat=ierr) numtim_sub;        lCheck(iNumtim_sub)      = .true.
    ! check for an unexpected string
    case default
     ierr=20; message=trim(message)//'do not have a case for string ['//trim(cName)//']'; return
@@ -209,6 +214,7 @@ contains
   write(*,'(a,1x,i9.0,1x,L1)') '<warmup_beg>',    warmup_beg,          lCheck(iWarmup_beg)
   write(*,'(a,1x,i9.0,1x,L1)') '<infern_beg>',    infern_beg,          lCheck(iInfern_beg)
   write(*,'(a,1x,i9.0,1x,L1)') '<infern_end>',    infern_end,          lCheck(iInfern_end)
+  write(*,'(a,1x,i9.0,1x,L1)') '<numtim_sub>',    numtim_sub,          lCheck(iNumtim_sub)
   print*, lCheck, size(lcheck)
   return
  endif  ! if we missed a variable
@@ -219,8 +225,12 @@ contains
  if(warmup_beg > infern_beg)then; ierr=20; message=trim(message)//'start of warm-up period is greater than start of inference period'; return; endif
  if(infern_beg > infern_end)then; ierr=20; message=trim(message)//'start of inference period is greater than end of inference period'; return; endif
  ! compute variables in the reduced array
- istart = (infern_beg - warmup_beg) + 1
- numtim = (infern_end - warmup_beg) + 1
+ ! istart = (infern_beg - warmup_beg) + 1
+ istart = infern_beg
+
+ ! numtim = (infern_end - warmup_beg) + 1
+  numtim_sim = (infern_end - warmup_beg) + 1
+
  ! get multipliers for each variable
  do ivar=1,3
   if(ivar==1) call get_multiplier(units_aprecip, amult_ppt, ierr, cmessage)

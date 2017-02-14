@@ -30,9 +30,11 @@ contains
  USE fuse_fileManager,only:SETNGS_PATH,FORCINGINFO,&   ! defines data directory
                            INPUT_PATH
  USE multiforce,only:forcefile,vname_aprecip           ! model forcing structures
- USE multiforce,only:nspat1,nspat2!,numtim             ! dimension lengths
+ USE multiforce,only:nspat1,nspat2,numtim_in           ! dimension lengths
+ USE multiforce,only:latitude,longitude,time_steps     ! dimension arrays
+ USE multiforce,only:latUnits,lonUnits,timeUnits       ! units string for time
  USE multiforce,only:vname_dtime                       ! variable name: time sice reference time
- USE multiforce,only:timeUnits                         ! units string for time
+
  IMPLICIT NONE
  ! input
  integer(i4b),intent(in)                :: ncid        ! NetCDF file ID
@@ -72,14 +74,29 @@ contains
   ! save the dimension lengths
   if(iDimID==1) nspat1 = dimLen  ! 1st spatial dimension
   if(iDimID==2) nspat2 = dimLen  ! 2nd spatial dimension
-  !MC: number of time steps set by the user
-  !if(iDimID==3) numtim = dimLen  ! record dimension (always last)
+  if(iDimID==3) numtim_in = dimLen  ! record dimension (always last)
+
  end do
 
- ! get variable ID for time
+ allocate(longitude(nspat1),latitude(nspat2),time_steps(numtim_in))
+
+ ! get longitude
+ ierr = nf90_inq_varid(ncid, 'longitude', iVarID)
+ if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr))//'[variable=longitude]'; return; endif
+ ierr = nf90_get_var(ncid, iVarID, longitude, start=(/1/), count=(/nSpat1/)); CALL HANDLE_ERR(IERR)
+ if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
+
+ ! get latitude
+ ierr = nf90_inq_varid(ncid, 'latitude', iVarID)
+ if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr))//'[variable=latitude]'; return; endif
+ ierr = nf90_get_var(ncid, iVarID, latitude, start=(/1/), count=(/nSpat2/)); CALL HANDLE_ERR(IERR)
+ if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
+
+ ! get time
  ierr = nf90_inq_varid(ncid, trim(vname_dtime), iVarID)
  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr))//'[variable='//trim(vname_dtime)//']'; return; endif
- ! get time units
+ ierr = nf90_get_var(ncid, iVarID, time_steps, start=(/1/), count=(/numtim_in/)); CALL HANDLE_ERR(IERR)
+ if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
  ierr = nf90_get_att(ncid, iVarID, 'units', timeUnits)
  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr))//'[variable='//trim(vname_dtime)//']'; return; endif
 
@@ -203,7 +220,7 @@ contains
  USE multiforce,only:vname_dtime                        ! variable name: time since reference time
  USE multiforce,only:timDat                             ! time data strructure
  USE multiforce,only:jdayRef                            ! reference time (days)
- USE multiforce,only:timeUnits                          ! units string for time
+ USE multiforce,only:latUnits,lonUnits,timeUnits        ! units string for time
 
  IMPLICIT NONE
  ! input
@@ -432,10 +449,13 @@ contains
    ierr = nf90_get_var(ncid_forc, ncid_var(ivar), gTemp, start=(/1,1,itim_start/), count=(/nSpat1,nSpat2,numtim/)); CALL HANDLE_ERR(IERR)
    if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
 
+   !PRINT *, 'SHAPE(gForce_3d%ppt) = ', SHAPE(gForce_3d%ppt)
+   !PRINT *, 'SHAPE(gTemp) = ', SHAPE(gTemp)
+
   ! save the data in the structure -- and convert fluxes to mm/day
-  if(trim(cVec(iVar)%vname) == trim(vname_aprecip) )then; gForce_3d(:,:,:)%ppt = gTemp(:,:,:)*amult_ppt; lCheck(ilook_aprecip) = .true.; endif
-  if(trim(cVec(iVar)%vname) == trim(vname_potevap) )then; gForce_3d(:,:,:)%pet = gTemp(:,:,:)*amult_pet; lCheck(ilook_potevap) = .true.; endif
-  if(trim(cVec(iVar)%vname) == trim(vname_airtemp) )then; gForce_3d(:,:,:)%temp = gTemp(:,:,:);       lCheck(ilook_airtemp) = .true.; endif
+  if(trim(cVec(iVar)%vname) == trim(vname_aprecip) )then; gForce_3d(:,:,1:numtim)%ppt = gTemp(:,:,:)*amult_ppt; lCheck(ilook_aprecip) = .true.; endif
+  if(trim(cVec(iVar)%vname) == trim(vname_potevap) )then; gForce_3d(:,:,1:numtim)%pet = gTemp(:,:,:)*amult_pet; lCheck(ilook_potevap) = .true.; endif
+  if(trim(cVec(iVar)%vname) == trim(vname_airtemp) )then; gForce_3d(:,:,1:numtim)%temp = gTemp(:,:,:);       lCheck(ilook_airtemp) = .true.; endif
 
   ! save the other variables required to compute PET
   !if( trim(cVec(iVar)%vname) == trim(vname_airtemp) )then; ancilF(:,:)%airtemp = gTemp(:,:,1);       lCheck(ilook_airtemp) = .true.; endif

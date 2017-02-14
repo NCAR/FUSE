@@ -48,15 +48,15 @@ REAL(SP), PARAMETER                    :: NO_ZERO=1.E-20  ! avoid divide by zero
 ! (1) PRELIMINARIES
 ! ---------------------------------------------------------------------------------------
 ! define sample size
-NS = (NUMTIM-ISTART) + 1    ! (ISTART is shared in MODULE multiforce)
+NS = (NUMTIM_SIM-ISTART) + 1    ! (ISTART is shared in MODULE multiforce)
 ! allocate space for observed and simulated runoff
 ALLOCATE(QOBS(NS),QOBS_MASK(NS),QSIM(NS),STAT=IERR)
 IF (IERR.NE.0) STOP ' PROBLEM ALLOCATING SPACE IN MEAN_STATS.F90 '
 
 ! extract vectors from data structures
-QSIM = AROUTE(ISTART:NUMTIM)%Q_ROUTED
+QSIM = AROUTE(ISTART:NUMTIM_SIM)%Q_ROUTED
 QOBS(:) = QSIM(:) + 1.0 ! TODO: LOAD GRIDDED QOBS OR SKIP MODEL EVALUATION WHEN WOBS IS MISSING
-!QOBS = aValid(ISTART:NUMTIM)%OBSQ
+!QOBS = aValid(ISTART:NUMTIM_SIM)%OBSQ
 
 ! check for missing QOBS values
 QOBS_MASK = QOBS.ne.REAL(NA_VALUE, KIND(SP)) ! find the time steps for which QOBS is available
@@ -112,18 +112,18 @@ MSTATS%NASH_SUTT = 1. - SS_RAW/(SS_OBS+NO_ZERO)
 ! compute RMSE between "more accurate" and "less accurate" solutions
 ! NA: note that this section uses only simulated discharge, hence uses NS, QSIM and QOBS
 ! instead of NUM_AVAIL, QOBS_AVAIL and QSIM_AVAIL, respectively
-!QOBS = AROUTE(ISTART:NUMTIM)%Q_ACCURATE ! TODO: MISSING AT THE MOMENT
+!QOBS = AROUTE(ISTART:NUMTIM_SIM)%Q_ACCURATE ! TODO: MISSING AT THE MOMENT
 !RAWD(:) = QSIM(:) - QOBS(:)
 !SS_RAW  = DOT_PRODUCT(RAWD,RAWD)    ! = SUM( RAWD(:)*RAWD(:) )
 !MSTATS%NUM_RMSE = SQRT( SS_RAW / REAL(NS, KIND(SP)) )
 ! compute summary statistics for efficiency
-MSTATS%NUM_FUNCS     = MSTATS%NUM_FUNCS     / REAL(NUMTIM, KIND(SP)) ! number of function calls
-MSTATS%NUM_JACOBIAN  = MSTATS%NUM_JACOBIAN  / REAL(NUMTIM, KIND(SP)) ! number of times Jacobian is calculated
-MSTATS%NUMSUB_ACCEPT = MSTATS%NUMSUB_ACCEPT / REAL(NUMTIM, KIND(SP)) ! number of sub-steps accepted (taken)
-MSTATS%NUMSUB_REJECT = MSTATS%NUMSUB_REJECT / REAL(NUMTIM, KIND(SP)) ! number of sub-steps tried but rejected
-MSTATS%NUMSUB_NOCONV = MSTATS%NUMSUB_NOCONV / REAL(NUMTIM, KIND(SP)) ! number of sub-steps tried that did not converge
+MSTATS%NUM_FUNCS     = MSTATS%NUM_FUNCS     / REAL(NUMTIM_SIM, KIND(SP)) ! number of function calls
+MSTATS%NUM_JACOBIAN  = MSTATS%NUM_JACOBIAN  / REAL(NUMTIM_SIM, KIND(SP)) ! number of times Jacobian is calculated
+MSTATS%NUMSUB_ACCEPT = MSTATS%NUMSUB_ACCEPT / REAL(NUMTIM_SIM, KIND(SP)) ! number of sub-steps accepted (taken)
+MSTATS%NUMSUB_REJECT = MSTATS%NUMSUB_REJECT / REAL(NUMTIM_SIM, KIND(SP)) ! number of sub-steps tried but rejected
+MSTATS%NUMSUB_NOCONV = MSTATS%NUMSUB_NOCONV / REAL(NUMTIM_SIM, KIND(SP)) ! number of sub-steps tried that did not converge
 ! compute cumulative probability distributions
-MSTATS%NUMSUB_PROB   = REAL(PRB_NSUBS(:), KIND(SP)) / REAL(NUMTIM, KIND(SP))
+MSTATS%NUMSUB_PROB   = REAL(PRB_NSUBS(:), KIND(SP)) / REAL(NUMTIM_SIM, KIND(SP))
 ! ---------------------------------------------------------------------------------------
 DEALLOCATE(QOBS,QOBS_AVAIL,QSIM,QSIM_AVAIL,DOBS,DSIM,RAWD,LOGD,STAT=IERR)
 IF (IERR.NE.0) STOP ' PROBLEM DEALLOCATING SPACE IN MEAN_STATS.F90 '

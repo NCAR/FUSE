@@ -251,7 +251,7 @@ END FUNCTION VAREXTRACT
 
 ! ---------------------------------------------------------------------------------------
 ! ---------------------------------------------------------------------------------------
-PURE FUNCTION VAREXTRACT_3d(VARNAME)
+PURE FUNCTION VAREXTRACT_3d(VARNAME,numtim)
 ! ---------------------------------------------------------------------------------------
 ! Creator:
 ! --------
@@ -272,10 +272,11 @@ USE model_numerix                                     ! model numerix parameters
 IMPLICIT NONE
 ! input
 CHARACTER(*), INTENT(IN)                :: VARNAME     ! variable name
+INTEGER(i4b), INTENT(IN)                :: numtim      ! number of time steps
 ! internal
-real(sp),dimension(:,:,:),allocatable   :: XVAR_3d       ! variable
+real(sp),dimension(:,:,:),allocatable   :: XVAR_3d     ! variable
 integer(i4b)                            :: ierr        ! error code
-CHARACTER(LEN=1024)                     :: MESSAGE         ! error message
+CHARACTER(LEN=1024)                     :: MESSAGE       ! error message
 ! output
 real(sp),dimension(:,:,:),allocatable   :: VAREXTRACT_3d  ! FUNCTION name
 ! ---------------------------------------------------------------------------------------
