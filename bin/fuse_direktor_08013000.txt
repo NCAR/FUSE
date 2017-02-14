@@ -1,0 +1,2 @@
+FUSE_MUSTERDIREKTOR_V1.0
+"/home/naddor/fuse/settings/fuse_fileManager_08013000.txt"
