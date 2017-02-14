@@ -1,0 +1,13 @@
+FUSE_FILEMANAGER_V1.1
+!Empty command line
+! *** paths
+'/d7/naddor/fuse_for_yellowstone/settings/'    ! SETNGS_PATH
+'/d7/naddor/fuse_for_yellowstone/input/'       ! INPUT_PATH
+'/d7/naddor/fuse_for_yellowstone/output/'      ! OUTPUT_PATH
+! *** control files
+'forcinginfo.XXXXXXXX.txt'       ! FORCINGINFO = info on forcing data files [not used in BATEAU_DK]
+'mbands_info.XXXXXXXX.txt'       ! MBANDS_INFO = info on basin bands datafile
+'fuse_zDecisions_snow.txt'       ! M_DECISIONS = definition of model decisions
+'fuse_zConstraints_snow.txt'     ! CONSTRAINTS = definition of parameter constraints
+'fuse_zNumerix.txt'              ! MOD_NUMERIX = definition of numerical solution technique
+'batea_param.txt'                ! BATEA_PARAM = definition of BATEA parameters [not used in BATEAU_DK]
