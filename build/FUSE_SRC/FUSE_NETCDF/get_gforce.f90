@@ -100,6 +100,8 @@ contains
  ierr = nf90_get_att(ncid, iVarID, 'units', timeUnits)
  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr))//'[variable='//trim(vname_dtime)//']'; return; endif
 
+ print*, 'Time imported = ',time_steps
+
  end subroutine read_ginfo
 
   ! --------------------------------------------------------------------------------------
@@ -258,7 +260,7 @@ contains
 
  ! compute the year, month, day, hour, minute, second
  call caldatss(jdayRef+timDat%dtime,timDat%iy,timDat%im,timDat%id,timDat%ih,timDat%imin,timDat%dsec)
- print*, timDat%iy,timDat%im,timDat%id,timDat%ih,timDat%imin,timDat%dsec
+ print*, timDat%iy,timDat%im,timDat%id!,timDat%ih,timDat%imin,timDat%dsec
 
  END SUBROUTINE get_modtim
 

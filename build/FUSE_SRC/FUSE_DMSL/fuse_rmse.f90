@@ -289,7 +289,7 @@ CONTAINS
               ! write model output
               PRINT *, 'End of subperiod reached: write output for ',numtim_sub_cur,' time steps starting at indice', itim_sim-numtim_sub_cur+1
               IF (OUTPUT_FLAG) THEN
-                 CALL PUT_GOUTPUT_3D(itim_sim-numtim_sub_cur+1,numtim_sub_cur)
+                 CALL PUT_GOUTPUT_3D(itim_sim-numtim_sub_cur+1,itim_in-numtim_sub_cur+1,numtim_sub_cur)
               ENDIF
               PRINT *, 'Done writing output'
 
