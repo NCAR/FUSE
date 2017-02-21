@@ -1,5 +1,5 @@
 #========================================================================
-# Makefile to compile FUSE 
+# Makefile to compile FUSE
 # Creates version SNOWv3, Brian Henn, 5/2013
 #========================================================================
 #
@@ -10,7 +10,7 @@
 #========================================================================
 
 # Define core directory below which everything resides
-F_MASTER = /home/naddor/fuse/
+F_MASTER = /glade/u/home/naddor/fuse/
 
 # Core directory that contains FUSE source code
 F_KORE_DIR = $(F_MASTER)build/FUSE_SRC/
@@ -179,7 +179,7 @@ FUSE_ALL = $(UTILMS) $(NRUTIL) $(DATAMS) $(INFOMS) \
 
 # Define the NetCDF libraries and path to include files
 # Note 1: the order of the libraries matters, e.g. -lcurl should come
-# before netcdf libraries 
+# before netcdf libraries
 # Note 2: on hydro-c1, /usr/local is a copy (via symbolic link) of /opt
 
 
@@ -227,8 +227,10 @@ ifeq "$(FC)" "gfortran"
  FLAGS = -static -Wall -g -ffree-line-length-none
 endif
 ifeq "$(FC)" "ifort"
- FLAGS_NORMA = -cpp -w -O2 -auto -noalign -convert big_endian -vec-report0 -fp-model source 
- FLAGS_DEBUG = -debug all -g -O0 -check bounds -check arg_temp_created -traceback -fpe0 -ftrapuv -heap-arrays
+ FLAGS_NORMA = -fast
+ # FLAGS_NORMA = -O3 -xHost # nearly as fast as -fast but more stable
+ FLAGS_DEBUG = -debug -debug-parameters all -traceback -ftrapuv -g -fpe0 -u -check all -check noarg_temp_created -CB
+ # FLAGS_DEBUG = -debug all -g -O0 -check bounds -check arg_temp_created -traceback -fpe0 -ftrapuv -heap-arrays
 endif
 
 ifeq "$(FC)" "pgf90"

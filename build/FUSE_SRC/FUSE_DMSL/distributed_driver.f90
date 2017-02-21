@@ -203,7 +203,7 @@ ELSE
  if(err/=0)then; write(*,*) 'unable to allocate space for forcing grid GFORCE'; stop; endif
 
  ! allocate space for the forcing grid and states with a time dimension - only for subperiod
- allocate(AROUTE_3d(nspat1,nspat2,numtim_sub+1), gState_3d(nspat1,nspat2,numtim_sub+1),gForce_3d(nspat1,nspat2,numtim_sub), stat=err)
+ allocate(AROUTE_3d(nspat1,nspat2,numtim_sub), gState_3d(nspat1,nspat2,numtim_sub+1),gForce_3d(nspat1,nspat2,numtim_sub), stat=err)
  if(err/=0)then; write(*,*) 'unable to allocate space for 3d structure'; stop; endif
 
  ! allocate space for elevation bands

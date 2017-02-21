@@ -139,7 +139,7 @@ CONTAINS
     ENDIF
 
     ! allocate 3d data structures for fluxes
-    ALLOCATE(W_FLUX_3d(nspat1,nspat2,numtim_sub+1))
+    ALLOCATE(W_FLUX_3d(nspat1,nspat2,numtim_sub))
 
     ! initialize model time step
     DT_SUB  = DELTIM                       ! init stepsize to full step (DELTIM shared in module multiforce)
@@ -178,7 +178,7 @@ CONTAINS
 
            ENDIF
 
-           ! get the model time - TODO : reassess wether still necessary
+           ! get the model time - TODO : reassess whether still necessary
            CALL get_modtim(itim_in,ncid_forc,ierr,message)
            IF(ierr/=0)THEN; PRINT*, TRIM(cmessage); STOP; ENDIF
 
@@ -242,16 +242,18 @@ CONTAINS
                     ! perform overland flow routing
                     CALL Q_OVERLAND()
 
-
                     ! sanity check
-                    !IF (AROUTE(ITIM)%Q_ROUTED.LT.0._sp) STOP ' Q_ROUTED is less than zero '
-                    !IF (AROUTE(ITIM)%Q_ROUTED.GT.1000._sp) STOP ' Q_ROUTED is enormous '
+                    ! IF (AROUTE(ITIM)%Q_ROUTED.LT.0._sp) STOP ' Q_ROUTED is less than zero '
+                    ! IF (AROUTE(ITIM)%Q_ROUTED.GT.1000._sp) STOP ' Q_ROUTED is enormous '
+
+                    IF (MROUTE%Q_ROUTED.LT.0._sp) STOP ' Q_ROUTED is less than zero '
+                    IF (MROUTE%Q_ROUTED.GT.1000._sp) STOP ' Q_ROUTED is enormous '
 
                     ! save the state
                     CALL XTRY_2_STR(STATE1,FSTATE)            ! update FSTATE using states at the end of the time step (STATE0)
                     gState_3d(iSpat1,iSpat2,itim_sub+1) = FSTATE      ! put the state into the 3-d structure
-                    W_FLUX_3d(iSpat1,iSpat2,itim_sub+1) = W_FLUX
-                    AROUTE_3d(iSpat1,iSpat2,itim_sub+1) = MROUTE      ! save instantaneous and routed runoff
+                    W_FLUX_3d(iSpat1,iSpat2,itim_sub) = W_FLUX
+                    AROUTE_3d(iSpat1,iSpat2,itim_sub) = MROUTE      ! save instantaneous and routed runoff
 
                     IF (SMODL%iSNOWM.EQ.iopt_temp_index) THEN
 
@@ -306,8 +308,8 @@ CONTAINS
                MBANDS_VAR_4d(:,:,:,1)%DSWE_DT     = MBANDS_VAR_4d(:,:,:,itim_sub+1)%DSWE_DT
 
                ! save fluxes instantaneous and routed runoff
-               W_FLUX_3d(:,:,1) =  W_FLUX_3d(:,:,itim_sub+1)
-               AROUTE_3d(:,:,1) =  AROUTE_3d(:,:,itim_sub+1)
+               W_FLUX_3d(:,:,1) =  W_FLUX_3d(:,:,itim_sub)
+               AROUTE_3d(:,:,1) =  AROUTE_3d(:,:,itim_sub)
 
               ! reset itim_sub
               itim_sub=1

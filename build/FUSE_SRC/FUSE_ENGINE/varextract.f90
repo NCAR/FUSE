@@ -498,6 +498,7 @@ CASE ('snwacml_z01'); XVAR_3d = MBANDS(1)%SNOWACCMLTN
  CASE ('sub_noconv') ; XVAR_3d = NUMSUB_NOCONV
  CASE ('max_iterns') ; XVAR_3d = MAXNUM_ITERNS
 END SELECT
+
 ! and, save the output
 VAREXTRACT_3d = XVAR_3d
 ! ---------------------------------------------------------------------------------------
