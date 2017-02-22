@@ -36,9 +36,10 @@ SUBROUTINE PUT_OUTPUT(iSpat1,iSpat2,ITIM,IMOD,IPAR)
   ! ---------------------------------------------------------------------------------------
   ! open file
   IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
+
   ! define indices for model output
-!  INDX = (/iSpat1,iSpat2,ITIM,IMOD,IPAR/)
   INDX = (/iSpat1,iSpat2,ITIM/)
+
   ! loop through time-varying model output
   DO IVAR=1,NOUTVAR
 
@@ -68,12 +69,13 @@ SUBROUTINE PUT_OUTPUT(iSpat1,iSpat2,ITIM,IMOD,IPAR)
   tDat = timDat%dtime ! convert to actual single precision
   ierr = nf_inq_varid(ncid_out,'time',ivar_id); CALL handle_err(ierr)        ! get variable ID for time
   ierr = nf_put_var1_real(ncid_out,ivar_id,itim,tDat); CALL handle_err(ierr) ! write time variable
+
   ! close NetCDF file
   IERR = NF_CLOSE(ncid_out)
-  ! ---------------------------------------------------------------------------------------
+
 END SUBROUTINE PUT_OUTPUT
 
-SUBROUTINE PUT_GOUTPUT_3D(istart,numtim)
+SUBROUTINE PUT_GOUTPUT_3D(istart_sim,istart_in,numtim)
   ! ---------------------------------------------------------------------------------------
   ! Creator:
   ! --------
@@ -87,7 +89,7 @@ SUBROUTINE PUT_GOUTPUT_3D(istart,numtim)
   USE model_defn                                        ! model definition (includes filename)
   USE metaoutput                                        ! metadata for time-varying model output
   USE varextract_module                                 ! interface for the function to extract variables
-  USE multiforce, ONLY: timDat                          ! time data
+  USE multiforce, ONLY: timDat,time_steps               ! time data
   USE multistate, only: ncid_out                        ! NetCDF output file ID
   USE multiforce, ONLY: nspat1,nspat2                   ! spatial dimensions
   USE multiforce, ONLY: gForce_3d                       ! test only
@@ -95,7 +97,8 @@ SUBROUTINE PUT_GOUTPUT_3D(istart,numtim)
 
   IMPLICIT NONE
   ! input
-  INTEGER(I4B), INTENT(IN)               :: ISTART      ! index start time step
+  INTEGER(I4B), INTENT(IN)               :: istart_sim  ! index start time step relative to numtim_sim
+  INTEGER(I4B), INTENT(IN)               :: istart_in   ! index start time step relative to numtim_in - for time dimension
   INTEGER(I4B), INTENT(IN)               :: numtim      ! number of time steps to write
   ! internal
   LOGICAL(LGT)                           :: WRITE_VAR   ! used to denote if the variable is written
@@ -105,9 +108,10 @@ SUBROUTINE PUT_GOUTPUT_3D(istart,numtim)
   INTEGER(I4B)                           :: IVAR        ! loop through variables
   REAL(SP)                               :: XVAR        ! desired variable (SP NOT NECESSARILY SP)
   REAL(MSP)                              :: AVAR        ! desired variable (SINGLE PRECISION)
-  REAL(SP) ,DIMENSION(nspat1,nspat2,numtim)    :: XVAR_3d        ! desired variable (SINGLE PRECISION)
-  REAL(MSP) ,DIMENSION(nspat1,nspat2,numtim)   :: AVAR_3d        ! desired variable (SINGLE PRECISION)
-  REAL(MSP)                              :: tDat        ! time data
+  REAL(SP), DIMENSION(nspat1,nspat2,numtim)    :: XVAR_3d        ! desired variable (SINGLE PRECISION)
+  REAL(MSP), DIMENSION(nspat1,nspat2,numtim)   :: AVAR_3d        ! desired variable (SINGLE PRECISION)
+  REAL(MSP), DIMENSION(:), ALLOCATABLE   :: tDat            ! time data
+  REAL(SP), DIMENSION(:), ALLOCATABLE    :: time_steps_sub  ! time data
   INTEGER(I4B)                           :: IVAR_ID     ! variable ID
   INCLUDE 'netcdf.inc'                                  ! use netCDF libraries
 
@@ -115,11 +119,8 @@ SUBROUTINE PUT_GOUTPUT_3D(istart,numtim)
   IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
 
   ! define indices for model output
-  IND_START = (/1,1,istart/) ! The indices are relative to 1, i.e. the first data value of a variable would have index (1, 1, ..., 1)
+  IND_START = (/1,1,istart_sim/) ! The indices are relative to 1, i.e. the first data value of a variable would have index (1, 1, ..., 1)
   IND_COUNT = (/nspat1,nspat2,numtim/)
-
-  !PRINT *,  'IND_START = ', IND_START
-  !PRINT *,  'IND_COUNT = ', IND_COUNT
 
   ! loop through time-varying model output
   DO IVAR=1,NOUTVAR
@@ -157,10 +158,17 @@ SUBROUTINE PUT_GOUTPUT_3D(istart,numtim)
   END DO  ! (ivar)
 
   ! write the time
-  !tDat = timDat%dtime ! convert to actual single precision
-  !ierr = nf_inq_varid(ncid_out,'time',ivar_id); CALL handle_err(ierr)             ! get variable ID for time
-  !ierr = nf_put_var1_real(ncid_out,ivar_id,itim_sim,tDat); CALL handle_err(ierr) ! write time variable
+  allocate(tDat(numtim),time_steps_sub(numtim))
+
+  time_steps_sub = time_steps(istart_in:(istart_in+numtim-1)) ! extract time for subperiod
+  tDat = time_steps_sub ! convert to actual single precision
+  ierr = nf_inq_varid(ncid_out,'time',ivar_id); CALL handle_err(ierr)             ! get variable ID for time
+  ierr = nf_put_vara_real(ncid_out,ivar_id,istart_sim,numtim,tDat); CALL handle_err(ierr)  ! write time variable
+
+  deallocate(tDat,time_steps_sub)
+
   ! close NetCDF file
+  IERR = NF_CLOSE(ncid_out)
   IERR = NF_CLOSE(ncid_out)
 
 END SUBROUTINE PUT_GOUTPUT_3D
