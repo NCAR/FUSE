@@ -199,7 +199,7 @@ CONTAINS
                   MFORCE = gForce_3d(iSpat1,iSpat2,itim_sub)      ! assign model forcing data
 
                   ! only run FUSE if forcing available
-                  IF(MFORCE%temp/=NA_VALUE)THEN
+                  IF(abs(MFORCE%temp-NA_VALUE)>0.1)THEN
 
                      ! extract model states
                      MSTATE = gState_3d(iSpat1,iSpat2,itim_sub)      ! refresh model states
