@@ -41,6 +41,8 @@ CALL VARDESCRIBE()  ! get list of variable descriptions
 ! ---------------------------------------------------------------------------------------
 ! put file in define mode
 IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
+print *, 'ncid_out for outputfile in def mode - start:',ncid_out
+
 IERR = NF_REDEF(ncid_out); CALL HANDLE_ERR(IERR)
  ! define time dimension
  IERR = NF_DEF_DIM(ncid_out,'time',NTIM,NTIM_DIM); CALL HANDLE_ERR(IERR)
@@ -94,19 +96,22 @@ IERR = NF_REDEF(ncid_out); CALL HANDLE_ERR(IERR)
  ierr = nf_def_var(ncid_out,'latitude',nf_real,1,lat_dim,ivar_id); call handle_err(ierr)
  ierr = nf_put_att_text(ncid_out,ivar_id,'units',8,'degreesN'); call handle_err(ierr)
  ierr = nf_put_att_text(ncid_out,ivar_id,'axis',1,'Y'); call handle_err(ierr)
- print *, IVAR_ID
+ print *, 'latitude IVAR_ID in def mode:',IVAR_ID
 
  ! define the longitude variable
  ierr = nf_def_var(ncid_out,'longitude',nf_real,1,lon_dim,ivar_id); call handle_err(ierr)
  ierr = nf_put_att_text(ncid_out,ivar_id,'units',8,'degreesE'); call handle_err(ierr)
  ierr = nf_put_att_text(ncid_out,ivar_id,'axis',1,'X'); call handle_err(ierr)
- print *, IVAR_ID
+ print *, 'longitude IVAR_ID in def mode:',IVAR_ID
+
+ print *, 'ncid_out for outputfile in def mode - end :',ncid_out
 
 ! end definitions
-IERR = NF_ENDDEF(ncid_out)
+IERR = NF_ENDDEF(ncid_out); call handle_err(ierr)
 
-IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
-PRINT *, NCID_OUT
+!IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
+
+print *, 'ncid_out for outputfile in write mode:',ncid_out
 
 print *, 'latitude', latitude
 latitude_msp=latitude ! convert to actual single precision

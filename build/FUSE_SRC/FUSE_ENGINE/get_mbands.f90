@@ -253,6 +253,8 @@ if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
 
 DEALLOCATE(AF_TEMP, ME_TEMP)
 
+print *, 'Done populating data structures for elevation bands'
+
 END SUBROUTINE GET_MBANDS_INFO
 
 end module get_mbands_module

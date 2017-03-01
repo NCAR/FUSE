@@ -258,6 +258,7 @@ FNAME_NETCDF = TRIM(OUTPUT_PATH)//TRIM(DatString)//'__'//TRIM(SMODL%MNAME)//'.nc
 ONEMOD=1                 ! one file per model (i.e., model dimension = 1)
 PCOUNT=0                 ! counter for parameter sets evaluated (shared in MODULE multistats)
 OUTPUT_FLAG = .TRUE.     ! .TRUE. if desire time series output
+
 CALL DEF_PARAMS(ONEMOD)  ! define model parameters (initial CREATE)
 CALL DEF_SSTATS()        ! define summary statistics (REDEF)
 CALL DEF_OUTPUT(numtim_sim,nSpat1,nSpat2)    ! define model time series (REDEF)
