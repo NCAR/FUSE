@@ -178,7 +178,7 @@ CONTAINS
 
            ENDIF
 
-           ! get the model time - TODO : reassess whether still necessary
+           ! get the model time
            CALL get_modtim(itim_in,ncid_forc,ierr,message)
            IF(ierr/=0)THEN; PRINT*, TRIM(cmessage); STOP; ENDIF
 
@@ -197,9 +197,11 @@ CONTAINS
 
                   ! extract forcing data
                   MFORCE = gForce_3d(iSpat1,iSpat2,itim_sub)      ! assign model forcing data
+                  Z_FORCING = Z_FORCING_grid(iSpat1,iSpat2)       ! elevation of forcing data (m)
 
-                  ! only run FUSE if forcing available
-                  IF(abs(MFORCE%temp-NA_VALUE)>0.1)THEN
+                  ! only run FUSE for grid points in CONUS by using Z_FORCING as a mask
+                  !IF(abs(MFORCE%temp-NA_VALUE)>0.1)THEN
+                  IF(abs(Z_FORCING-NA_VALUE)>0.1)THEN
 
                      ! extract model states
                      MSTATE = gState_3d(iSpat1,iSpat2,itim_sub)      ! refresh model states
@@ -218,7 +220,6 @@ CONTAINS
                      CASE(iopt_temp_index)
 
                         ! load data from multidimensional arrays
-                        Z_FORCING          = Z_FORCING_grid(iSpat1,iSpat2)                   ! elevation of forcing data (m)
                         MBANDS%Z_MID       = MBANDS_INFO_3d(iSpat1,iSpat2,:)%Z_MID           ! band mid-point elevation (m)
                         MBANDS%AF          = MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF              ! fraction of basin area in band (-)
                         MBANDS%SWE         = MBANDS_VAR_4d(iSpat1,iSpat2,:,itim_sub)%SWE         ! band snowpack water equivalent (mm)
