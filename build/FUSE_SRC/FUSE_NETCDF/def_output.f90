@@ -44,14 +44,16 @@ IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
 print *, 'ncid_out for outputfile in def mode - start:',ncid_out
 
 IERR = NF_REDEF(ncid_out); CALL HANDLE_ERR(IERR)
- ! define time dimension
- IERR = NF_DEF_DIM(ncid_out,'time',NTIM,NTIM_DIM); CALL HANDLE_ERR(IERR)
+ ! define time dimension - record dimension (unlimited length)
+ !IERR = NF_DEF_DIM(ncid_out,'time',NTIM,NTIM_DIM); CALL HANDLE_ERR(IERR)
+ IERR = NF_DEF_DIM(ncid_out,'time',NF_UNLIMITED,NTIM_DIM); CALL HANDLE_ERR(IERR)
+
  ! define spatial dimensions
  IERR = NF_DEF_DIM(ncid_out,'longitude',nSpat1,lon_dim); CALL HANDLE_ERR(IERR)
  IERR = NF_DEF_DIM(ncid_out,'latitude',nSpat2,lat_dim); CALL HANDLE_ERR(IERR)
  ! retrieve ID for the model and parameter dimensions
- IERR = NF_INQ_DIMID(ncid_out,'par',NPAR_DIM); CALL HANDLE_ERR(IERR)
- IERR = NF_INQ_DIMID(ncid_out,'mod',NMOD_DIM); CALL HANDLE_ERR(IERR)
+ !IERR = NF_INQ_DIMID(ncid_out,'par',NPAR_DIM); CALL HANDLE_ERR(IERR)
+ !IERR = NF_INQ_DIMID(ncid_out,'mod',NMOD_DIM); CALL HANDLE_ERR(IERR)
  ! assign dimensions to indices - note that this specific dimension order
  ! was selected to optimize access to data
  TVAR = (/lon_dim,lat_dim,NTIM_DIM/) ! dimensions for time-varying output
@@ -113,16 +115,12 @@ IERR = NF_ENDDEF(ncid_out); call handle_err(ierr)
 
 print *, 'ncid_out for outputfile in write mode:',ncid_out
 
-print *, 'latitude', latitude
 latitude_msp=latitude ! convert to actual single precision
 IERR = NF_INQ_VARID(ncid_out,'latitude',IVAR_ID); CALL HANDLE_ERR(IERR) ! get variable ID
-print *, IVAR_ID
 IERR = NF_PUT_VARA_REAL(ncid_out,IVAR_ID,1,nspat2,latitude_msp); CALL HANDLE_ERR(IERR) ! write data
 
-print *, 'longitude', longitude
 longitude_msp=longitude ! convert to actual single precision
 IERR = NF_INQ_VARID(ncid_out,'longitude',IVAR_ID); CALL HANDLE_ERR(IERR) ! get variable ID
-print *, IVAR_ID
 IERR = NF_PUT_VARA_REAL(ncid_out,IVAR_ID,1,nspat1,longitude_msp); CALL HANDLE_ERR(IERR) ! write data
 
 PRINT *, 'NetCDF file defined with dimensions', nSpat1 , nSpat2, NTIM
