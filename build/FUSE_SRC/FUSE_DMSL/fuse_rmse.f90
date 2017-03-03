@@ -71,7 +71,7 @@ CONTAINS
     ! internal
     LOGICAL(lgt),PARAMETER                 :: computePET=.FALSE. ! flag to compute PET
     REAL(SP)                               :: T1,T2          ! CPU time
-  !  INTEGER(I4B)                           :: ITIM           ! loop through time series
+    !  INTEGER(I4B)                        :: ITIM           ! loop through time series
     INTEGER(I4B)                           :: iSpat1,iSpat2  ! loop through spatial dimensions
     INTEGER(I4B)                           :: ibands         ! loop through elevation bands
     INTEGER(I4B)                           :: IPAR           ! loop through model parameters
@@ -197,11 +197,9 @@ CONTAINS
 
                   ! extract forcing data
                   MFORCE = gForce_3d(iSpat1,iSpat2,itim_sub)      ! assign model forcing data
-                  Z_FORCING = Z_FORCING_grid(iSpat1,iSpat2)       ! elevation of forcing data (m)
 
-                  ! only run FUSE for grid points in CONUS by using Z_FORCING as a mask
-                  !IF(abs(MFORCE%temp-NA_VALUE)>0.1)THEN
-                  IF(abs(Z_FORCING-NA_VALUE)>0.1)THEN
+                  ! only run FUSE for grid points in domain
+                  IF(abs(NA_VALUE-elev_mask(iSpat1,iSpat2))>0.1.AND.abs(NA_VALUE-MFORCE%temp)>0.1)THEN
 
                      ! extract model states
                      MSTATE = gState_3d(iSpat1,iSpat2,itim_sub)      ! refresh model states
@@ -220,6 +218,7 @@ CONTAINS
                      CASE(iopt_temp_index)
 
                         ! load data from multidimensional arrays
+                        Z_FORCING          = Z_FORCING_grid(iSpat1,iSpat2)          ! elevation of forcing data (m)
                         MBANDS%Z_MID       = MBANDS_INFO_3d(iSpat1,iSpat2,:)%Z_MID           ! band mid-point elevation (m)
                         MBANDS%AF          = MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF              ! fraction of basin area in band (-)
                         MBANDS%SWE         = MBANDS_VAR_4d(iSpat1,iSpat2,:,itim_sub)%SWE         ! band snowpack water equivalent (mm)
