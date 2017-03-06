@@ -39,6 +39,7 @@ CONTAINS
     USE multistats, ONLY:MSTATS,PCOUNT,MOD_IX                ! access model statistics; counter for param set
     USE multi_flux                                           ! model fluxes
     USE multibands                                           ! elevation bands for snow modeling
+    USE set_all_module
 
     ! code modules
     USE get_gforce_module,ONLY:get_modtim                    ! get model time for a given time step
@@ -111,8 +112,8 @@ CONTAINS
     IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 
     ! initialize model states over the 2D gridded domain'
-    DO iSpat1=1,nSpat1
-       DO iSpat2=1,nSpat2
+    DO iSpat2=1,nSpat2
+      DO iSpat1=1,nSpat1
           CALL INIT_STATE(fracState0)             ! define FSTATE - fracState0 is shared in MODULE multistate
           !gState(iSpat1,iSpat2) = FSTATE         ! put the state into the 2-d structure
           gState_3d(iSpat1,iSpat2,1) = FSTATE     ! put the state into the 3_d structure
@@ -123,9 +124,8 @@ CONTAINS
     ! initialize elevations bands if snow module is on - see init_state.f90 for catchment-scale modeling
     ! IF (SMODL%iSNOWM.EQ.iopt_temp_index .AND. SPATIAL_OPTION == LUMPED) THEN
     IF (SMODL%iSNOWM.EQ.iopt_temp_index) THEN
-
-       DO iSpat1=1,nSpat1
-          DO iSpat2=1,nSpat2
+        DO iSpat2=1,nSpat2
+            DO iSpat1=1,nSpat1
              DO IBANDS=1,N_BANDS
                 MBANDS_VAR_4d(iSpat1,iSpat2,IBANDS,1)%SWE=0.0_sp            ! band snowpack water equivalent (mm)
                 MBANDS_VAR_4d(iSpat1,iSpat2,IBANDS,1)%SNOWACCMLTN=0.0_sp ! new snow accumulation in band (mm day-1)
@@ -188,8 +188,8 @@ CONTAINS
            ENDIF
 
             ! loop through grid points, and run the model for one time step
-            DO iSpat1=1,nSpat1
-               DO iSpat2=1,nSpat2
+            DO iSpat2=1,nSpat2
+              DO iSpat1=1,nSpat1
 
                   ! NOTE: MFORCE, MSTATE, MBANDS and MFLUX are all scalars, i.e. have zero dimension
                   ! MFORCE and MSTATE are initialized using 3d data structures, then FUSE is run, then the
@@ -198,7 +198,7 @@ CONTAINS
                   ! extract forcing data
                   MFORCE = gForce_3d(iSpat1,iSpat2,itim_sub)      ! assign model forcing data
 
-                  ! only run FUSE for grid points in domain
+                  ! only run FUSE for grid points in domain and for which forcing available
                   IF(abs(NA_VALUE-elev_mask(iSpat1,iSpat2))>0.1.AND.abs(NA_VALUE-MFORCE%temp)>0.1)THEN
 
                      ! extract model states
@@ -218,9 +218,9 @@ CONTAINS
                      CASE(iopt_temp_index)
 
                         ! load data from multidimensional arrays
-                        Z_FORCING          = Z_FORCING_grid(iSpat1,iSpat2)          ! elevation of forcing data (m)
-                        MBANDS%Z_MID       = MBANDS_INFO_3d(iSpat1,iSpat2,:)%Z_MID           ! band mid-point elevation (m)
-                        MBANDS%AF          = MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF              ! fraction of basin area in band (-)
+                        Z_FORCING          = Z_FORCING_grid(iSpat1,iSpat2)                       ! elevation of forcing data (m)
+                        MBANDS%Z_MID       = MBANDS_INFO_3d(iSpat1,iSpat2,:)%Z_MID               ! band mid-point elevation (m)
+                        MBANDS%AF          = MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF                  ! fraction of basin area in band (-)
                         MBANDS%SWE         = MBANDS_VAR_4d(iSpat1,iSpat2,:,itim_sub)%SWE         ! band snowpack water equivalent (mm)
                         MBANDS%SNOWACCMLTN = MBANDS_VAR_4d(iSpat1,iSpat2,:,itim_sub)%SNOWACCMLTN ! new snow accumulation in band (mm day-1)
                         MBANDS%SNOWMELT    = MBANDS_VAR_4d(iSpat1,iSpat2,:,itim_sub)%SNOWMELT    ! snowmelt in band (mm day-1)
@@ -243,9 +243,6 @@ CONTAINS
                     CALL Q_OVERLAND()
 
                     ! sanity check
-                    ! IF (AROUTE(ITIM)%Q_ROUTED.LT.0._sp) STOP ' Q_ROUTED is less than zero '
-                    ! IF (AROUTE(ITIM)%Q_ROUTED.GT.1000._sp) STOP ' Q_ROUTED is enormous '
-
                     IF (MROUTE%Q_ROUTED.LT.0._sp) STOP ' Q_ROUTED is less than zero '
                     IF (MROUTE%Q_ROUTED.GT.1000._sp) STOP ' Q_ROUTED is enormous '
 
@@ -275,11 +272,18 @@ CONTAINS
                     ! compute summary statistics
                     CALL COMP_STATS()
 
-                 ELSE ! INSERT NA VALUES
+                 ELSE ! insert NA values if grid point outside of domain or forcing not available
 
-                    !gState_3d(iSpat1,iSpat2,itim) = NA_VALUE_SP
-                    !W_FLUX_3d(iSpat1,iSpat2,itim) = NA_VALUE_SP
-                    !AROUTE_3d(iSpat1,iSpat2,itim) = NA_VALUE_SP
+                     PRINT *, 'Set variables for grid point', iSpat1, iSpat2, 'to ',NA_VALUE_SP
+
+                     CALL SET_STATE(NA_VALUE_SP)
+                     gState_3d(iSpat1,iSpat2,itim_sub) = FSTATE
+
+                     CALL SETFLUXES(NA_VALUE_SP)
+                     W_FLUX_3d(iSpat1,iSpat2,itim_sub) = W_FLUX
+
+
+                    !AROUTE_3d(iSpat1,iSpat2,itim_sub) = NA_VALUE_SP
 
                  ENDIF ! (is forcing available for this grid cell?)
               END DO  ! (looping thru 2nd spatial dimension)

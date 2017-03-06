@@ -148,6 +148,7 @@ FUSE_MODRUN= \
 	getPETgrid.f90 \
 	get_mbands.f90 \
 	initfluxes.f90 \
+	set_all.f90 \
 	ode_int.f90 \
 	fuse_solve.f90 \
 	comp_stats.f90 \

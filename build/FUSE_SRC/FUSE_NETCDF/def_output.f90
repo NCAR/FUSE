@@ -23,6 +23,8 @@ INTEGER(I4B), INTENT(IN)               :: nSpat1,nSpat2 ! length of spatial dime
 ! internal
 REAL(MSP),DIMENSION(nspat1)            :: longitude_msp        ! desired variable (SINGLE PRECISION)
 REAL(MSP),DIMENSION(nspat2)            :: latitude_msp         ! desired variable (SINGLE PRECISION)
+REAL(SP),parameter                     :: NA_VALUE_OUT= -9999. ! NA_VALUE for output file
+REAL(MSP)                              :: NA_VALUE_OUT_MSP ! NA_VALUE for output file
 
 LOGICAL(LGT)                           :: WRITE_VAR   ! used to denote if the variable is written
 INTEGER(I4B)                           :: IERR        ! error code
@@ -87,6 +89,13 @@ IERR = NF_REDEF(ncid_out); CALL HANDLE_ERR(IERR)
   CALL HANDLE_ERR(IERR)
   IERR = NF_PUT_ATT_TEXT(ncid_out,IVAR_ID,'units',LEN_TRIM(VUNIT(IVAR)),TRIM(VUNIT(IVAR)))
   CALL HANDLE_ERR(IERR)
+  PRINT *, 'Define NA'
+  !IERR = NF_DEF_VAR_FILL(ncid_out,IVAR_ID,0,NA_VALUE) ! define _FillValue for NetCDF files only
+  NA_VALUE_OUT_MSP=NA_VALUE_OUT
+  IERR = NF_PUT_ATT_REAL(ncid_out,IVAR_ID,'_FillValue',NF_FLOAT,1,NA_VALUE_OUT_MSP)
+  CALL HANDLE_ERR(IERR)
+  PRINT *, 'Done defining NA'
+
  END DO  ! ivar
 
  ! define the time variable

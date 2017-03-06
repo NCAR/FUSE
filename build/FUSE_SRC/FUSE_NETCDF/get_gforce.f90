@@ -449,9 +449,6 @@ contains
    ierr = nf90_get_var(ncid_forc, ncid_var(ivar), gTemp, start=(/1,1,itim_start/), count=(/nSpat1,nSpat2,numtim/)); CALL HANDLE_ERR(IERR)
    if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
 
-   !PRINT *, 'SHAPE(gForce_3d%ppt) = ', SHAPE(gForce_3d%ppt)
-   !PRINT *, 'SHAPE(gTemp) = ', SHAPE(gTemp)
-
   ! save the data in the structure -- and convert fluxes to mm/day
   if(trim(cVec(iVar)%vname) == trim(vname_aprecip) )then; gForce_3d(:,:,1:numtim)%ppt = gTemp(:,:,:)*amult_ppt; lCheck(ilook_aprecip) = .true.; endif
   if(trim(cVec(iVar)%vname) == trim(vname_potevap) )then; gForce_3d(:,:,1:numtim)%pet = gTemp(:,:,:)*amult_pet; lCheck(ilook_potevap) = .true.; endif

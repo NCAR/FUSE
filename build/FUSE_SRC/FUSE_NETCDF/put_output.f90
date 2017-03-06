@@ -145,8 +145,12 @@ SUBROUTINE PUT_GOUTPUT_3D(istart_sim,istart_in,numtim)
        IF (.NOT.WRITE_VAR) CYCLE
     ENDIF
 
+     PRINT *, 'Writing ', VNAME(IVAR)
      ! write the variable
      XVAR_3d = VAREXTRACT_3d(VNAME(IVAR),numtim)   ! get variable
+
+ IF (TRIM(VNAME(IVAR)).EQ.'evap_1')     PRINT *, XVAR_3d(:,:,1)
+
      AVAR_3d = XVAR_3d                             ! convert format
 
      IERR = NF_INQ_VARID(ncid_out,TRIM(VNAME(IVAR)),IVAR_ID); CALL HANDLE_ERR(IERR) ! get variable ID
