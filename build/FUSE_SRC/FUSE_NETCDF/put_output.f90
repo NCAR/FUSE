@@ -145,19 +145,11 @@ SUBROUTINE PUT_GOUTPUT_3D(istart_sim,istart_in,numtim)
        IF (.NOT.WRITE_VAR) CYCLE
     ENDIF
 
-     PRINT *, 'Writing ', VNAME(IVAR)
-     ! write the variable
-     XVAR_3d = VAREXTRACT_3d(VNAME(IVAR),numtim)   ! get variable
-
- IF (TRIM(VNAME(IVAR)).EQ.'evap_1')     PRINT *, XVAR_3d(:,:,1)
-
-     AVAR_3d = XVAR_3d                             ! convert format
-
-     IERR = NF_INQ_VARID(ncid_out,TRIM(VNAME(IVAR)),IVAR_ID); CALL HANDLE_ERR(IERR) ! get variable ID
-
-     IERR = NF_PUT_VARA_REAL(ncid_out,IVAR_ID,IND_START,IND_COUNT,AVAR_3d); CALL HANDLE_ERR(IERR) ! write data
-
-     IF(ierr/=0)THEN; PRINT*, TRIM('Problem while writing data to output file'); STOP; ENDIF
+    ! write the variable
+    XVAR_3d = VAREXTRACT_3d(VNAME(IVAR),numtim)   ! get variable
+    AVAR_3d = XVAR_3d                             ! convert format
+    IERR = NF_INQ_VARID(ncid_out,TRIM(VNAME(IVAR)),IVAR_ID); CALL HANDLE_ERR(IERR) ! get variable ID
+    IERR = NF_PUT_VARA_REAL(ncid_out,IVAR_ID,IND_START,IND_COUNT,AVAR_3d); CALL HANDLE_ERR(IERR) ! write data
 
   END DO  ! (ivar)
 

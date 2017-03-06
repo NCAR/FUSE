@@ -272,18 +272,16 @@ CONTAINS
                     ! compute summary statistics
                     CALL COMP_STATS()
 
-                 ELSE ! insert NA values if grid point outside of domain or forcing not available
+                  ELSE ! insert NA values if grid point outside of domain or forcing not available
 
-                     PRINT *, 'Set variables for grid point', iSpat1, iSpat2, 'to ',NA_VALUE_SP
+                    CALL SET_STATE(NA_VALUE_SP) ! includes FSTATE%SWE_TOT
+                    gState_3d(iSpat1,iSpat2,itim_sub) = FSTATE
 
-                     CALL SET_STATE(NA_VALUE_SP)
-                     gState_3d(iSpat1,iSpat2,itim_sub) = FSTATE
+                    CALL SET_FLUXES(NA_VALUE_SP)
+                    W_FLUX_3d(iSpat1,iSpat2,itim_sub) = W_FLUX
 
-                     CALL SETFLUXES(NA_VALUE_SP)
-                     W_FLUX_3d(iSpat1,iSpat2,itim_sub) = W_FLUX
-
-
-                    !AROUTE_3d(iSpat1,iSpat2,itim_sub) = NA_VALUE_SP
+                    CALL SET_ROUTE(NA_VALUE_SP)
+                    AROUTE_3d(iSpat1,iSpat2,itim_sub) = MROUTE
 
                  ENDIF ! (is forcing available for this grid cell?)
               END DO  ! (looping thru 2nd spatial dimension)
