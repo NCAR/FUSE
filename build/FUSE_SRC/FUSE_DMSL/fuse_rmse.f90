@@ -274,6 +274,8 @@ CONTAINS
 
                   ELSE ! insert NA values if grid point outside of domain or forcing not available
 
+                    !print *, 'Elevation or forcing missing'
+
                     CALL SET_STATE(NA_VALUE_SP) ! includes FSTATE%SWE_TOT
                     gState_3d(iSpat1,iSpat2,itim_sub) = FSTATE
 

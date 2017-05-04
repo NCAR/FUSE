@@ -129,7 +129,7 @@ contains
     MROUTE%Q_ACCURATE  = VAL  ! "accurate" runoff estimate (mm day-1)
 
     ! (routed runoff)
-    FUTURE         = VAL
+    ! FUTURE         = VAL
     ! ---------------------------------------------------------------------------------------
   END SUBROUTINE SET_ROUTE
 
