@@ -111,7 +111,7 @@ CONTAINS
     CALL PAR_DERIVE(ERR,MESSAGE)
     IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 
-    ! initialize model states over the 2D gridded domain'
+    ! initialize model states over the 2D gridded domain
     DO iSpat2=1,nSpat2
       DO iSpat1=1,nSpat1
           CALL INIT_STATE(fracState0)             ! define FSTATE - fracState0 is shared in MODULE multistate
@@ -123,6 +123,9 @@ CONTAINS
 
     ! initialize elevations bands if snow module is on - see init_state.f90 for catchment-scale modeling
     ! IF (SMODL%iSNOWM.EQ.iopt_temp_index .AND. SPATIAL_OPTION == LUMPED) THEN
+
+    PRINT *, 'N_BANDS', N_BANDS
+
     IF (SMODL%iSNOWM.EQ.iopt_temp_index) THEN
         DO iSpat2=1,nSpat2
             DO iSpat1=1,nSpat1

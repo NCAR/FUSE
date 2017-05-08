@@ -4,9 +4,11 @@ PROGRAM DISTRIBUTED_DRIVER
 ! Martyn Clark, 2011
 ! Modified by Brian Henn to include snow model, 6/2013
 ! Modified by Nans Addor to include distributed modeling, 9/2016
+! Modified by Nans Addor to re-enable catchment-scale modeling, 4/2017
 ! ---------------------------------------------------------------------------------------
 ! Purpose:
-! Driver program to run FUSE as a distributed model with a snow module
+! Driver program to run FUSE with a snow module as either at the catchment-scale or
+! at the grid-scale
 ! ---------------------------------------------------------------------------------------
 USE nrtype                                                ! variable types, etc.
 USE netcdf                                                ! NetCDF library
@@ -49,7 +51,7 @@ USE get_gforce_module,only:read_ginfo                     ! get dimension length
 USE get_gforce_module,only:get_varid                      ! get netCDF ID for forcing variables
 USE get_gforce_module,only:get_gforce_3d                  ! get forcing
 USE get_mbands_module,only:get_mbands, GET_MBANDS_INFO    ! get elevation bands for snow modeling
-USE get_mbands_module,only:N_BANDS                        ! get elevation bands for snow modeling
+!USE get_mbands_module,only:N_BANDS                        ! get elevation bands for snow modeling
 USE getf_ascii_module,only:prelim_asc                     ! get preliminary data from the ASCII file
 USE getf_ascii_module,only:close_file                     ! close ASCII file
 USE getf_ascii_module,only:read_ascii                     ! read ascii forcing data for a given time step
@@ -207,8 +209,11 @@ ELSE
  allocate(AROUTE_3d(nspat1,nspat2,numtim_sub), gState_3d(nspat1,nspat2,numtim_sub+1),gForce_3d(nspat1,nspat2,numtim_sub), stat=err)
  if(err/=0)then; write(*,*) 'unable to allocate space for 3d structure'; stop; endif
 
+ ! get elevation band info, in particular N_BANDS
+ CALL GET_MBANDS_INFO(ELEV_BANDS_NC,err,message) ! read band data from NetCDF file - for a 2D grid
+
  ! allocate space for elevation bands
- allocate(MBANDS_VAR_4d(nspat1,nspat2,N_BANDS,numtim_sub+1),stat=err) ! TODO: replace 6 by
+ allocate(MBANDS_VAR_4d(nspat1,nspat2,N_BANDS,numtim_sub+1),stat=err)
  if(err/=0)then; write(*,*) 'unable to allocate space for elevation bands'; stop; endif
 
  ! get variable ID from the NetCDF file
@@ -231,19 +236,7 @@ IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 CALL SELECTMODL(ERR=ERR,MESSAGE=MESSAGE)
 IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 
-! Create elevations bands if snow module is on
-IF (SMODL%iSNOWM.EQ.iopt_temp_index) THEN
 
-  IF(SPATIAL_OPTION == LUMPED)THEN
-
-   CALL GET_MBANDS(err,message) ! read band data from ASCII file - for one basin
-
-  ELSE
-
-   CALL GET_MBANDS_INFO(ELEV_BANDS_NC,err,message) ! read band data from NetCDF file - for a 2D grid
-
-  ENDIF
-ENDIF
 
 ! Define list of states and parameters for the current model
 CALL ASSIGN_STT()        ! state definitions are stored in module model_defn
