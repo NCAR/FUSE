@@ -154,6 +154,7 @@ contains
   USE multiforce,only:vname_airpres                      ! variable name: surface pressure
   USE multiforce,only:vname_swdown                       ! variable name: downward shortwave radiation
   USE multiforce,only:vname_potevap                      ! variable name: potential ET
+  USE multiforce,only:vname_q                            ! variable indice: observed discharge
 
   USE multiforce,only:ilook_aprecip                      ! variable indice: precipitation
   USE multiforce,only:ilook_airtemp                      ! variable indice: temperature
@@ -161,6 +162,8 @@ contains
   USE multiforce,only:ilook_airpres                      ! variable indice: surface pressure
   USE multiforce,only:ilook_swdown                       ! variable indice: downward shortwave radiation
   USE multiforce,only:ilook_potevap                      ! variable indice: potential ET
+  USE multiforce,only:ilook_q                            ! variable indice: observed discharge
+
   IMPLICIT NONE
 
   ! input
@@ -184,12 +187,15 @@ contains
   cVec(ilook_aprecip)%vname = trim(vname_aprecip)  ! variable name: precipitation
   cVec(ilook_potevap)%vname = trim(vname_potevap)  ! variable name: potential ET
   cVec(ilook_airtemp)%vname = trim(vname_airtemp)  ! variable name: temperature
+  cVec(ilook_q)%vname = trim(vname_q)              ! variable name: observed discharge
   cVec(ilook_spechum)%vname = trim(vname_spechum)  ! variable name: specific humidity
   cVec(ilook_airpres)%vname = trim(vname_airpres)  ! variable name: surface pressure
   cVec(ilook_swdown)%vname  = trim(vname_swdown)   ! variable name: downward shortwave radiation
 
   !do ivar=1,nForce
-  do ivar=1,3
+  do ivar=1,4
+
+    print *, 'Getting ID for ', trim(cVec(iVar)%vname)
 
     ! get the variable ID
     ierr = nf90_inq_varid(ncid, trim(cVec(iVar)%vname), ncid_var(ivar))
@@ -387,6 +393,7 @@ contains
  USE multiforce,only:vname_airpres                      ! variable name: surface pressure
  USE multiforce,only:vname_swdown                       ! variable name: downward shortwave radiation
  USE multiforce,only:vname_potevap                      ! variable name: potential ET
+ USE multiforce,only:vname_q                            ! variable name: observed discharge
 
  USE multiforce,only:ilook_aprecip                      ! variable indice: precipitation
  USE multiforce,only:ilook_airtemp                      ! variable indice: temperature
@@ -394,6 +401,7 @@ contains
  USE multiforce,only:ilook_airpres                      ! variable indice: surface pressure
  USE multiforce,only:ilook_swdown                       ! variable indice: downward shortwave radiation
  USE multiforce,only:ilook_potevap                      ! variable indice: potential ET
+ USE multiforce,only:ilook_q                            ! variable indice: observed discharge
 
  USE multiforce,only:nspat1,nspat2                      ! dimension lengths
  USE multiforce,only:ncid_var                           ! NetCDF ID for forcing variables
@@ -401,6 +409,7 @@ contains
  USE multiforce,only:gForce_3d                          ! gridded forcing data
  USE multiforce,only:ancilF_3d                          ! ancillary forcing data
  USE multiforce,only:nForce                             ! number of forcing variables
+ USE multiforce,only:aValid                             ! time series of lumped forcing/response data
 
  IMPLICIT NONE
  ! input
@@ -437,22 +446,25 @@ contains
  cVec(ilook_aprecip)%vname = trim(vname_aprecip)  ! variable name: precipitation
  cVec(ilook_potevap)%vname = trim(vname_potevap)  ! variable name: potential ET
  cVec(ilook_airtemp)%vname = trim(vname_airtemp)  ! variable name: temperature
+ cVec(ilook_q)%vname = trim(vname_q)              ! variable name: observed discharge
  cVec(ilook_spechum)%vname = trim(vname_spechum)  ! variable name: specific humidity
  cVec(ilook_airpres)%vname = trim(vname_airpres)  ! variable name: surface pressure
  cVec(ilook_swdown)%vname  = trim(vname_swdown)   ! variable name: downward shortwave radiation
 
  ! get forcing grids
  ! do ivar=1,nForce
- do ivar=1,3
 
-   ! get the data
-   ierr = nf90_get_var(ncid_forc, ncid_var(ivar), gTemp, start=(/1,1,itim_start/), count=(/nSpat1,nSpat2,numtim/)); CALL HANDLE_ERR(IERR)
-   if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
+ do ivar=1,4
+
+  ! get the data
+  ierr = nf90_get_var(ncid_forc, ncid_var(ivar), gTemp, start=(/1,1,itim_start/), count=(/nSpat1,nSpat2,numtim/)); CALL HANDLE_ERR(IERR)
+  if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
 
   ! save the data in the structure -- and convert fluxes to mm/day
   if(trim(cVec(iVar)%vname) == trim(vname_aprecip) )then; gForce_3d(:,:,1:numtim)%ppt = gTemp(:,:,:)*amult_ppt; lCheck(ilook_aprecip) = .true.; endif
   if(trim(cVec(iVar)%vname) == trim(vname_potevap) )then; gForce_3d(:,:,1:numtim)%pet = gTemp(:,:,:)*amult_pet; lCheck(ilook_potevap) = .true.; endif
   if(trim(cVec(iVar)%vname) == trim(vname_airtemp) )then; gForce_3d(:,:,1:numtim)%temp = gTemp(:,:,:);       lCheck(ilook_airtemp) = .true.; endif
+  if(trim(cVec(iVar)%vname) == trim(vname_q) )then;       aValid(:,:,1:numtim)%obsq = gTemp(:,:,:);       lCheck(ilook_q) = .true.; endif
 
   ! save the other variables required to compute PET
   !if( trim(cVec(iVar)%vname) == trim(vname_airtemp) )then; ancilF(:,:)%airtemp = gTemp(:,:,1);       lCheck(ilook_airtemp) = .true.; endif
@@ -465,6 +477,9 @@ contains
  ! deallocate space for gTemp
  deallocate(gTemp, stat=ierr)
  if(ierr/=0)then; message=trim(message)//'problem deallocating space for gTemp'; return; endif
+
+
+  print *,'aValid(1,1,1:10)',aValid(1,1,1:10)
 
  end subroutine get_gforce_3d
 

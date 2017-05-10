@@ -180,6 +180,7 @@ contains
    ierr=50; return
   endif
  end do  ! (looping through non-comment lines in the file
+
  ! deallocate space for the variable line vector
  deallocate(charlines, stat=ierr)
  if(ierr/=0)then; message=trim(message)//'problem deallocating space for the variable line vector'; return; endif

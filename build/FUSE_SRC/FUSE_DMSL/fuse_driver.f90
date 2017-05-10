@@ -161,8 +161,10 @@ if(err/=0)then; write(*,*) trim(message); stop; endif
 
 print*, 'Number of timesteps per subperiod (numtim_sub) = ', numtim_sub
 
+
 ! allocate space for the basin-average time series
-allocate(aForce(numtim_sub),aRoute(numtim_sub),aValid(numtim_sub),stat=err)
+allocate(aForce(numtim_sub),aRoute(numtim_sub),stat=err)
+!allocate(aForce(numtim_sub),aRoute(numtim_sub),aValid(numtim_sub),stat=err)
 if(err/=0)then; write(*,*) 'unable to allocate space for basin-average time series [aForce,aRoute]'; stop; endif
 
 ! get dimensions of the grid
@@ -170,6 +172,7 @@ IF(SPATIAL_OPTION == LUMPED)THEN
 	print *, 'Running FUSE as a lumped model'
  ! specify as a 1x1 grid
  nspat1=1; nspat2=1
+
  ! allocate space for the forcing grid and states
  allocate(gForce(nspat1,nspat2), gState(nspat1,nspat2), stat=err)
  if(err/=0)then; write(*,*) 'unable to allocate space for forcing grid GFORCE'; stop; endif
@@ -182,7 +185,7 @@ IF(SPATIAL_OPTION == LUMPED)THEN
   if(err/=0)then; print*, trim(message); stop; endif
   ! save forcing/response data in the structure
   aForce(iTim) = gForce(1,1)
-  aValid(iTim) = valDat
+  !aValid(iTim) = valDat
  end do  ! itim
  ! close file
  call close_file(err,message)
@@ -206,7 +209,7 @@ ELSE
  if(err/=0)then; write(*,*) 'unable to allocate space for forcing grid GFORCE'; stop; endif
 
  ! allocate space for the forcing grid and states with a time dimension - only for subperiod
- allocate(AROUTE_3d(nspat1,nspat2,numtim_sub), gState_3d(nspat1,nspat2,numtim_sub+1),gForce_3d(nspat1,nspat2,numtim_sub), stat=err)
+ allocate(AROUTE_3d(nspat1,nspat2,numtim_sub), gState_3d(nspat1,nspat2,numtim_sub+1),gForce_3d(nspat1,nspat2,numtim_sub),aValid(nspat1,nspat2,numtim_sub),stat=err)
  if(err/=0)then; write(*,*) 'unable to allocate space for 3d structure'; stop; endif
 
  ! get elevation band info, in particular N_BANDS
@@ -276,8 +279,7 @@ END DO
 
 ! run zee model
 print *, 'Entering FUSE_RMSE'
-!CALL FUSE_RMSE(APAR,SPATIAL_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
-CALL FUSE_RMSE(APAR,SPATIAL_FLAG,NCID_FORC,OUTPUT_FLAG)
+CALL FUSE_RMSE(APAR,SPATIAL_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
 print *, 'Done with FUSE_RMSE'
 
 ! deallocate space

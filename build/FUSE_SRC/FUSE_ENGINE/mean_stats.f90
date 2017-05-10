@@ -17,6 +17,7 @@ USE nrtype                                            ! variable types, etc.
 ! FUSE modules
 USE multiforce                                        ! model forcing data (obs streamflow)
 USE multiroute                                        ! routed runoff
+USE multi_flux                                        ! fluxes
 USE multistats                                        ! summary statistics
 USE model_numerix                                     ! model numerix parameters and data
 IMPLICIT NONE
@@ -48,15 +49,20 @@ REAL(SP), PARAMETER                    :: NO_ZERO=1.E-20  ! avoid divide by zero
 ! (1) PRELIMINARIES
 ! ---------------------------------------------------------------------------------------
 ! define sample size
-NS = (NUMTIM_SIM-ISTART) + 1    ! (ISTART is shared in MODULE multiforce)
+!NS = (NUMTIM_SIM-ISTART) + 1    ! (ISTART is shared in MODULE multiforce)
+NS = (NUMTIM_SIM-ISTART)     ! (ISTART is shared in MODULE multiforce)
+
+PRINT *,'NUMTIM_SIM ', NUMTIM_SIM
+PRINT *,'ISTART ', ISTART
+PRINT *,'NS ', NS
+
 ! allocate space for observed and simulated runoff
 ALLOCATE(QOBS(NS),QOBS_MASK(NS),QSIM(NS),STAT=IERR)
 IF (IERR.NE.0) STOP ' PROBLEM ALLOCATING SPACE IN MEAN_STATS.F90 '
 
 ! extract vectors from data structures
-QSIM = AROUTE(ISTART:NUMTIM_SIM)%Q_ROUTED
-QOBS(:) = QSIM(:) + 1.0 ! TODO: LOAD GRIDDED QOBS OR SKIP MODEL EVALUATION WHEN WOBS IS MISSING
-!QOBS = aValid(ISTART:NUMTIM_SIM)%OBSQ
+QSIM = AROUTE_3d(1,1,1:NUMTIM_SIM)%Q_ROUTED ! TODO - use ISTART INSTEAD
+QOBS = aValid(1,1,1:NUMTIM_SIM)%OBSQ
 
 ! check for missing QOBS values
 QOBS_MASK = QOBS.ne.REAL(NA_VALUE, KIND(SP)) ! find the time steps for which QOBS is available
@@ -106,6 +112,8 @@ MSTATS%RAW_RMSE  = SQRT( SS_RAW / REAL(NUM_AVAIL, KIND(SP)) )
 MSTATS%LOG_RMSE  = SQRT( SS_LOG / REAL(NUM_AVAIL, KIND(SP)) )
 ! compute the Nash-Sutcliffe score
 MSTATS%NASH_SUTT = 1. - SS_RAW/(SS_OBS+NO_ZERO)
+
+PRINT *, 'NSE = ', MSTATS%NASH_SUTT 
 ! ---------------------------------------------------------------------------------------
 ! (4) COMPUTE STATISTICS ON NUMERICAL ACCURACY AND EFFICIENCY
 ! ---------------------------------------------------------------------------------------

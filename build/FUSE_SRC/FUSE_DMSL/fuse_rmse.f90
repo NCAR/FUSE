@@ -1,9 +1,8 @@
 MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
   IMPLICIT NONE
 CONTAINS
-!  SUBROUTINE FUSE_RMSE(XPAR,DISTRIBUTED,NCID_FORC,RMSE,OUTPUT_FLAG,MPARAM_FLAG)
-  SUBROUTINE FUSE_RMSE(XPAR,DISTRIBUTED,NCID_FORC,OUTPUT_FLAG,MPARAM_FLAG)
-
+  SUBROUTINE FUSE_RMSE(XPAR,DISTRIBUTED,NCID_FORC,RMSE,OUTPUT_FLAG,MPARAM_FLAG)
+  
     ! ---------------------------------------------------------------------------------------
     ! Creator:
     ! --------
@@ -66,8 +65,8 @@ CONTAINS
     LOGICAL(LGT), INTENT(IN)               :: OUTPUT_FLAG    ! .TRUE. if desire time series output
     LOGICAL(LGT), INTENT(IN), OPTIONAL     :: MPARAM_FLAG    ! .FALSE. (used to turn off writing statistics)
 
-    ! output - commented because CALL MEAN_STATS() commented
-    ! REAL(SP),INTENT(OUT)                   :: RMSE           ! root mean squared error
+    ! output
+    REAL(SP),INTENT(OUT)                   :: RMSE           ! root mean squared error
 
     ! internal
     LOGICAL(lgt),PARAMETER                 :: computePET=.FALSE. ! flag to compute PET
@@ -338,8 +337,11 @@ CONTAINS
         WRITE(*,*) "TIME ELAPSED = ", t2-t1
         ! calculate mean summary statistics
 
-        !  CALL MEAN_STATS()
-        ! RMSE = MSTATS%RAW_RMSE
+        CALL MEAN_STATS()
+        RMSE = MSTATS%RAW_RMSE
+
+        PRINT *, 'RMSE = ', RMSE
+
         ! WRITE(unt,'(2(I6,1X),3(F20.15,1X))') MOD_IX, PCOUNT, MSTATS%RAW_RMSE, MSTATS%NASH_SUTT, MSTATS%NUM_FUNCS
         ! write model parameters and summary statistics
 
