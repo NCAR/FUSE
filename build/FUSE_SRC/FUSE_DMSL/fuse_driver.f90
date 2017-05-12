@@ -312,6 +312,7 @@ END DO
 IF(fuse_mode == 'run_def')THEN
 
   ! Run FUSE using default parameter values
+  OUTPUT_FLAG=.TRUE.
 
   print *, 'Entering FUSE_RMSE'
   CALL FUSE_RMSE(APAR,SPATIAL_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
@@ -321,8 +322,6 @@ ELSE IF(fuse_mode == 'calib_sce')THEN
 
   ! Calibrate FUSE with SCE
   OUTPUT_FLAG=.FALSE.
-
-
 
   ! assign algorithmic control parameters for SCE
   NOPT   =  NUMPAR         ! number of parameters to be optimized (NUMPAR in module multiparam)

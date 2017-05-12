@@ -43,7 +43,7 @@ IERR = NF_OPEN(TRIM(FNAME_NETCDF_PARA),NF_WRITE,NCID); CALL HANDLE_ERR(IERR)
  ! loop through model parameters
  DO IVAR=1,NOUTPAR  ! NOUTPAR is stored in module metaparams
 
-  print *, PNAME(IVAR), '=',PAREXTRACT(PNAME(IVAR))
+  !print *, PNAME(IVAR), '=',PAREXTRACT(PNAME(IVAR))
 
   XPAR = PAREXTRACT(PNAME(IVAR)); APAR=XPAR                                  ! get parameter PNAME(IVAR)
   IERR = NF_INQ_VARID(NCID,TRIM(PNAME(IVAR)),IVAR_ID); CALL HANDLE_ERR(IERR) ! get variable ID

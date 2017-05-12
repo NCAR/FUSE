@@ -291,7 +291,7 @@ SELECT CASE (TRIM(VARNAME))
  CASE ('temp')       ; XVAR_3d = gForce_3d%TEMP
  CASE ('pet')        ; XVAR_3d = gForce_3d%PET
  ! extract response data
- CASE ('obsq')       ; XVAR_3d = valDat%OBSQ
+ CASE ('obsq')       ; XVAR_3d = aValid%OBSQ
  ! extract model states
  CASE ('tens_1')     ; XVAR_3d = gState_3d%TENS_1
  CASE ('tens_1a')    ; XVAR_3d = gState_3d%TENS_1A

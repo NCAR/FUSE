@@ -73,11 +73,12 @@ SUBROUTINE DEF_OUTPUT(NTIM,nSpat1,nSpat2)
     IF (Q_ONLY) THEN
       WRITE_VAR=.FALSE.
       IF (TRIM(VNAME(IVAR)).EQ.'ppt') WRITE_VAR=.TRUE.
+      IF (TRIM(VNAME(IVAR)).EQ.'obsq') WRITE_VAR=.TRUE.
       IF (TRIM(VNAME(IVAR)).EQ.'pet') WRITE_VAR=.TRUE.
       IF (TRIM(VNAME(IVAR)).EQ.'evap_1') WRITE_VAR=.TRUE.
       IF (TRIM(VNAME(IVAR)).EQ.'evap_2') WRITE_VAR=.TRUE.
       IF (TRIM(VNAME(IVAR)).EQ.'q_instnt') WRITE_VAR=.TRUE.
-      !IF (TRIM(VNAME(IVAR)).EQ.'q_routed') WRITE_VAR=.TRUE.
+      IF (TRIM(VNAME(IVAR)).EQ.'q_routed') WRITE_VAR=.TRUE.
       IF (TRIM(VNAME(IVAR)).EQ.'watr_1')   WRITE_VAR=.TRUE.
       IF (TRIM(VNAME(IVAR)).EQ.'watr_2')   WRITE_VAR=.TRUE.
       IF (TRIM(VNAME(IVAR)).EQ.'swe_tot')   WRITE_VAR=.TRUE.
