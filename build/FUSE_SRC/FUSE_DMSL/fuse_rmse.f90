@@ -2,7 +2,7 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
   IMPLICIT NONE
 CONTAINS
   SUBROUTINE FUSE_RMSE(XPAR,DISTRIBUTED,NCID_FORC,RMSE,OUTPUT_FLAG,MPARAM_FLAG)
-  
+
     ! ---------------------------------------------------------------------------------------
     ! Creator:
     ! --------
@@ -26,6 +26,7 @@ CONTAINS
     USE multiforce, ONLY: numtim_sim, itim_sim               ! length of simulated time series and associated index
     USE multiforce, ONLY: numtim_sub, itim_sub               ! length of subperiod time series and associated index
     USE multiforce, ONLY: numtim_sub_cur                     ! length of current subperiod
+    USE multiforce, ONLY: warmup_beg,infern_beg,infern_end   ! timestep indices
 
     USE multiforce, ONLY:nspat1,nspat2                       ! spatial dimensions
     USE multiforce, ONLY:ncid_var                            ! NetCDF ID for forcing variables
@@ -103,7 +104,8 @@ CONTAINS
 
     ! add parameter set to the data structure
     CALL PUT_PARSET(XPAR)
-    PRINT *, 'Parameter set added to data structure'
+    PRINT *, 'Parameter set added to data structure:'
+    PRINT *, XPAR
     !DO IPAR=1,NUMPAR; WRITE(*,'(A11,1X,F9.3)') LPARAM(IPAR), XPAR(IPAR); END DO
 
     ! compute derived model parameters (bucket sizes, etc.)
@@ -123,7 +125,7 @@ CONTAINS
     ! initialize elevations bands if snow module is on - see init_state.f90 for catchment-scale modeling
     ! IF (SMODL%iSNOWM.EQ.iopt_temp_index .AND. SPATIAL_OPTION == LUMPED) THEN
 
-    PRINT *, 'N_BANDS', N_BANDS
+    PRINT *, 'N_BANDS =', N_BANDS
 
     IF (SMODL%iSNOWM.EQ.iopt_temp_index) THEN
         DO iSpat2=1,nSpat2
@@ -152,12 +154,16 @@ CONTAINS
     CALL CPU_TIME(T1)
 
     ! initialize indices and subperiod counter
-    itim_in = istart+1
+    itim_in = warmup_beg
     itim_sub = 1
+    itim_sim = 1
+
+    numtim_sim=(infern_end-warmup_beg)+1
 
     ! loop through time
-    PRINT *, 'Running the model'
-    DO ITIM_SIM=1,NUMTIM_SIM            !
+    PRINT *, 'Running FUSE...'
+
+    DO ITIM_IN=warmup_beg,infern_end        !
 
        ! if not distributed (i.e., lumped)
        IF(.NOT.distributed)THEN
@@ -170,13 +176,13 @@ CONTAINS
           ! if start of subperiod: load forcing
           IF(itim_sub.EQ.1)THEN
 
-             ! determine length of current subperiod
-             numtim_sub_cur=MIN(numtim_sub,numtim_sim-itim_sim+1)
+           ! determine length of current subperiod
+           numtim_sub_cur=MIN(numtim_sub,numtim_sim-itim_sub+1)
 
-             PRINT *, 'New subperiod: loading forcing for ',numtim_sub_cur,' time steps'
-             CALL get_gforce_3d(itim_in,numtim_sub_cur,ncid_forc,err,message)
-             IF(err/=0)THEN; WRITE(*,*) 'Error while extracting 3d forcing'; STOP; ENDIF
-             PRINT *, 'Forcing loaded'
+           PRINT *, 'New subperiod: loading forcing for ',numtim_sub_cur,' time steps'
+           CALL get_gforce_3d(itim_in,numtim_sub_cur,ncid_forc,err,message)
+           IF(err/=0)THEN; WRITE(*,*) 'Error while extracting 3d forcing'; STOP; ENDIF
+           PRINT *, 'Forcing loaded'
 
            ENDIF
 
@@ -294,12 +300,16 @@ CONTAINS
            ! if end of subperiod: move state of last time step to first and flush memory
            IF(itim_sub.EQ.numtim_sub_cur)THEN
 
+           PRINT *, 'End of subperiod reached:'
+
               ! write model output
-              PRINT *, 'End of subperiod reached: write output for ',numtim_sub_cur,' time steps starting at indice', itim_sim-numtim_sub_cur+1
               IF (OUTPUT_FLAG) THEN
-                 CALL PUT_GOUTPUT_3D(itim_sim-numtim_sub_cur+1,itim_in-numtim_sub_cur+1,numtim_sub_cur)
-              ENDIF
-              PRINT *, 'Done writing output'
+                PRINT *, 'Write output for ',numtim_sub_cur,' time steps starting at indice', itim_sim-numtim_sub_cur+1
+                CALL PUT_GOUTPUT_3D(itim_sim-numtim_sub_cur+1,itim_in-numtim_sub_cur+1,numtim_sub_cur)
+                PRINT *, 'Done writing output'
+              ELSE
+                PRINT *, 'OUTPUT_FLAG is set on FALSE, no output written'
+              END IF
 
               ! TODO: reinitialize gState_3d and MBANDS_VAR_4d instead of overwritting them
 
@@ -327,8 +337,8 @@ CONTAINS
 
            END IF
 
-           ! increment itim_in
-           itim_in=itim_in+1
+           ! increment itim_sim
+           itim_sim=itim_sim+1
 
         END DO  ! (itim)
 
@@ -355,6 +365,8 @@ CONTAINS
         !   ENDIF
         !ENDIF
         ! deallocate state vectors
+        DEALLOCATE(W_FLUX_3d)
+
         DEALLOCATE(STATE0,STATE1,STAT=IERR); IF (IERR.NE.0) STOP ' problem deallocating state vectors in fuse_rmse '
         ! ---------------------------------------------------------------------------------------
       END SUBROUTINE FUSE_RMSE

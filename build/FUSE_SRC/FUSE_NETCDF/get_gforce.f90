@@ -264,7 +264,7 @@ contains
 
  ! compute the year, month, day, hour, minute, second
  call caldatss(jdayRef+timDat%dtime,timDat%iy,timDat%im,timDat%id,timDat%ih,timDat%imin,timDat%dsec)
- print*, timDat%iy,timDat%im,timDat%id!,timDat%ih,timDat%imin,timDat%dsec
+ !print*, timDat%iy,timDat%im,timDat%id!,timDat%ih,timDat%imin,timDat%dsec
 
  END SUBROUTINE get_modtim
 
@@ -460,6 +460,9 @@ contains
   ierr = nf90_get_var(ncid_forc, ncid_var(ivar), gTemp, start=(/1,1,itim_start/), count=(/nSpat1,nSpat2,numtim/)); CALL HANDLE_ERR(IERR)
   if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
 
+  !print *, trim(cVec(iVar)%vname)
+  !print *, gTemp
+
   ! save the data in the structure -- and convert fluxes to mm/day
   if(trim(cVec(iVar)%vname) == trim(vname_aprecip) )then; gForce_3d(:,:,1:numtim)%ppt = gTemp(:,:,:)*amult_ppt; lCheck(ilook_aprecip) = .true.; endif
   if(trim(cVec(iVar)%vname) == trim(vname_potevap) )then; gForce_3d(:,:,1:numtim)%pet = gTemp(:,:,:)*amult_pet; lCheck(ilook_potevap) = .true.; endif
@@ -479,7 +482,7 @@ contains
  if(ierr/=0)then; message=trim(message)//'problem deallocating space for gTemp'; return; endif
 
 
-  print *,'aValid(1,1,1:10)',aValid(1,1,1:10)
+  !print *,'aValid(1,1,1:10)',aValid(1,1,1:10)
 
  end subroutine get_gforce_3d
 

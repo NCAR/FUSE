@@ -29,6 +29,7 @@ USE multiforce, only: ISTART                              ! index for start of i
 USE multiforce, only: numtim_in, itim_in                  ! length of input time series and associated index
 USE multiforce, only: numtim_sim, itim_sim                ! length of simulated time series and associated index
 USE multiforce, only: numtim_sub, itim_sub                ! length of subperiod time series and associated index
+USE multiforce,only:  warmup_beg,infern_beg,infern_end    ! timestep indices
 USE multiforce, only: ncid_forc                           ! NetCDF forcing file ID
 USE multiforce, only: ncid_var                            ! NetCDF forcing variable ID
 USE multistate, only: ncid_out                            ! NetCDF output file ID
@@ -69,6 +70,7 @@ IMPLICIT NONE
 CHARACTER(LEN=64)                      :: DatString          ! string defining forcing data
 CHARACTER(LEN=6)                       :: FMODEL_ID='      ' ! integer defining FUSE model
 CHARACTER(LEN=6)                       :: F_SPATIAL='      ' ! spatial option (0=lumped, 1= distributed)
+CHARACTER(LEN=10)                      :: fuse_mode='      ' ! fuse execution mode (run_def, run_best, calib_sce)
 
 ! ---------------------------------------------------------------------------------------
 ! SETUP MODELS FOR SIMULATION -- POPULATE DATA STRUCTURES
@@ -112,22 +114,48 @@ REAL(KIND=4),DIMENSION(:), ALLOCATABLE :: URAND   ! vector of quasi-random numbe
 REAL(SP)                               :: RMSE    ! error from the simulation
 
 ! ---------------------------------------------------------------------------------------
+! SCE VARIABLES
+! ---------------------------------------------------------------------------------------
+REAL(MSP)                              :: AF_MSP    ! objective function value
+REAL(MSP), DIMENSION(:), ALLOCATABLE   :: APAR_MSP  ! ! lower bound of model parameters
+REAL(MSP), DIMENSION(:), ALLOCATABLE   :: BL_MSP    ! ! lower bound of model parameters
+REAL(MSP), DIMENSION(:), ALLOCATABLE   :: BU_MSP    ! ! upper bound of model parameters
+REAL(MSP), DIMENSION(:), ALLOCATABLE   :: URAND_MSP   ! vector of quasi-random numbers U[0,1]
+INTEGER(I4B)                           :: NOPT    ! number of parameters to be optimized
+INTEGER(I4B)                           :: KSTOP   ! number of shuffling loops the value must change by PCENTO
+INTEGER(I4B)                           :: MAXN    ! maximum number of trials before optimization is terminated
+REAL(MSP)                              :: PCENTO  ! the percentage
+CHARACTER(LEN=3)                       :: CSEED   ! starting seed converted to a character
+INTEGER(I4B)                           :: NGS     ! # complexes in the initial population
+INTEGER(I4B)                           :: NPG     ! # points in each complex
+INTEGER(I4B)                           :: NPS     ! # points in a sub-complex
+INTEGER(I4B)                           :: NSPL    ! # evolution steps allowed for each complex before shuffling
+INTEGER(I4B)                           :: MINGS   ! minimum number of complexes required
+INTEGER(I4B)                           :: INIFLG  ! 1 = include initial point in the population
+INTEGER(I4B)                           :: IPRINT  ! 0 = supress printing
+INTEGER(I4B)                           :: ISCE    ! unit number for SCE write
+REAL(MSP)                              :: FUNCTN  ! function name for the model run
+
+! ---------------------------------------------------------------------------------------
 ! READ COMMAND LINE ARGUMENTS
 ! ---------------------------------------------------------------------------------------
 ! read command-line arguments
 CALL GETARG(1,DatString)  ! string defining forcinginfo file
 CALL GETARG(2,FMODEL_ID)  ! integer defining FUSE model
 CALL GETARG(3,F_SPATIAL)  ! spatial option (0=lumped, 1= distributed)
+CALL GETARG(4,fuse_mode)  ! fuse execution mode (run_def, run_best, calib_sce)
 
 ! check command-line arguments
 IF (LEN_TRIM(DatString).EQ.0) STOP '1st command-line argument is missing (DatString)'
 IF (LEN_TRIM(FMODEL_ID).EQ.0) STOP '2nd command-line argument is missing (FMODEL_ID)'
 IF (LEN_TRIM(F_SPATIAL).EQ.0) STOP '3rd command-line argument is missing (F_SPATIAL)'
+IF (LEN_TRIM(fuse_mode).EQ.0) STOP '4th command-line argument is missing (fuse_mode)'
 
 ! print command-line arguments
 print*, '1st command-line argument (DatString) = ', trim(DatString)
 print*, '2nd command-line argument (FMODEL_ID) = ', FMODEL_ID
 print*, '3rd command-line argument (F_SPATIAL) = ', F_SPATIAL
+print*, '4th command-line argument (fuse_mode) = ', fuse_mode
 
 ! set path to fuse_file_manager
 FFMFILE=TRIM(SETNGS_PATH)//TRIM(DatString)//'_fuse_file_manager.txt'
@@ -160,7 +188,9 @@ call force_info(err,message)
 if(err/=0)then; write(*,*) trim(message); stop; endif
 
 print*, 'Number of timesteps per subperiod (numtim_sub) = ', numtim_sub
-
+print*, 'warmup_beg',warmup_beg
+print*, 'infern_beg',infern_beg
+print*, 'infern_end',infern_end
 
 ! allocate space for the basin-average time series
 allocate(aForce(numtim_sub),aRoute(numtim_sub),stat=err)
@@ -239,8 +269,6 @@ IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 CALL SELECTMODL(ERR=ERR,MESSAGE=MESSAGE)
 IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 
-
-
 ! Define list of states and parameters for the current model
 CALL ASSIGN_STT()        ! state definitions are stored in module model_defn
 CALL ASSIGN_FLX()        ! flux definitions are stored in module model_defn
@@ -254,18 +282,19 @@ IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 FNAME_NETCDF = TRIM(OUTPUT_PATH)//TRIM(DatString)//'__'//TRIM(SMODL%MNAME)//'.nc'
 ONEMOD=1                 ! one file per model (i.e., model dimension = 1)
 PCOUNT=0                 ! counter for parameter sets evaluated (shared in MODULE multistats)
-OUTPUT_FLAG = .TRUE.     ! .TRUE. if desire time series output
 
 CALL DEF_PARAMS(ONEMOD)  ! define model parameters (initial CREATE)
 CALL DEF_SSTATS()        ! define summary statistics (REDEF)
 CALL DEF_OUTPUT(numtim_sim,nSpat1,nSpat2)    ! define model time series (REDEF)
 
 ! ---------------------------------------------------------------------------------------
-! RUN MODEL FOR THE CURRENT PARAMETER SET
+! RUN FUSE IN DESIRED MODE
 ! ---------------------------------------------------------------------------------------
 
 ! get parameter bounds and random numbers
 ALLOCATE(APAR(NUMPAR),BL(NUMPAR),BU(NUMPAR),URAND(NUMPAR))
+
+print *, 'NUMPAR = ', NUMPAR
 
 print *, 'Using default parameter values:'
 
@@ -277,10 +306,70 @@ DO IPAR=1,NUMPAR
  if(PARAM_META%PARFIT) print*, LPARAM(IPAR)%PARNAME, PARAM_META%PARDEF
 END DO
 
-! run zee model
-print *, 'Entering FUSE_RMSE'
-CALL FUSE_RMSE(APAR,SPATIAL_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
-print *, 'Done with FUSE_RMSE'
+IF(fuse_mode == 'run_def')THEN
+
+  ! Run FUSE using default parameter values
+
+  print *, 'Entering FUSE_RMSE'
+  CALL FUSE_RMSE(APAR,SPATIAL_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
+  print *, 'Done with FUSE_RMSE'
+
+ELSE IF(fuse_mode == 'calib_sce')THEN
+
+  ! Calibrate FUSE with SCE
+  OUTPUT_FLAG=.FALSE.
+
+  ! assign algorithmic control parameters for SCE
+  NOPT   =  NUMPAR         ! number of parameters to be optimized (NUMPAR in module multiparam)
+  MAXN   =     10000			 ! maximum number of trials before optimization is terminated
+  KSTOP  =      3          ! number of shuffling loops the value must change by PCENTO (MAX=9)
+  PCENTO =      0.001      ! the percentage
+  NGS    =     10          ! number of complexes in the initial population
+  NPG    =  2*NOPT + 1     ! number of points in each complex
+  NPS    =    NOPT + 1     ! number of points in a sub-complex
+  NSPL   =  2*NOPT + 1     ! number of evolution steps allowed for each complex before shuffling
+  MINGS  =  NGS            ! minimum number of complexes required
+  INIFLG =  1              ! 1 = include initial point in the population
+  IPRINT =  1              ! 0 = supress printing
+  FNAME_ASCII = TRIM(OUTPUT_PATH)//'sce_output_'//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_'//'.dat'
+
+  ! convert from SP used in FUSE to MSP used in SCE
+  ALLOCATE(APAR_MSP(NUMPAR),BL_MSP(NUMPAR),BU_MSP(NUMPAR),URAND_MSP(NUMPAR))
+
+  APAR_MSP=APAR
+  BL_MSP=BL
+  BU_MSP=BU
+  URAND_MSP=URAND
+
+  ! open up ASCII output file
+  print *, 'Creating SCE output file:', FNAME_ASCII
+  ISCE = 96; OPEN(ISCE,FILE=TRIM(FNAME_ASCII))
+
+  ! optimize (returns A and AF)
+  ! note that SCE requires the kind of APAR, BL, BU to be MSP
+  CALL SCEUA(APAR_MSP,AF_MSP,BL_MSP,BU_MSP,NOPT,MAXN,KSTOP,PCENTO,ISEED,&
+          NGS,NPG,NPS,NSPL,MINGS,INIFLG,IPRINT,ISCE)
+
+  ! close ASCII output file
+  CLOSE(ISCE)
+
+  PRINT *, 'Done running SCE!'
+
+  ! call the function again with the optimized parameter set (to ensure the last parameter set is the optimum)
+  !AF_MSP = FUNCTN(NOPT,AF_MSP)
+
+  !PRINT *, 'Done calling the function again with the optimized parameter set!'
+
+ELSE IF(fuse_mode == 'run_best')THEN
+
+  ! Run FUSE for best parameter set of the SCE calibration
+
+ELSE
+
+print *, 'Unexpected fuse_mode!'
+stop
+
+ENDIF
 
 ! deallocate space
 DEALLOCATE(APAR,BL,BU,URAND)
