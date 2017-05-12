@@ -43,11 +43,15 @@ SUBROUTINE DEF_OUTPUT(NTIM,nSpat1,nSpat2)
   ! ---------------------------------------------------------------------------------------
   CALL VARDESCRIBE()  ! get list of variable descriptions
   ! ---------------------------------------------------------------------------------------
-  ! put file in define mode
-  IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
+! put file in define mode
+  print *, 'Create NetCDF file for runs:'
+  PRINT *, FNAME_NETCDF_RUNS
+
+  IERR = NF_CREATE(TRIM(FNAME_NETCDF_RUNS),NF_CLOBBER,ncid_out); CALL HANDLE_ERR(IERR)
+  !IERR = NF_OPEN(TRIM(FNAME_NETCDF_RUNS),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
   print *, 'ncid_out for outputfile in def mode - start:',ncid_out
 
-  IERR = NF_REDEF(ncid_out); CALL HANDLE_ERR(IERR)
+  !IERR = NF_REDEF(ncid_out); CALL HANDLE_ERR(IERR)
   ! define time dimension - record dimension (unlimited length)
   !IERR = NF_DEF_DIM(ncid_out,'time',NTIM,NTIM_DIM); CALL HANDLE_ERR(IERR)
   IERR = NF_DEF_DIM(ncid_out,'time',NF_UNLIMITED,NTIM_DIM); CALL HANDLE_ERR(IERR)
@@ -131,6 +135,7 @@ SUBROUTINE DEF_OUTPUT(NTIM,nSpat1,nSpat2)
 
   PRINT *, 'NetCDF file defined with dimensions', nSpat1 , nSpat2, NTIM
 
+  IERR = NF_ENDDEF(ncid_out)
   IERR = NF_CLOSE(ncid_out) ! closing it seems to be necessary to write dimensions
 
 ! ---------------------------------------------------------------------------------------

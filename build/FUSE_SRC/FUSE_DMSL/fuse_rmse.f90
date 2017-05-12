@@ -355,15 +355,11 @@ CONTAINS
         ! WRITE(unt,'(2(I6,1X),3(F20.15,1X))') MOD_IX, PCOUNT, MSTATS%RAW_RMSE, MSTATS%NASH_SUTT, MSTATS%NUM_FUNCS
         ! write model parameters and summary statistics
 
-        !IF (.NOT.PRESENT(MPARAM_FLAG)) THEN
-        !   CALL PUT_PARAMS(PCOUNT,MOD_IX)  ! PCOUNT = index for parameter set; ONEMOD=1 (just one model structure)
-        !   CALL PUT_SSTATS(PCOUNT,MOD_IX)
-        !ELSE
-        !   IF (MPARAM_FLAG) THEN
-        !      CALL PUT_PARAMS(PCOUNT,MOD_IX)  ! PCOUNT = index for parameter set; ONEMOD=1 (just one model structure)
-        !      CALL PUT_SSTATS(PCOUNT,MOD_IX)
-        !   ENDIF
-        !ENDIF
+        PRINT *, 'Writing parameter values...'
+        CALL PUT_PARAMS(PCOUNT,MOD_IX)  ! PCOUNT = index for parameter set; ONEMOD=1 (just one model structure)
+        PRINT *, 'Writing model stastics...'
+        CALL PUT_SSTATS(PCOUNT,MOD_IX)
+
         ! deallocate state vectors
         DEALLOCATE(W_FLUX_3d)
 

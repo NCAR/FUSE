@@ -279,7 +279,10 @@ CALL PAR_DERIVE(ERR,MESSAGE)
 IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 
 ! Define output file and create it
-FNAME_NETCDF = TRIM(OUTPUT_PATH)//TRIM(DatString)//'__'//TRIM(SMODL%MNAME)//'.nc'
+!FNAME_NETCDF = TRIM(OUTPUT_PATH)//TRIM(DatString)//'__'//TRIM(SMODL%MNAME)//'.nc'
+FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_runs.nc'
+FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_para.nc'
+
 ONEMOD=1                 ! one file per model (i.e., model dimension = 1)
 PCOUNT=0                 ! counter for parameter sets evaluated (shared in MODULE multistats)
 
@@ -318,6 +321,8 @@ ELSE IF(fuse_mode == 'calib_sce')THEN
 
   ! Calibrate FUSE with SCE
   OUTPUT_FLAG=.FALSE.
+
+
 
   ! assign algorithmic control parameters for SCE
   NOPT   =  NUMPAR         ! number of parameters to be optimized (NUMPAR in module multiparam)

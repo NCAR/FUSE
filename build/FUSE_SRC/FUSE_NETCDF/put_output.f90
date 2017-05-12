@@ -35,7 +35,7 @@ SUBROUTINE PUT_OUTPUT(iSpat1,iSpat2,ITIM,IMOD,IPAR)
   INCLUDE 'netcdf.inc'                                  ! use netCDF libraries
   ! ---------------------------------------------------------------------------------------
   ! open file
-  IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
+  IERR = NF_OPEN(TRIM(FNAME_NETCDF_RUNS),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
 
   ! define indices for model output
   INDX = (/iSpat1,iSpat2,ITIM/)
@@ -116,7 +116,7 @@ SUBROUTINE PUT_GOUTPUT_3D(istart_sim,istart_in,numtim)
   INCLUDE 'netcdf.inc'                                  ! use netCDF libraries
 
   ! open file
-  IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
+  IERR = NF_OPEN(TRIM(FNAME_NETCDF_RUNS),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
 
   ! define indices for model output
   IND_START = (/1,1,istart_sim/) ! The indices are relative to 1, i.e. the first data value of a variable would have index (1, 1, ..., 1)

@@ -33,13 +33,13 @@ include 'netcdf.inc'                                  ! use netCDF libraries
 ! ---------------------------------------------------------------------------------------
 CALL PARDESCRIBE()               ! get list of parameter descriptions
 ! ---------------------------------------------------------------------------------------
-PRINT *, 'Define NetCDF output files -- parameter variables = ', TRIM(FNAME_NETCDF)
+PRINT *, 'Define NetCDF output files -- parameter variables = ', TRIM(FNAME_NETCDF_PARA)
 ! Create file
-IERR = NF_CREATE(TRIM(FNAME_NETCDF),NF_CLOBBER,ncid_out); CALL HANDLE_ERR(IERR)
+IERR = NF_CREATE(TRIM(FNAME_NETCDF_PARA),NF_CLOBBER,ncid_out); CALL HANDLE_ERR(IERR)
  ! define dimensions
  IERR = NF_DEF_DIM(ncid_out,'mod',NMOD,NMOD_DIM); CALL HANDLE_ERR(IERR)
 ! IERR = NF_DEF_DIM(ncid_out,'par',NF_UNLIMITED,NPAR_DIM); CALL HANDLE_ERR(IERR)
- IERR = NF_DEF_DIM(ncid_out,'par',1,NPAR_DIM); CALL HANDLE_ERR(IERR)
+ IERR = NF_DEF_DIM(ncid_out,'par',20000,NPAR_DIM); CALL HANDLE_ERR(IERR) ! TODO : max number of parameter - should not be hard-coded
  !IERR = NF_DEF_DIM(ncid_out,'model_differences',9,NDIF_DIM); CALL HANDLE_ERR(IERR) !TODO: this should not be hard-coded
  !IERR = NF_DEF_DIM(ncid_out,'model_name_length',10,NAME_DIM); CALL HANDLE_ERR(IERR)
  !IERR = NF_DEF_DIM(ncid_out,'error_message_length',LEN(MSTATS%ERR_MESSAGE),ERRM_DIM)

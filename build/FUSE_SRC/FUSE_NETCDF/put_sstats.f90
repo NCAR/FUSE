@@ -31,7 +31,7 @@ REAL(MSP),dimension(size(MSTATS%NUMSUB_PROB))  :: TVEC      ! temporary vector
 include 'netcdf.inc'                                  ! use netCDF libraries
 ! ---------------------------------------------------------------------------------------
 ! open file
-IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,NCID); CALL HANDLE_ERR(IERR)
+IERR = NF_OPEN(TRIM(FNAME_NETCDF_PARA),NF_WRITE,NCID); CALL HANDLE_ERR(IERR)
  ! define indices for model output
  INDX = (/IMOD,IPAR/)
  ! loop through summary statistics
@@ -41,7 +41,7 @@ IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,NCID); CALL HANDLE_ERR(IERR)
   IERR = NF_PUT_VAR1_REAL(NCID,IVAR_ID,INDX,APAR); CALL HANDLE_ERR(IERR)     ! write data
  END DO  ! (ivar)
  ! write probability distribution of number of substeps
- iBeg = (/INDX(1),1,INDX(2)/)                 ! start index 
+ iBeg = (/INDX(1),1,INDX(2)/)                 ! start index
  iCnt = (/1,SIZE(PRB_NSUBS),1/)               ! count
  TVEC = REAL(MSTATS%NUMSUB_PROB, KIND(MSP))   ! data
  IERR = NF_INQ_VARID(NCID,'probability',IVAR_ID); CALL HANDLE_ERR(IERR)  ! get variable ID
