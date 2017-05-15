@@ -60,7 +60,7 @@ IF (IERR.NE.0) STOP ' PROBLEM ALLOCATING SPACE IN MEAN_STATS.F90 '
 
 ! extract OBS and SIM for inference period, disregard warmup perio
 QSIM = AROUTE_3d(1,1,infern_beg-warmup_beg:infern_beg-warmup_beg)%Q_ROUTED ! TODO - use ISTART INSTEAD
-QOBS = aValid(1,1,1:NUMTIM_SIM)%OBSQ
+QOBS = aValid(1,1,infern_beg-warmup_beg:infern_beg-warmup_beg)%OBSQ 
 
 ! check for missing QOBS values
 QOBS_MASK = QOBS.ne.REAL(NA_VALUE, KIND(SP)) ! find the time steps for which QOBS is available
