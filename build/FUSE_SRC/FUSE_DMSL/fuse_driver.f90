@@ -14,7 +14,7 @@ USE nrtype                                                ! variable types, etc.
 USE netcdf                                                ! NetCDF library
 USE fuse_fileManager,only:fuse_SetDirsUndPhiles,&         ! sets directories and filenames
           SETNGS_PATH,MBANDS_INFO,MBANDS_NC, &
-          OUTPUT_PATH,FORCINGINFO,INPUT_PATH
+          OUTPUT_PATH,FORCINGINFO,INPUT_PATH,country
 ! data modules
 USE model_defn,nstateFUSE=>nstate                         ! model definition structures
 USE model_defnames                                        ! defines the integer model options
@@ -157,8 +157,17 @@ print*, '2nd command-line argument (FMODEL_ID) = ', FMODEL_ID
 print*, '3rd command-line argument (F_SPATIAL) = ', F_SPATIAL
 print*, '4th command-line argument (fuse_mode) = ', fuse_mode
 
+! get country name for fusex
+country=DatString(1:2)
+PRINT *, 'COUNTRY = ', country
+
+! overwritte path provided in fuse_fileManager
+SETNGS_PATH='/glade/scratch/naddor/fusex/'//country//'/settings/'
+INPUT_PATH ='/glade/scratch/naddor/fusex/'//country//'/input/'
+OUTPUT_PATH='/glade/scratch/naddor/fusex/'//country//'/output/'
+
 ! set path to fuse_file_manager
-FFMFILE=TRIM(SETNGS_PATH)//TRIM(DatString)//'_fuse_file_manager.txt'
+FFMFILE=TRIM(SETNGS_PATH)//TRIM(DatString)//'_'//trim(FMODEL_ID)//'_fuse_file_manager.txt'
 
 ! set directories and filenames for control files
 call fuse_SetDirsUndPhiles(fuseFileManagerIn=FFMFILE,err=err,message=message)
@@ -325,7 +334,7 @@ ELSE IF(fuse_mode == 'calib_sce')THEN
 
   ! assign algorithmic control parameters for SCE
   NOPT   =  NUMPAR         ! number of parameters to be optimized (NUMPAR in module multiparam)
-  MAXN   =     10000			 ! maximum number of trials before optimization is terminated
+  MAXN   =     10000 			 ! maximum number of trials before optimization is terminated
   KSTOP  =      3          ! number of shuffling loops the value must change by PCENTO (MAX=9)
   PCENTO =      0.001      ! the percentage
   NGS    =     10          ! number of complexes in the initial population
