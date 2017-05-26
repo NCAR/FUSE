@@ -59,6 +59,7 @@ MODULE model_defn
 ! model definitions
  CHARACTER(LEN=256)                    :: FNAME_NETCDF_RUNS    ! NETCDF output filename for model runs
  CHARACTER(LEN=256)                    :: FNAME_NETCDF_PARA    ! NETCDF output filename for model parameters
+ CHARACTER(LEN=256)                    :: FNAME_NETCDF_PARA_SCE    ! NETCDF output filename for model parameters produced by SCE
  CHARACTER(LEN=256)                    :: FNAME_PREFIX    ! prefix for desired output files
  CHARACTER(LEN=256)                    :: FNAME_TEMPRY    ! prefix for temporary output files
  CHARACTER(LEN=256)                    :: FNAME_ASCII     ! ASCII output filename

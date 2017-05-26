@@ -52,7 +52,7 @@ USE get_gforce_module,only:read_ginfo                     ! get dimension length
 USE get_gforce_module,only:get_varid                      ! get netCDF ID for forcing variables
 USE get_gforce_module,only:get_gforce_3d                  ! get forcing
 USE get_mbands_module,only:get_mbands, GET_MBANDS_INFO    ! get elevation bands for snow modeling
-!USE get_mbands_module,only:N_BANDS                        ! get elevation bands for snow modeling
+USE get_fparam_module                                     ! get SCE parameters from NetCDF file
 USE getf_ascii_module,only:prelim_asc                     ! get preliminary data from the ASCII file
 USE getf_ascii_module,only:close_file                     ! close ASCII file
 USE getf_ascii_module,only:read_ascii                     ! read ascii forcing data for a given time step
@@ -191,8 +191,8 @@ READ(F_SPATIAL,*) SPATIAL_OPTION          ! spatial option (0=lumped, 1= distrib
 
 ! define the spatial flag (.true. is distributed)
 SPATIAL_FLAG=.TRUE.; IF(SPATIAL_OPTION == LUMPED) SPATIAL_FLAG=.FALSE.
-! get forcing info from the txt file, including NA_VALUE
 
+! get forcing info from the txt file, including NA_VALUE
 call force_info(err,message)
 if(err/=0)then; write(*,*) trim(message); stop; endif
 
@@ -287,13 +287,31 @@ CALL ASSIGN_PAR()        ! parameter definitions are stored in module multiparam
 CALL PAR_DERIVE(ERR,MESSAGE)
 IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 
-! Define output file and create it
-!FNAME_NETCDF = TRIM(OUTPUT_PATH)//TRIM(DatString)//'__'//TRIM(SMODL%MNAME)//'.nc'
-FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_runs.nc'
-FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_para.nc'
-
+! Define output and parameter files
 ONEMOD=1                 ! one file per model (i.e., model dimension = 1)
 PCOUNT=0                 ! counter for parameter sets evaluated (shared in MODULE multistats)
+
+
+IF(fuse_mode == 'run_def' .OR. fuse_mode == 'calib_sce')THEN
+
+  FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_runs.nc'
+  FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_para.nc'
+
+ELSE IF(fuse_mode == 'run_best')THEN
+
+  ! file from which SCE parameters will be loaded - same as FNAME_NETCDF_PARA above
+  FNAME_NETCDF_PARA_SCE = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_para.nc'
+
+  ! files to which "best" SCE model run and parameter set will be saved
+  FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_runs_best.nc'
+  FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_para_best.nc'
+
+ELSE
+
+print *, 'Unexpected fuse_mode!'
+stop
+
+ENDIF
 
 CALL DEF_PARAMS(ONEMOD)  ! define model parameters (initial CREATE)
 CALL DEF_SSTATS()        ! define summary statistics (REDEF)
@@ -323,9 +341,9 @@ IF(fuse_mode == 'run_def')THEN
   ! Run FUSE using default parameter values
   OUTPUT_FLAG=.TRUE.
 
-  print *, 'Entering FUSE_RMSE'
+  print *, 'Running FUSE with default parameter values'
   CALL FUSE_RMSE(APAR,SPATIAL_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
-  print *, 'Done with FUSE_RMSE'
+  print *, 'Done running FUSE with default parameter values'
 
 ELSE IF(fuse_mode == 'calib_sce')THEN
 
@@ -376,6 +394,13 @@ ELSE IF(fuse_mode == 'calib_sce')THEN
 ELSE IF(fuse_mode == 'run_best')THEN
 
   ! Run FUSE for best parameter set of the SCE calibration
+
+  ! Load best SCE parameter set from NetCDF file into APAR
+  CALL GET_FPARAM(FNAME_NETCDF_PARA_SCE,ONEMOD,NUMPAR,APAR)
+
+  print *, 'Running FUSE with best SCE parameter set'
+  CALL FUSE_RMSE(APAR,SPATIAL_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
+  print *, 'Done running FUSE with best SCE parameter set'
 
 ELSE
 

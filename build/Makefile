@@ -159,6 +159,7 @@ FUSE_NETCDF = \
     extractor.f90 juldayss.f90 caldatss.f90 \
     get_gforce.f90 \
     get_smodel.f90 \
+		get_fparam.f90 \
     def_params.f90 \
     def_output.f90 \
     def_sstats.f90 \
