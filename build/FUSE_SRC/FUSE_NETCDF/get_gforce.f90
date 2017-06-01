@@ -195,13 +195,9 @@ contains
   !do ivar=1,nForce
   do ivar=1,4
 
-    print *, 'Getting ID for ', trim(cVec(iVar)%vname)
-
     ! get the variable ID
     ierr = nf90_inq_varid(ncid, trim(cVec(iVar)%vname), ncid_var(ivar))
     if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr))//'[variable='//trim(cVec(iVar)%vname)//']'; return; endif
-
-    print *, 'NetCDF ID for ', trim(cVec(iVar)%vname),' : ', ncid_var(ivar)
 
   END DO
 

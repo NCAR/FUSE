@@ -30,6 +30,8 @@ USE multiforce, only: numtim_in, itim_in                  ! length of input time
 USE multiforce, only: numtim_sim, itim_sim                ! length of simulated time series and associated index
 USE multiforce, only: numtim_sub, itim_sub                ! length of subperiod time series and associated index
 USE multiforce,only:  warmup_beg,infern_beg,infern_end    ! timestep indices
+USE multiforce,only:  longrun_beg,longrun_end             ! timestep indices
+USE multiforce,only:  sim_beg,sim_end                     ! timestep indices
 USE multiforce, only: ncid_forc                           ! NetCDF forcing file ID
 USE multiforce, only: ncid_var                            ! NetCDF forcing variable ID
 USE multistate, only: ncid_out                            ! NetCDF output file ID
@@ -193,13 +195,8 @@ READ(F_SPATIAL,*) SPATIAL_OPTION          ! spatial option (0=lumped, 1= distrib
 SPATIAL_FLAG=.TRUE.; IF(SPATIAL_OPTION == LUMPED) SPATIAL_FLAG=.FALSE.
 
 ! get forcing info from the txt file, including NA_VALUE
-call force_info(err,message)
+call force_info(fuse_mode,err,message)
 if(err/=0)then; write(*,*) trim(message); stop; endif
-
-print*, 'Number of timesteps per subperiod (numtim_sub) = ', numtim_sub
-print*, 'warmup_beg',warmup_beg
-print*, 'infern_beg',infern_beg
-print*, 'infern_end',infern_end
 
 ! allocate space for the basin-average time series
 allocate(aForce(numtim_sub),aRoute(numtim_sub),stat=err)
@@ -291,16 +288,20 @@ IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 ONEMOD=1                 ! one file per model (i.e., model dimension = 1)
 PCOUNT=0                 ! counter for parameter sets evaluated (shared in MODULE multistats)
 
+IF(fuse_mode == 'run_def')THEN
 
-IF(fuse_mode == 'run_def' .OR. fuse_mode == 'calib_sce')THEN
+  FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_runs_def.nc'
+  FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_para_def.nc'
 
-  FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_runs.nc'
-  FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_para.nc'
+ELSE IF(fuse_mode == 'calib_sce')THEN
+
+  FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_runs_sce.nc'
+  FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_para_sce.nc'
 
 ELSE IF(fuse_mode == 'run_best')THEN
 
   ! file from which SCE parameters will be loaded - same as FNAME_NETCDF_PARA above
-  FNAME_NETCDF_PARA_SCE = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_para.nc'
+  FNAME_NETCDF_PARA_SCE = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_para_sce.nc'
 
   ! files to which "best" SCE model run and parameter set will be saved
   FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_runs_best.nc'
@@ -362,7 +363,7 @@ ELSE IF(fuse_mode == 'calib_sce')THEN
   MINGS  =  NGS            ! minimum number of complexes required
   INIFLG =  1              ! 1 = include initial point in the population
   IPRINT =  1              ! 0 = supress printing
-  FNAME_ASCII = TRIM(OUTPUT_PATH)//'sce_output_'//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_'//'.dat'
+  FNAME_ASCII = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_sce_output.txt'
 
   ! convert from SP used in FUSE to MSP used in SCE
   ALLOCATE(APAR_MSP(NUMPAR),BL_MSP(NUMPAR),BU_MSP(NUMPAR),URAND_MSP(NUMPAR))
@@ -394,6 +395,7 @@ ELSE IF(fuse_mode == 'calib_sce')THEN
 ELSE IF(fuse_mode == 'run_best')THEN
 
   ! Run FUSE for best parameter set of the SCE calibration
+  OUTPUT_FLAG=.TRUE.
 
   ! Load best SCE parameter set from NetCDF file into APAR
   CALL GET_FPARAM(FNAME_NETCDF_PARA_SCE,ONEMOD,NUMPAR,APAR)

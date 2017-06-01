@@ -16,7 +16,9 @@ CONTAINS
     !   input: model parameter set
     !  output: root mean squared error
     ! ---------------------------------------------------------------------------------------
+
     USE nrtype                                               ! variable types, etc.
+
     ! data modules
     USE model_defn, ONLY:NSTATE,SMODL                        ! number of state variables
     USE model_defnames                                       ! integer model definitions
@@ -42,10 +44,10 @@ CONTAINS
     USE set_all_module
 
     ! code modules
-    USE get_gforce_module,ONLY:get_modtim                    ! get model time for a given time step
-    USE get_gforce_module,ONLY:get_gforce                    ! get gridded forcing data for a given time step
-    USE get_gforce_module,ONLY:get_gforce_3d                 ! get gridded forcing data for a range of time steps
-    USE getPETgrid_module,ONLY:getPETgrid                    ! get gridded PET
+    USE get_gforce_module, ONLY:get_modtim                   ! get model time for a given time step
+    USE get_gforce_module, ONLY:get_gforce                   ! get gridded forcing data for a given time step
+    USE get_gforce_module, ONLY:get_gforce_3d                ! get gridded forcing data for a range of time steps
+    USE getPETgrid_module, ONLY:getPETgrid                   ! get gridded PET
     USE par_insert_module                                    ! insert parameters into data structures
     USE str_2_xtry_module                                    ! provide access to the routine str_2_xtry
     USE xtry_2_str_module                                    ! provide access to the routine xtry_2_str
@@ -154,16 +156,13 @@ CONTAINS
     CALL CPU_TIME(T1)
 
     ! initialize indices and subperiod counter
-    itim_in = warmup_beg
     itim_sub = 1
     itim_sim = 1
-
-    numtim_sim=(infern_end-warmup_beg)+1
 
     ! loop through time
     PRINT *, 'Running FUSE...'
 
-    DO ITIM_IN=warmup_beg,infern_end        !
+    DO ITIM_IN=istart,(istart+numtim_sim-1)        !
 
        ! if not distributed (i.e., lumped)
        IF(.NOT.distributed)THEN
@@ -177,7 +176,7 @@ CONTAINS
           IF(itim_sub.EQ.1)THEN
 
            ! determine length of current subperiod
-           numtim_sub_cur=MIN(numtim_sub,numtim_sim-itim_sub+1)
+           numtim_sub_cur=MIN(numtim_sub,numtim_sim-itim_sim+1)
 
            PRINT *, 'New subperiod: loading forcing for ',numtim_sub_cur,' time steps'
            CALL get_gforce_3d(itim_in,numtim_sub_cur,ncid_forc,err,message)
