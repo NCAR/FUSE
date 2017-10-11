@@ -111,7 +111,7 @@ SUBSTEPS: DO  ! continuous (recursive) loop over sub-steps
  ! calculate new derivatives
  IF (NEW_SUBSTEP) THEN
   CALL MODL_SOLVE(CALCDSDT=.TRUE.,S0=STATE0,DT=DT_SUB,DSDT=DYDT_0,SOLUTION=0,IERR=IERR,MESSAGE=MESSAGE)
-  IF (IERR.NE.0) THEN; PRINT *, IERR, MESSAGE; STOP; ENDIF 
+  IF (IERR.NE.0) THEN; PRINT *, IERR, MESSAGE; STOP; ENDIF
  ELSE
   CALL MODL_SOLVE(CALCDSDT=.FALSE.,SOLUTION=0,IERR=IERR,MESSAGE=MESSAGE)
   IF (IERR.NE.0) THEN; PRINT *, IERR, MESSAGE; STOP; ENDIF
@@ -137,7 +137,7 @@ SUBSTEPS: DO  ! continuous (recursive) loop over sub-steps
   ! --------------------------------------------------------------------------------------
   CASE (IMPLICIT_EULER)
    ! estimate the initial conditions used in the Newton scheme
-   SELECT CASE (INITIAL_NEWTON) 
+   SELECT CASE (INITIAL_NEWTON)
     CASE (STATE_OLD);     STATE1_INIT = STATE0
     CASE (EXPLICIT_MID);  STATE1_INIT = STATE0 + DYDT_0*DT_SUB/2.0_SP ! estimate at mid-point
     CASE (EXPLICIT_FULL); STATE1_INIT = STATE0 + DYDT_0*DT_SUB        ! estimate at end
@@ -146,7 +146,7 @@ SUBSTEPS: DO  ! continuous (recursive) loop over sub-steps
    CALL MODL_SOLVE(IE_SOLVE=.TRUE.,S0=STATE1_INIT,S1=STATE1_HI,DSDT=DYDT_1,DT=DT_SUB,&
                    NEWSTEP=newStep,CONVCHECK=CHECK,NITER=NITER,&
                    IERR=IERR,MESSAGE=MESSAGE)
-   IF (IERR.NE.0) THEN; PRINT *, IERR, TRIM(MESSAGE); STOP; ENDIF 
+   IF (IERR.NE.0) THEN; PRINT *, IERR, TRIM(MESSAGE); STOP; ENDIF
    IF (NITER > MAXNUM_ITERNS) MAXNUM_ITERNS=NITER
    newStep=.false.
    ! re-compute state vector at the end of the sub-step (needed for non-convergence)
@@ -173,14 +173,14 @@ SUBSTEPS: DO  ! continuous (recursive) loop over sub-steps
    ! get a safegaurded solution to account for excessive extrapolation (includes flux disaggregation)
    CALL MODL_SOLVE(B_IMPOSE=.TRUE.,S0=STATE1_HI,S1=STATE1_HI_S,DT=DT_SUB,HBOUND=FEXCESS,&
                    IERR=IERR,MESSAGE=MESSAGE)
-   IF (IERR.NE.0) THEN; PRINT *, IERR, TRIM(MESSAGE); STOP; ENDIF 
+   IF (IERR.NE.0) THEN; PRINT *, IERR, TRIM(MESSAGE); STOP; ENDIF
 
   ! --------------------------------------------------------------------------------------
   ! (4) CALCULATE IMPLICIT HEUN SOLUTION
   ! --------------------------------------------------------------------------------------
   CASE (IMPLICIT_HEUN)
    ! estimate the initial conditions used in the Newton scheme
-   SELECT CASE (INITIAL_NEWTON) 
+   SELECT CASE (INITIAL_NEWTON)
     CASE (STATE_OLD);     STATE1_INIT = STATE0
     CASE (EXPLICIT_MID);  STATE1_INIT = STATE0 + DYDT_0*DT_SUB/2.0_SP ! estimate at mid-point
     CASE (EXPLICIT_FULL); STATE1_INIT = STATE0 + DYDT_0*DT_SUB        ! estimate at end
@@ -189,7 +189,7 @@ SUBSTEPS: DO  ! continuous (recursive) loop over sub-steps
    CALL MODL_SOLVE(IE_SOLVE=.TRUE.,S0=STATE1_INIT,S1=STATE1_HI,DSDT=DYDT_1,DT=DT_SUB,&
                    NEWSTEP=newStep,CONVCHECK=CHECK,NITER=NITER,&
                    IERR=IERR,MESSAGE=MESSAGE)
-   IF (IERR.NE.0) THEN; PRINT *, IERR, TRIM(MESSAGE); STOP; ENDIF 
+   IF (IERR.NE.0) THEN; PRINT *, IERR, TRIM(MESSAGE); STOP; ENDIF
    IF (NITER > MAXNUM_ITERNS) MAXNUM_ITERNS=NITER
    newStep=.false.
    ! re-compute state vector at the end of the sub-step (needed for non-convergence)
@@ -200,7 +200,7 @@ SUBSTEPS: DO  ! continuous (recursive) loop over sub-steps
    ! get a safegaurded solution to account for excessive extrapolation (includes flux disaggregation)
    CALL MODL_SOLVE(B_IMPOSE=.TRUE.,S0=STATE1_HI,S1=STATE1_HI_S,DT=DT_SUB,HBOUND=FEXCESS,&
                    IERR=IERR,MESSAGE=MESSAGE)
-   IF (IERR.NE.0) THEN; PRINT *, IERR, TRIM(MESSAGE); STOP; ENDIF 
+   IF (IERR.NE.0) THEN; PRINT *, IERR, TRIM(MESSAGE); STOP; ENDIF
    ! check for non-convergence
    IF (TEMPORAL_ERROR_CONTROL.EQ.TS_ADAPT) THEN
     IF (CHECK) THEN
@@ -219,7 +219,7 @@ SUBSTEPS: DO  ! continuous (recursive) loop over sub-steps
    ENDIF
    ! compute auxillary lower-order solution
    STATE1_LO = STATE0 + DYDT_1*DT_SUB
-  
+
   ! --------------------------------------------------------------------------------------
   ! (5) CALCULATE SEMI-IMPLICIT EULER SOLUTION
   ! --------------------------------------------------------------------------------------
@@ -236,7 +236,7 @@ SUBSTEPS: DO  ! continuous (recursive) loop over sub-steps
    CALL MODL_SOLVE(B_IMPOSE=.TRUE.,S0=STATE1_HI,S1=STATE1_HI_S,DT=DT_SUB,HBOUND=FEXCESS,&
                    IERR=IERR,MESSAGE=MESSAGE)
 
- 
+
   ! check that the solution method is OK
   CASE DEFAULT
    IERR=20; MESSAGE='ode_int: unknown solution method'; RETURN
@@ -273,7 +273,7 @@ SUBSTEPS: DO  ! continuous (recursive) loop over sub-steps
   ENDIF
   ! add contribution of sub-step flux to the timestep-average flux
   CALL MODL_SOLVE(ADD_FLUX=.TRUE.,S1=STATE1_HI_S,DT=DT_SUB,IERR=IERR,MESSAGE=MESSAGE)
-  IF (IERR.NE.0) THEN; PRINT *, IERR, TRIM(MESSAGE); STOP; ENDIF 
+  IF (IERR.NE.0) THEN; PRINT *, IERR, TRIM(MESSAGE); STOP; ENDIF
   STATE1_RETAIN = STATE1_HI_S
 
   NUMSUB_ACCEPT = NUMSUB_ACCEPT + 1
@@ -288,7 +288,7 @@ SUBSTEPS: DO  ! continuous (recursive) loop over sub-steps
  ! --------------------------------------------------------------------------------------
  ELSE  ! REJECT STEP AND DECREASE STEP SIZE
   NEW_SUBSTEP = .FALSE.
-  !WRITE(*,'(I1,1X,2(F8.5,1X),I1,1X,20(F8.3,1X))') 1, ETIME, DT_SUB, IMAX, STATE1_HI_S, EVEC, TVEC  
+  !WRITE(*,'(I1,1X,2(F8.5,1X),I1,1X,20(F8.3,1X))') 1, ETIME, DT_SUB, IMAX, STATE1_HI_S, EVEC, TVEC
   ! calculate new (decreased) step size
   NUMSUB_REJECT = NUMSUB_REJECT + 1
   MULT = SAFETY * SQRT( TVEC(IMAX(1)) / MAX(EVEC(IMAX(1)),EPS) )
@@ -309,7 +309,7 @@ END DO SUBSTEPS ! continuous (recursive) do loop
 ! ---------------------------------------------------------------------------------------
 ! update model states (note use of DT_FULL)
 CALL MODL_SOLVE(NEWSTATE=.TRUE.,S1=STATE_END,DT=DT_FULL,IERR=IERR,MESSAGE=MESSAGE)
-IF (IERR.NE.0) THEN; PRINT *, IERR, TRIM(MESSAGE); STOP; ENDIF 
+IF (IERR.NE.0) THEN; PRINT *, IERR, TRIM(MESSAGE); STOP; ENDIF
 ! NOTE: may need to modify diagnostic variables that do not have time units, e.g., satarea = satarea/dt_full
 DT_SUB=PREVSTEP                       ! ensure stepsize is not equal to the small remainder
 
@@ -323,7 +323,7 @@ CONTAINS
   ! -------------------------------------------------------------------------------------
   CASE(STEP_TRUNC)  ! truncate the time step if near the end
    IF (ETIME + STEP .GE. DT_FULL) REVISE_STEP = DT_FULL - ETIME
-   IF (ETIME + STEP .LT. DT_FULL) REVISE_STEP = STEP 
+   IF (ETIME + STEP .LT. DT_FULL) REVISE_STEP = STEP
   ! -------------------------------------------------------------------------------------
   CASE(LOOK_AHEAD)  ! the look-ahead method of Shampine (1994)
    IF (ETIME + STEP .GE. DT_FULL) THEN
@@ -344,7 +344,7 @@ CONTAINS
     T_MGN = STEP/SAFETY - STEP  ! margin of error
     IF (ETIME + STEP + T_MGN .GE. DT_FULL) THEN
      REVISE_STEP   = DT_FULL - ETIME
-     STEP_INCREASE = .TRUE. 
+     STEP_INCREASE = .TRUE.
     ELSE
      IF (ETIME + STEP + T_MGN*2._SP .GE. DT_FULL) THEN
       REVISE_STEP   = STEP + T_MGN*(T_MGN/(DT_FULL-(ETIME+STEP)))

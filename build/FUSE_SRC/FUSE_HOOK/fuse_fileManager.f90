@@ -9,9 +9,11 @@ public
 ! FUSE-wide pathlength
 integer(mik),parameter::fusePathLen=256
 ! defines the path for data files (and default values)
-CHARACTER(LEN=fusePathLen)  :: SETNGS_PATH='/d7/naddor/fuse_for_yellowstone/settings/'
-CHARACTER(LEN=fusePathLen)  :: INPUT_PATH ='/d7/naddor/fuse_for_yellowstone/input/'
-CHARACTER(LEN=fusePathLen)  :: OUTPUT_PATH='/d7/naddor/fuse_for_yellowstone/output/'
+CHARACTER(LEN=fusePathLen)  :: SETNGS_PATH='/glade/scratch/naddor/fusex/us/settings/'
+CHARACTER(LEN=fusePathLen)  :: INPUT_PATH ='/glade/scratch/naddor/fusex/us/input/'
+CHARACTER(LEN=fusePathLen)  :: OUTPUT_PATH='/glade/scratch/naddor/fusex/us/output/'
+! define country name for FUSEX
+CHARACTER(LEN=2)            :: country
 ! define name of control files    (and default values)
 CHARACTER(LEN=fusePathLen)  :: M_DECISIONS='fuse_zDecisions.txt'    ! definition of model decisions
 CHARACTER(LEN=fusePathLen)  :: CONSTRAINTS='fuse_zConstraints.txt'  ! definition of parameter constraints

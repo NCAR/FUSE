@@ -1,4 +1,4 @@
-# FUSE 
+# FUSE
 
 ## Description and credits
 
@@ -38,17 +38,17 @@ Forcing and streamflow data for the catchment [USGS 08013000 Calcasieu River nea
 ./fuse_URS.exe fuse_direktor_08013000.txt 08013000 070 2 0 1.e-2 1.e-2 1.0000000000 10
 ```
 where
-`$1` is the muster file, 
-`$2` if the ID of the basin, 
-`$3` is the ID of the FUSE model, 
-`$4` is the method used to temporally integrate model equations (2 is implicit Euler), 
-`$5` is a switch between fixed and adaptive sub-steps, 
-`$6` is the absolute tolerance for defining the length of sub-steps (adaptive sub-stepping), 
-`$7` is the relative tolerance for defining the length of sub-steps (adaptive sub-stepping), 
+`$1` is the muster file,
+`$2` if the ID of the basin,
+`$3` is the ID of the FUSE model,
+`$4` is the method used to temporally integrate model equations (2 is implicit Euler),
+`$5` is a switch between fixed and adaptive sub-steps,
+`$6` is the absolute tolerance for defining the length of sub-steps (adaptive sub-stepping),
+`$7` is the relative tolerance for defining the length of sub-steps (adaptive sub-stepping),
 `$8` is the maximum length of the time step (days) and
 `$9` is the number of random samples desired.
 
-These arguments override the information provided in the control files, specifically: 
+These arguments override the information provided in the control files, specifically:
 * `$2` is used to define the name of the `FORCINGINFO` file, and overwrites the information provided in `fuse_fileManager.txt`.
 * `$3` is used to define the FUSE model used, and overwrites the information provided in `M_DECISIONS` (UNLESS the ID is negative, in which case the model decisions are read from the file. The list of model indices is defined in `$(MASTER)/settings/fuse_rModelList.txt`.
 * `$4` through `$8` overwrites the information provided in the `MOD_NUMERIX` file.
@@ -56,8 +56,8 @@ These arguments override the information provided in the control files, specific
 ##E. Plot the results
 Plot the content of the input and output files, for instance using the code in Sections 1 to 6 of `$(MASTER)/r_scripts/plot_fuse_input_output.R`. This will make basic consistency tests, e.g. check that the length of the input and output time series and the indices in the settings file are consistent. Since parameter values were obtained from a uniform random sampling, do not expect a good fit of the observed discharge at this stage.
 
-##F. Calibrate FUSE using the shuffled complex evolution method 
-1. The code of the shuffled complex evolution method (SCE, in file `$(MASTER)/build/FUSE_SRC/FUSE_SCE/sce.f`, [Duan et al., 1992](http://dx.doi.org/10.1029/91WR02985)) was written in F77, so it must be compiled separately. We compile it using `ifort` and the following flags: 
+##F. Calibrate FUSE using the shuffled complex evolution method
+1. The code of the shuffled complex evolution method (SCE, in file `$(MASTER)/build/FUSE_SRC/FUSE_SCE/sce.f`, [Duan et al., 1992](http://dx.doi.org/10.1029/91WR02985)) was written in F77, so it must be compiled separately. We compile it using `ifort` and the following flags:
   ```
   ifort -c -fixed -O3 -r8 sce.f  
   ```
@@ -77,8 +77,8 @@ Plot the content of the input and output files, for instance using the code in S
 
 5. Note that the objective function is RMSE, defined in the file `$(MASTER)/build/FUSE_SRC/FUSE_SCE/fuse_rsme.f90` and called by the wrapper `$(MASTER)/build/FUSE_SCE/functn.f90`.
 
-6. Note that in `$(MASTER)/build/FUSE_SRC/FUSE_SCE/URS_driver_sce.f90` the following line turns off the production 
-of time series outputs to save space: 
+6. Note that in `$(MASTER)/build/FUSE_SRC/FUSE_SCE/URS_driver_sce.f90` the following line turns off the production
+of time series outputs to save space:
 
   ```
   OUTPUT_FLAG = .FALSE.    ! .TRUE. if desire time series output
@@ -104,4 +104,3 @@ Explore the calibrated parameter values and plot the calibrated model runs, e.g.
 
 ### License
 FUSE is distributed under the GNU Public License Version 3. For details see the file `LICENSE` in the FUSE root directory or visit the [online version](http://www.gnu.org/licenses/gpl-3.0.html).
-

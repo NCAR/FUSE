@@ -291,7 +291,7 @@ SELECT CASE (TRIM(VARNAME))
  CASE ('temp')       ; XVAR_3d = gForce_3d%TEMP
  CASE ('pet')        ; XVAR_3d = gForce_3d%PET
  ! extract response data
- CASE ('obsq')       ; XVAR_3d = valDat%OBSQ
+ CASE ('obsq')       ; XVAR_3d = aValid%OBSQ
  ! extract model states
  CASE ('tens_1')     ; XVAR_3d = gState_3d%TENS_1
  CASE ('tens_1a')    ; XVAR_3d = gState_3d%TENS_1A
@@ -374,7 +374,7 @@ SELECT CASE (TRIM(VARNAME))
  CASE ('oflow_2')    ; XVAR_3d = W_FLUX_3d%OFLOW_2
  CASE ('oflow_2a')   ; XVAR_3d = W_FLUX_3d%OFLOW_2A
  CASE ('oflow_2b')   ; XVAR_3d = W_FLUX_3d%OFLOW_2B
-CASE ('snwacml_z01'); XVAR_3d = MBANDS(1)%SNOWACCMLTN
+ CASE ('snwacml_z01'); XVAR_3d = MBANDS(1)%SNOWACCMLTN
  CASE ('snwacml_z02'); XVAR_3d = MBANDS(2)%SNOWACCMLTN
  CASE ('snwacml_z03'); XVAR_3d = MBANDS(3)%SNOWACCMLTN
  CASE ('snwacml_z04'); XVAR_3d = MBANDS(4)%SNOWACCMLTN
@@ -498,6 +498,7 @@ CASE ('snwacml_z01'); XVAR_3d = MBANDS(1)%SNOWACCMLTN
  CASE ('sub_noconv') ; XVAR_3d = NUMSUB_NOCONV
  CASE ('max_iterns') ; XVAR_3d = MAXNUM_ITERNS
 END SELECT
+
 ! and, save the output
 VAREXTRACT_3d = XVAR_3d
 ! ---------------------------------------------------------------------------------------

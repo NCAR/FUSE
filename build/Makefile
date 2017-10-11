@@ -1,16 +1,13 @@
 #========================================================================
-# Makefile to compile FUSE 
-# Creates version SNOWv3, Brian Henn, 5/2013
+# Makefile to compile FUSE
 #========================================================================
-#
-#
 #
 #========================================================================
 # PART 0: Define directory paths
 #========================================================================
 
 # Define core directory below which everything resides
-F_MASTER = /home/naddor/fuse/
+F_MASTER = /glade/u/home/naddor/fuse/
 
 # Core directory that contains FUSE source code
 F_KORE_DIR = $(F_MASTER)build/FUSE_SRC/
@@ -20,7 +17,7 @@ MOD_PATH = $(F_MASTER)build/
 
 # Define the directory for the executables
 EXE_PATH = $(F_MASTER)bin
-#
+
 #========================================================================
 # PART 1: Assemble all of the FUSE sub-routines
 #========================================================================
@@ -31,7 +28,8 @@ HOOKUP_DIR = $(F_KORE_DIR)FUSE_HOOK
 DRIVER_DIR = $(F_KORE_DIR)FUSE_DMSL
 NETCDF_DIR = $(F_KORE_DIR)FUSE_NETCDF
 ENGINE_DIR = $(F_KORE_DIR)FUSE_ENGINE
-#
+SCE_DIR    = $(F_KORE_DIR)FUSE_SCE
+
 # Utility modules
 FUSE_UTILMS= \
 	kinds_dmsl_kit_FUSE.f90 \
@@ -148,6 +146,7 @@ FUSE_MODRUN= \
 	getPETgrid.f90 \
 	get_mbands.f90 \
 	initfluxes.f90 \
+	set_all.f90 \
 	ode_int.f90 \
 	fuse_solve.f90 \
 	comp_stats.f90 \
@@ -160,6 +159,7 @@ FUSE_NETCDF = \
     extractor.f90 juldayss.f90 caldatss.f90 \
     get_gforce.f90 \
     get_smodel.f90 \
+		get_fparam.f90 \
     def_params.f90 \
     def_output.f90 \
     def_sstats.f90 \
@@ -168,10 +168,18 @@ FUSE_NETCDF = \
     put_sstats.f90
 NETCDF = $(patsubst %, $(NETCDF_DIR)/%, $(FUSE_NETCDF))
 
+# Define SCE routines
+# sce_16plus.f is in fortran 77 so it has to be compiled independently
+# ifort -O2 -c -fixed sce_16plus.f
+
+FUSE_SCE = \
+	sce_16plus.o
+SCE = $(patsubst %, $(SCE_DIR)/%, $(FUSE_SCE))
+
 # ... and stitch it all together...
 FUSE_ALL = $(UTILMS) $(NRUTIL) $(DATAMS) $(INFOMS) \
 	$(NR_SUB) $(MODGUT) $(SOLVER) $(PRELIM) $(MODRUN) \
-	$(NETCDF)
+	$(NETCDF) $(SCE)
 
 #========================================================================
 # PART 2: Define the libraries, driver programs, and executables
@@ -179,30 +187,32 @@ FUSE_ALL = $(UTILMS) $(NRUTIL) $(DATAMS) $(INFOMS) \
 
 # Define the NetCDF libraries and path to include files
 # Note 1: the order of the libraries matters, e.g. -lcurl should come
-# before netcdf libraries 
+# before netcdf libraries
 # Note 2: on hydro-c1, /usr/local is a copy (via symbolic link) of /opt
-
+# Note 3: on cheyenne, loading environment module automatically modify
+# envrionment variables accordingly, e.g. module show netcdf
 
 # Define the Fortran Compiler
 FC = ifort
 
 # Define the NetCDF libraries and path to include files
 ifeq "$(FC)" "gfortran"
- HDF_PATH  = /usr/local/hdf5
- NCDF_PATH = /usr/local/netcdf-4.2/gcc-4.4.5
- LOCL_PATH = /usr/local
- LIBNETCDF = -L$(NCDF_PATH)/lib -lnetcdff -lnetcdf -L$(HDF_PATH)/lib -lhdf5_hl -lhdf5 -L$(LOCL_PATH)/lib -lsz -lz
- INCNETCDF = -I$(NCDF_PATH)/include -I$(HDF_PATH)/include
+	HDF_PATH  = /usr/local/hdf5
+	NCDF_PATH = /usr/local/netcdf-4.2/gcc-4.4.5
+	LOCL_PATH = /usr/local
+	LIBNETCDF = -L$(NCDF_PATH)/lib -lnetcdff -lnetcdf -L$(HDF_PATH)/lib -lhdf5_hl -lhdf5 -L$(LOCL_PATH)/lib -lsz -lz
+	INCNETCDF = -I$(NCDF_PATH)/include -I$(HDF_PATH)/include
 endif
-ifeq "$(FC)" "ifort"
- HDF_PATH  = /opt/hdf5
-NCDF_PATH = /opt/netcdf4-intel
-SZ_PATH = /opt/szip-2.1
-Z_PATH = /opt/zlib-1.2.8
-LIBNETCDF = -lcurl -L$(NCDF_PATH)/lib -lnetcdff -lnetcdf -L$(HDF_PATH)/lib -lhdf5_hl -lhdf5 -L$(SZ_PATH)/lib -lsz -L$(Z_PATH)/lib -lz
-INCNETCDF = -I$(NCDF_PATH)/include -I$(HDF_PATH)/include
 
+ifeq "$(FC)" "ifort"
+ 	HDF_PATH  = /opt/hdf5
+	NCDF_PATH = /opt/netcdf4-intel
+	SZ_PATH = /opt/szip-2.1
+	Z_PATH = /opt/zlib-1.2.8
+	LIBNETCDF = -lcurl -L$(NCDF_PATH)/lib -lnetcdff -lnetcdf -L$(HDF_PATH)/lib -lhdf5_hl -lhdf5 -L$(SZ_PATH)/lib -lsz -L$(Z_PATH)/lib -lz
+	INCNETCDF = -I$(NCDF_PATH)/include -I$(HDF_PATH)/include
 endif
+
 ifeq "$(FC)" "pgf90"
  LIBNETCDF = -L/usr/local/netcdf4-pgi/lib -lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -lsz -lz
  INCNETCDF = -I/usr/local/netcdf4-pgi/include
@@ -211,12 +221,13 @@ endif
 # Define the driver program and associated subroutines for the fidelity test
 FUSE__URS_DRIVER = \
 	sobol.f90 \
-    fuse_rmse.f90 \
-        distributed_driver.f90
+  fuse_rmse.f90 \
+	functn.f90 \
+  fuse_driver.f90
 URS_DRIVER = $(patsubst %, $(DRIVER_DIR)/%, $(FUSE__URS_DRIVER))
 
 # Define the executables
-URS_DRIVER__EX = fuse_snow_dist.exe
+URS_DRIVER__EX = fuse_snow_dist_catch.exe
 
 #========================================================================
 # PART 3: Compile the puppy
@@ -226,9 +237,12 @@ URS_DRIVER__EX = fuse_snow_dist.exe
 ifeq "$(FC)" "gfortran"
  FLAGS = -static -Wall -g -ffree-line-length-none
 endif
+
 ifeq "$(FC)" "ifort"
- FLAGS_NORMA = -cpp -w -O2 -auto -noalign -convert big_endian -vec-report0 -fp-model source 
- FLAGS_DEBUG = -debug all -g -O0 -check bounds -check arg_temp_created -traceback -fpe0 -ftrapuv -heap-arrays
+ FLAGS_NORMA = -fast
+ # FLAGS_NORMA = -O3 -xHost # nearly as fast as -fast but more stable
+ FLAGS_DEBUG = -debug -debug-parameters all -traceback -ftrapuv -g -fpe0 -u -check all -check noarg_temp_created -CB
+ # FLAGS_DEBUG = -debug all -g -O0 -check bounds -check arg_temp_created -traceback -fpe0 -ftrapuv -heap-arrays
 endif
 
 ifeq "$(FC)" "pgf90"
