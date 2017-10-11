@@ -251,6 +251,14 @@ DO iSpat2=1,nSpat2
 	 PRINT *, 'MBANDS_INFO_3d - ELEV =', MBANDS_INFO_3d(iSpat1,iSpat2,:)%Z_MID
 	 PRINT *, 'MBANDS_INFO_3d - FRAC =', MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF
 
+	 if (abs(sum(MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF)-1).GT.1E-6) then ! check that area fraction sum to 1
+
+ 	  print *, 'DIF EB = ', abs(sum(MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF)-1)
+	 	print *, "f-GET_MBANDS/area fraction of elevation bands do not sum to 1" ! TODO: use message instead?
+		stop
+
+	 end if
+
 	END DO
 END DO
 
