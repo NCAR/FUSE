@@ -148,7 +148,7 @@ use nrtype,only:I4B,LGT,SP
 use utilities_dmsl_kit_FUSE,only:getSpareUnit,stripTrailString
 USE fuse_fileManager,only:INPUT_PATH,SETNGS_PATH,MBANDS_INFO     ! defines data directory
 USE multibands,only:N_BANDS,MBANDS,MBANDS_INFO_3d,Z_FORCING,&
-										Z_FORCING_grid          ! model band structures
+										Z_FORCING_grid,elev_mask          ! model band structures
 USE multiforce,only:nspat1,nspat2                     ! dimension lengths
 
 IMPLICIT NONE
@@ -222,7 +222,8 @@ ALLOCATE(MBANDS(N_BANDS),STAT=IERR(1))
 
 ! allocate data structures
 ALLOCATE(Z_FORCING_grid(nspat1,nspat2),MBANDS_INFO_3d(nspat1,nspat2,n_bands),&
-				 AF_TEMP(nspat1,nspat2,n_bands),ME_TEMP(nspat1,nspat2,n_bands),STAT=IERR(1))
+				 AF_TEMP(nspat1,nspat2,n_bands),ME_TEMP(nspat1,nspat2,n_bands),&
+				 elev_mask(nspat1,nspat2),STAT=IERR(1))
 
 IF (ANY(IERR.NE.0)) THEN
  message="f-GET_MBANDS/problem allocating elevation band data structures"
@@ -237,13 +238,26 @@ if(err/=0)then; message=trim(message)//trim(nf90_strerror(err)); return; endif
 ierr = nf90_get_var(NCID_EB, ivarid_me, me_TEMP, start=(/1,1,1/), count=(/nSpat1,nSpat2,n_bands/)); CALL HANDLE_ERR(IERR)
 if(err/=0)then; message=trim(message)//trim(nf90_strerror(err)); return; endif
 
-! populate MBANDS_INFO_3d
+! populate MBANDS_INFO_3d, Z_FORCING_grid and elev_mask
 DO iSpat2=1,nSpat2
 	DO iSpat1=1,nSpat1
 
 	 MBANDS_INFO_3d(iSpat1,iSpat2,:)%Z_MID = me_TEMP(iSpat1,iSpat2,:)
 	 MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF    = af_TEMP(iSpat1,iSpat2,:)
 	 Z_FORCING_grid(iSpat1,iSpat2)    = sum(me_TEMP(iSpat1,iSpat2,:)*af_TEMP(iSpat1,iSpat2,:)) ! estimate mean elevation of forcing using weighted mean of EB elevation
+	 elev_mask(iSpat1,iSpat2)=me_TEMP(iSpat1,iSpat2,1)
+
+	 PRINT *, 'Z_FORCING_grid =', Z_FORCING_grid(iSpat1,iSpat2)
+	 PRINT *, 'MBANDS_INFO_3d - ELEV =', MBANDS_INFO_3d(iSpat1,iSpat2,:)%Z_MID
+	 PRINT *, 'MBANDS_INFO_3d - FRAC =', MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF
+
+	 if (abs(sum(MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF)-1).GT.1E-6) then ! check that area fraction sum to 1
+
+ 	  print *, 'DIF EB = ', abs(sum(MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF)-1)
+	 	print *, "f-GET_MBANDS/area fraction of elevation bands do not sum to 1" ! TODO: use message instead?
+		stop
+
+	 end if
 
 	END DO
 END DO
@@ -252,6 +266,8 @@ err = nf90_close(ncid_eb)
 if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
 
 DEALLOCATE(AF_TEMP, ME_TEMP)
+
+print *, 'Done populating data structures for elevation bands'
 
 END SUBROUTINE GET_MBANDS_INFO
 

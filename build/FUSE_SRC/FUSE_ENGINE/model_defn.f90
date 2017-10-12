@@ -30,17 +30,17 @@ MODULE model_defn
 !  CHARACTER(LEN=16)                    :: RFERR           ! rainfall error
   INTEGER(I4B)                         :: iRFERR
 !  CHARACTER(LEN=16)                    :: ARCH1           ! upper-layer architecture
-  INTEGER(I4B)                         :: iARCH1  
+  INTEGER(I4B)                         :: iARCH1
 !  CHARACTER(LEN=16)                    :: ARCH2           ! lower-layer architecture
-  INTEGER(I4B)                         :: iARCH2  
+  INTEGER(I4B)                         :: iARCH2
 !  CHARACTER(LEN=16)                    :: QSURF           ! surface runoff
-  INTEGER(I4B)                         :: iQSURF  
+  INTEGER(I4B)                         :: iQSURF
 !  CHARACTER(LEN=16)                    :: QPERC           ! percolation
-  INTEGER(I4B)                         :: iQPERC  
+  INTEGER(I4B)                         :: iQPERC
 !  CHARACTER(LEN=16)                    :: ESOIL           ! evaporation
-  INTEGER(I4B)                         :: iESOIL  
+  INTEGER(I4B)                         :: iESOIL
 !  CHARACTER(LEN=16)                    :: QINTF           ! interflow
-  INTEGER(I4B)                         :: iQINTF  
+  INTEGER(I4B)                         :: iQINTF
 !  CHARACTER(LEN=16)                    :: Q_TDH           ! time delay in runoff
   INTEGER(I4B)                         :: iQ_TDH
   INTEGER(I4B)                         :: iSNOWM           ! snow
@@ -57,15 +57,17 @@ MODULE model_defn
 ! max steps in routing function
   INTEGER(I4B),PARAMETER::NTDH_MAX=500
 ! model definitions
- CHARACTER(LEN=256)                    :: FNAME_NETCDF    ! NETCDF output filename
+ CHARACTER(LEN=256)                    :: FNAME_NETCDF_RUNS    ! NETCDF output filename for model runs
+ CHARACTER(LEN=256)                    :: FNAME_NETCDF_PARA    ! NETCDF output filename for model parameters
+ CHARACTER(LEN=256)                    :: FNAME_NETCDF_PARA_SCE    ! NETCDF output filename for model parameters produced by SCE
  CHARACTER(LEN=256)                    :: FNAME_PREFIX    ! prefix for desired output files
  CHARACTER(LEN=256)                    :: FNAME_TEMPRY    ! prefix for temporary output files
  CHARACTER(LEN=256)                    :: FNAME_ASCII     ! ASCII output filename
  TYPE(UMODEL),DIMENSION(5000)          :: AMODL           ! (model definition -- all)
  TYPE(UMODEL)                          :: SMODL           ! (model definition -- single model)
  TYPE(SNAMES),DIMENSION(7)             :: CSTATE          ! (list of model states for SMODL)
- INTEGER(I4B)                          :: NSTATE=0        ! number of model states 
+ INTEGER(I4B)                          :: NSTATE=0        ! number of model states
  TYPE(FNAMES),DIMENSION(50)            :: C_FLUX          ! (list of model fluxes for SMODL)
- INTEGER(I4B)                          :: N_FLUX=0        ! number of model fluxes 
+ INTEGER(I4B)                          :: N_FLUX=0        ! number of model fluxes
  ! --------------------------------------------------------------------------------------
 END MODULE model_defn

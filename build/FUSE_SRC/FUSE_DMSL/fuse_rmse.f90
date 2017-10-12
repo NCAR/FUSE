@@ -1,8 +1,7 @@
 MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
   IMPLICIT NONE
 CONTAINS
-!  SUBROUTINE FUSE_RMSE(XPAR,DISTRIBUTED,NCID_FORC,RMSE,OUTPUT_FLAG,MPARAM_FLAG)
-  SUBROUTINE FUSE_RMSE(XPAR,DISTRIBUTED,NCID_FORC,OUTPUT_FLAG,MPARAM_FLAG)
+  SUBROUTINE FUSE_RMSE(XPAR,DISTRIBUTED,NCID_FORC,RMSE,OUTPUT_FLAG,MPARAM_FLAG)
 
     ! ---------------------------------------------------------------------------------------
     ! Creator:
@@ -17,7 +16,9 @@ CONTAINS
     !   input: model parameter set
     !  output: root mean squared error
     ! ---------------------------------------------------------------------------------------
+
     USE nrtype                                               ! variable types, etc.
+
     ! data modules
     USE model_defn, ONLY:NSTATE,SMODL                        ! number of state variables
     USE model_defnames                                       ! integer model definitions
@@ -27,6 +28,7 @@ CONTAINS
     USE multiforce, ONLY: numtim_sim, itim_sim               ! length of simulated time series and associated index
     USE multiforce, ONLY: numtim_sub, itim_sub               ! length of subperiod time series and associated index
     USE multiforce, ONLY: numtim_sub_cur                     ! length of current subperiod
+    USE multiforce, ONLY: warmup_beg,infern_beg,infern_end   ! timestep indices
 
     USE multiforce, ONLY:nspat1,nspat2                       ! spatial dimensions
     USE multiforce, ONLY:ncid_var                            ! NetCDF ID for forcing variables
@@ -39,12 +41,13 @@ CONTAINS
     USE multistats, ONLY:MSTATS,PCOUNT,MOD_IX                ! access model statistics; counter for param set
     USE multi_flux                                           ! model fluxes
     USE multibands                                           ! elevation bands for snow modeling
+    USE set_all_module
 
     ! code modules
-    USE get_gforce_module,ONLY:get_modtim                    ! get model time for a given time step
-    USE get_gforce_module,ONLY:get_gforce                    ! get gridded forcing data for a given time step
-    USE get_gforce_module,ONLY:get_gforce_3d                 ! get gridded forcing data for a range of time steps
-    USE getPETgrid_module,ONLY:getPETgrid                    ! get gridded PET
+    USE get_gforce_module, ONLY:get_modtim                   ! get model time for a given time step
+    USE get_gforce_module, ONLY:get_gforce                   ! get gridded forcing data for a given time step
+    USE get_gforce_module, ONLY:get_gforce_3d                ! get gridded forcing data for a range of time steps
+    USE getPETgrid_module, ONLY:getPETgrid                   ! get gridded PET
     USE par_insert_module                                    ! insert parameters into data structures
     USE str_2_xtry_module                                    ! provide access to the routine str_2_xtry
     USE xtry_2_str_module                                    ! provide access to the routine xtry_2_str
@@ -65,13 +68,13 @@ CONTAINS
     LOGICAL(LGT), INTENT(IN)               :: OUTPUT_FLAG    ! .TRUE. if desire time series output
     LOGICAL(LGT), INTENT(IN), OPTIONAL     :: MPARAM_FLAG    ! .FALSE. (used to turn off writing statistics)
 
-    ! output - commented because CALL MEAN_STATS() commented
-    ! REAL(SP),INTENT(OUT)                   :: RMSE           ! root mean squared error
+    ! output
+    REAL(SP),INTENT(OUT)                   :: RMSE           ! root mean squared error
 
     ! internal
     LOGICAL(lgt),PARAMETER                 :: computePET=.FALSE. ! flag to compute PET
     REAL(SP)                               :: T1,T2          ! CPU time
-  !  INTEGER(I4B)                           :: ITIM           ! loop through time series
+    !  INTEGER(I4B)                        :: ITIM           ! loop through time series
     INTEGER(I4B)                           :: iSpat1,iSpat2  ! loop through spatial dimensions
     INTEGER(I4B)                           :: ibands         ! loop through elevation bands
     INTEGER(I4B)                           :: IPAR           ! loop through model parameters
@@ -103,16 +106,17 @@ CONTAINS
 
     ! add parameter set to the data structure
     CALL PUT_PARSET(XPAR)
-    PRINT *, 'Parameter set added to data structure'
+    PRINT *, 'Parameter set added to data structure:'
+    PRINT *, XPAR
     !DO IPAR=1,NUMPAR; WRITE(*,'(A11,1X,F9.3)') LPARAM(IPAR), XPAR(IPAR); END DO
 
     ! compute derived model parameters (bucket sizes, etc.)
     CALL PAR_DERIVE(ERR,MESSAGE)
     IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 
-    ! initialize model states over the 2D gridded domain'
-    DO iSpat1=1,nSpat1
-       DO iSpat2=1,nSpat2
+    ! initialize model states over the 2D gridded domain
+    DO iSpat2=1,nSpat2
+      DO iSpat1=1,nSpat1
           CALL INIT_STATE(fracState0)             ! define FSTATE - fracState0 is shared in MODULE multistate
           !gState(iSpat1,iSpat2) = FSTATE         ! put the state into the 2-d structure
           gState_3d(iSpat1,iSpat2,1) = FSTATE     ! put the state into the 3_d structure
@@ -122,10 +126,12 @@ CONTAINS
 
     ! initialize elevations bands if snow module is on - see init_state.f90 for catchment-scale modeling
     ! IF (SMODL%iSNOWM.EQ.iopt_temp_index .AND. SPATIAL_OPTION == LUMPED) THEN
-    IF (SMODL%iSNOWM.EQ.iopt_temp_index) THEN
 
-       DO iSpat1=1,nSpat1
-          DO iSpat2=1,nSpat2
+    PRINT *, 'N_BANDS =', N_BANDS
+
+    IF (SMODL%iSNOWM.EQ.iopt_temp_index) THEN
+        DO iSpat2=1,nSpat2
+            DO iSpat1=1,nSpat1
              DO IBANDS=1,N_BANDS
                 MBANDS_VAR_4d(iSpat1,iSpat2,IBANDS,1)%SWE=0.0_sp            ! band snowpack water equivalent (mm)
                 MBANDS_VAR_4d(iSpat1,iSpat2,IBANDS,1)%SNOWACCMLTN=0.0_sp ! new snow accumulation in band (mm day-1)
@@ -139,7 +145,7 @@ CONTAINS
     ENDIF
 
     ! allocate 3d data structures for fluxes
-    ALLOCATE(W_FLUX_3d(nspat1,nspat2,numtim_sub+1))
+    ALLOCATE(W_FLUX_3d(nspat1,nspat2,numtim_sub))
 
     ! initialize model time step
     DT_SUB  = DELTIM                       ! init stepsize to full step (DELTIM shared in module multiforce)
@@ -150,12 +156,13 @@ CONTAINS
     CALL CPU_TIME(T1)
 
     ! initialize indices and subperiod counter
-    itim_in = istart+1
     itim_sub = 1
+    itim_sim = 1
 
     ! loop through time
-    PRINT *, 'Running the model'
-    DO ITIM_SIM=1,NUMTIM_SIM            !
+    PRINT *, 'Running FUSE...'
+
+    DO ITIM_IN=istart,(istart+numtim_sim-1)        !
 
        ! if not distributed (i.e., lumped)
        IF(.NOT.distributed)THEN
@@ -168,17 +175,17 @@ CONTAINS
           ! if start of subperiod: load forcing
           IF(itim_sub.EQ.1)THEN
 
-             ! determine length of current subperiod
-             numtim_sub_cur=MIN(numtim_sub,numtim_sim-itim_sim+1)
+           ! determine length of current subperiod
+           numtim_sub_cur=MIN(numtim_sub,numtim_sim-itim_sim+1)
 
-             PRINT *, 'New subperiod: loading forcing for ',numtim_sub_cur,' time steps'
-             CALL get_gforce_3d(itim_in,numtim_sub_cur,ncid_forc,err,message)
-             IF(err/=0)THEN; WRITE(*,*) 'Error while extracting 3d forcing'; STOP; ENDIF
-             PRINT *, 'Forcing loaded'
+           PRINT *, 'New subperiod: loading forcing for ',numtim_sub_cur,' time steps'
+           CALL get_gforce_3d(itim_in,numtim_sub_cur,ncid_forc,err,message)
+           IF(err/=0)THEN; WRITE(*,*) 'Error while extracting 3d forcing'; STOP; ENDIF
+           PRINT *, 'Forcing loaded'
 
            ENDIF
 
-           ! get the model time - TODO : reassess wether still necessary
+           ! get the model time
            CALL get_modtim(itim_in,ncid_forc,ierr,message)
            IF(ierr/=0)THEN; PRINT*, TRIM(cmessage); STOP; ENDIF
 
@@ -188,8 +195,8 @@ CONTAINS
            ENDIF
 
             ! loop through grid points, and run the model for one time step
-            DO iSpat1=1,nSpat1
-               DO iSpat2=1,nSpat2
+            DO iSpat2=1,nSpat2
+              DO iSpat1=1,nSpat1
 
                   ! NOTE: MFORCE, MSTATE, MBANDS and MFLUX are all scalars, i.e. have zero dimension
                   ! MFORCE and MSTATE are initialized using 3d data structures, then FUSE is run, then the
@@ -198,8 +205,8 @@ CONTAINS
                   ! extract forcing data
                   MFORCE = gForce_3d(iSpat1,iSpat2,itim_sub)      ! assign model forcing data
 
-                  ! only run FUSE if forcing available
-                  IF(MFORCE%temp/=NA_VALUE)THEN
+                  ! only run FUSE for grid points in domain and for which forcing available
+                  IF(abs(NA_VALUE-elev_mask(iSpat1,iSpat2))>0.1.AND.abs(NA_VALUE-MFORCE%temp)>0.1)THEN
 
                      ! extract model states
                      MSTATE = gState_3d(iSpat1,iSpat2,itim_sub)      ! refresh model states
@@ -218,9 +225,9 @@ CONTAINS
                      CASE(iopt_temp_index)
 
                         ! load data from multidimensional arrays
-                        Z_FORCING          = Z_FORCING_grid(iSpat1,iSpat2)                   ! elevation of forcing data (m)
-                        MBANDS%Z_MID       = MBANDS_INFO_3d(iSpat1,iSpat2,:)%Z_MID           ! band mid-point elevation (m)
-                        MBANDS%AF          = MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF              ! fraction of basin area in band (-)
+                        Z_FORCING          = Z_FORCING_grid(iSpat1,iSpat2)                       ! elevation of forcing data (m)
+                        MBANDS%Z_MID       = MBANDS_INFO_3d(iSpat1,iSpat2,:)%Z_MID               ! band mid-point elevation (m)
+                        MBANDS%AF          = MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF                  ! fraction of basin area in band (-)
                         MBANDS%SWE         = MBANDS_VAR_4d(iSpat1,iSpat2,:,itim_sub)%SWE         ! band snowpack water equivalent (mm)
                         MBANDS%SNOWACCMLTN = MBANDS_VAR_4d(iSpat1,iSpat2,:,itim_sub)%SNOWACCMLTN ! new snow accumulation in band (mm day-1)
                         MBANDS%SNOWMELT    = MBANDS_VAR_4d(iSpat1,iSpat2,:,itim_sub)%SNOWMELT    ! snowmelt in band (mm day-1)
@@ -242,20 +249,19 @@ CONTAINS
                     ! perform overland flow routing
                     CALL Q_OVERLAND()
 
-
                     ! sanity check
-                    !IF (AROUTE(ITIM)%Q_ROUTED.LT.0._sp) STOP ' Q_ROUTED is less than zero '
-                    !IF (AROUTE(ITIM)%Q_ROUTED.GT.1000._sp) STOP ' Q_ROUTED is enormous '
+                    IF (MROUTE%Q_ROUTED.LT.0._sp) STOP ' Q_ROUTED is less than zero '
+                    IF (MROUTE%Q_ROUTED.GT.1000._sp) STOP ' Q_ROUTED is enormous '
 
                     ! save the state
                     CALL XTRY_2_STR(STATE1,FSTATE)            ! update FSTATE using states at the end of the time step (STATE0)
                     gState_3d(iSpat1,iSpat2,itim_sub+1) = FSTATE      ! put the state into the 3-d structure
-                    W_FLUX_3d(iSpat1,iSpat2,itim_sub+1) = W_FLUX
-                    AROUTE_3d(iSpat1,iSpat2,itim_sub+1) = MROUTE      ! save instantaneous and routed runoff
+                    W_FLUX_3d(iSpat1,iSpat2,itim_sub) = W_FLUX
+                    AROUTE_3d(iSpat1,iSpat2,itim_sub) = MROUTE      ! save instantaneous and routed runoff
 
                     IF (SMODL%iSNOWM.EQ.iopt_temp_index) THEN
 
-                       gState_3d(iSpat1,iSpat2,itim_sub+1)%SWE_TOT = SUM(MBANDS%SWE) ! save SWE summed over all the elevation bands
+                       gState_3d(iSpat1,iSpat2,itim_sub+1)%SWE_TOT = SUM(MBANDS%SWE*MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF) ! weighted average of SWE over all the elevation bands
 
                        MBANDS_VAR_4d(iSpat1,iSpat2,:,itim_sub+1)%SWE         = MBANDS%SWE          ! update MBANDS_VAR_4D
                        MBANDS_VAR_4d(iSpat1,iSpat2,:,itim_sub+1)%SNOWACCMLTN = MBANDS%SNOWACCMLTN  !
@@ -273,11 +279,18 @@ CONTAINS
                     ! compute summary statistics
                     CALL COMP_STATS()
 
-                 ELSE ! INSERT NA VALUES
+                  ELSE ! insert NA values if grid point outside of domain or forcing not available
 
-                    !gState_3d(iSpat1,iSpat2,itim) = NA_VALUE_SP
-                    !W_FLUX_3d(iSpat1,iSpat2,itim) = NA_VALUE_SP
-                    !AROUTE_3d(iSpat1,iSpat2,itim) = NA_VALUE_SP
+                    !print *, 'Elevation or forcing missing'
+
+                    CALL SET_STATE(NA_VALUE_SP) ! includes FSTATE%SWE_TOT
+                    gState_3d(iSpat1,iSpat2,itim_sub) = FSTATE
+
+                    CALL SET_FLUXES(NA_VALUE_SP)
+                    W_FLUX_3d(iSpat1,iSpat2,itim_sub) = W_FLUX
+
+                    CALL SET_ROUTE(NA_VALUE_SP)
+                    AROUTE_3d(iSpat1,iSpat2,itim_sub) = MROUTE
 
                  ENDIF ! (is forcing available for this grid cell?)
               END DO  ! (looping thru 2nd spatial dimension)
@@ -286,12 +299,16 @@ CONTAINS
            ! if end of subperiod: move state of last time step to first and flush memory
            IF(itim_sub.EQ.numtim_sub_cur)THEN
 
+           PRINT *, 'End of subperiod reached:'
+
               ! write model output
-              PRINT *, 'End of subperiod reached: write output for ',numtim_sub_cur,' time steps starting at indice', itim_sim-numtim_sub_cur+1
               IF (OUTPUT_FLAG) THEN
-                 CALL PUT_GOUTPUT_3D(itim_sim-numtim_sub_cur+1,numtim_sub_cur)
-              ENDIF
-              PRINT *, 'Done writing output'
+                PRINT *, 'Write output for ',numtim_sub_cur,' time steps starting at indice', itim_sim-numtim_sub_cur+1
+                CALL PUT_GOUTPUT_3D(itim_sim-numtim_sub_cur+1,itim_in-numtim_sub_cur+1,numtim_sub_cur)
+                PRINT *, 'Done writing output'
+              ELSE
+                PRINT *, 'OUTPUT_FLAG is set on FALSE, no output written'
+              END IF
 
               ! TODO: reinitialize gState_3d and MBANDS_VAR_4d instead of overwritting them
 
@@ -306,8 +323,8 @@ CONTAINS
                MBANDS_VAR_4d(:,:,:,1)%DSWE_DT     = MBANDS_VAR_4d(:,:,:,itim_sub+1)%DSWE_DT
 
                ! save fluxes instantaneous and routed runoff
-               W_FLUX_3d(:,:,1) =  W_FLUX_3d(:,:,itim_sub+1)
-               AROUTE_3d(:,:,1) =  AROUTE_3d(:,:,itim_sub+1)
+               W_FLUX_3d(:,:,1) =  W_FLUX_3d(:,:,itim_sub)
+               AROUTE_3d(:,:,1) =  AROUTE_3d(:,:,itim_sub)
 
               ! reset itim_sub
               itim_sub=1
@@ -319,8 +336,8 @@ CONTAINS
 
            END IF
 
-           ! increment itim_in
-           itim_in=itim_in+1
+           ! increment itim_sim
+           itim_sim=itim_sim+1
 
         END DO  ! (itim)
 
@@ -329,21 +346,22 @@ CONTAINS
         WRITE(*,*) "TIME ELAPSED = ", t2-t1
         ! calculate mean summary statistics
 
-        !  CALL MEAN_STATS()
-        ! RMSE = MSTATS%RAW_RMSE
+        CALL MEAN_STATS()
+        RMSE = MSTATS%RAW_RMSE
+
+        PRINT *, 'RMSE = ', RMSE
+
         ! WRITE(unt,'(2(I6,1X),3(F20.15,1X))') MOD_IX, PCOUNT, MSTATS%RAW_RMSE, MSTATS%NASH_SUTT, MSTATS%NUM_FUNCS
         ! write model parameters and summary statistics
 
-        !IF (.NOT.PRESENT(MPARAM_FLAG)) THEN
-        !   CALL PUT_PARAMS(PCOUNT,MOD_IX)  ! PCOUNT = index for parameter set; ONEMOD=1 (just one model structure)
-        !   CALL PUT_SSTATS(PCOUNT,MOD_IX)
-        !ELSE
-        !   IF (MPARAM_FLAG) THEN
-        !      CALL PUT_PARAMS(PCOUNT,MOD_IX)  ! PCOUNT = index for parameter set; ONEMOD=1 (just one model structure)
-        !      CALL PUT_SSTATS(PCOUNT,MOD_IX)
-        !   ENDIF
-        !ENDIF
+        PRINT *, 'Writing parameter values...'
+        CALL PUT_PARAMS(PCOUNT,MOD_IX)  ! PCOUNT = index for parameter set; ONEMOD=1 (just one model structure)
+        PRINT *, 'Writing model stastics...'
+        CALL PUT_SSTATS(PCOUNT,MOD_IX)
+
         ! deallocate state vectors
+        DEALLOCATE(W_FLUX_3d)
+
         DEALLOCATE(STATE0,STATE1,STAT=IERR); IF (IERR.NE.0) STOP ' problem deallocating state vectors in fuse_rmse '
         ! ---------------------------------------------------------------------------------------
       END SUBROUTINE FUSE_RMSE

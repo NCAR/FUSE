@@ -30,7 +30,7 @@ include 'netcdf.inc'                                  ! use netCDF libraries
 CALL SUMDESCRIBE()  ! get list of summary statistics
 ! ---------------------------------------------------------------------------------------
 ! open file and put in define mode
-IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
+IERR = NF_OPEN(TRIM(FNAME_NETCDF_PARA),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
 IERR = NF_REDEF(ncid_out); CALL HANDLE_ERR(IERR)
  ! retrieve ID for the model and parameter dimensions
  IERR = NF_INQ_DIMID(ncid_out,'par',NPAR_DIM); CALL HANDLE_ERR(IERR)

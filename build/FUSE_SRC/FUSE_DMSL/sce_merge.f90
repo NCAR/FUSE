@@ -32,7 +32,7 @@ INTEGER(I4B)                           :: INFERN_START    ! start of inference p
 ! ---------------------------------------------------------------------------------------
 ! (2) READ LIST OF OUTPUT FILES, AND RUN MODEL FOR BEST PARAMETER SET IN EACH ONE
 ! ---------------------------------------------------------------------------------------
-INTEGER(I4B)                           :: I,J,K           ! looping   
+INTEGER(I4B)                           :: I,J,K           ! looping
 INTEGER(I4B)                           :: IERR            ! error code for reading input files
 INTEGER(I4B)                           :: ERR             ! error code
 CHARACTER(LEN=256)                     :: MESSAGE         ! error message
@@ -93,7 +93,7 @@ CLOSE(21)
 
 ! Define output file names (shared in MODULE model_defn) - note: NOT shared in MODULE model_defn
 !FNAME_NETCDF = TRIM(OUTPUT_PATH)//TRIM(MBASIN_ID)//'_sce_merge.nc'
-FNAME_NETCDF = TRIM(OUTPUT_PATH)//'sce_modrun_'//FILE_NAME(12:LEN_TRIM(FILE_NAME)) ! WARNING MIGHT WANT TO USE NC_FILE INSTEAD 
+FNAME_NETCDF = TRIM(OUTPUT_PATH)//'sce_modrun_'//FILE_NAME(12:LEN_TRIM(FILE_NAME)) ! WARNING MIGHT WANT TO USE NC_FILE INSTEAD
 
 print*, FNAME_NETCDF
 ! Define NetCDF output files (only write parameters and summary statistics)

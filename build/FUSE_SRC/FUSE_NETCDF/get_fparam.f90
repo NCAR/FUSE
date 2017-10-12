@@ -1,3 +1,12 @@
+module get_fparam_module
+USE nrtype
+USE netcdf
+implicit none
+private
+public::get_fparam
+
+contains
+
 SUBROUTINE GET_FPARAM(NETCDF_FILE,IMOD,MPAR,XPAR)
 ! ---------------------------------------------------------------------------------------
 ! Creator:
@@ -37,15 +46,20 @@ REAL(SP), DIMENSION(MPAR), INTENT(OUT) :: XPAR        ! parameter value (whateve
 include 'netcdf.inc'                                  ! use netCDF libraries
 ! ---------------------------------------------------------------------------------------
 ! check that the file exists
-INQUIRE(FILE=TRIM(OUTPUT_PATH)//TRIM(NETCDF_FILE),EXIST=LEXIST)
+INQUIRE(FILE=TRIM(NETCDF_FILE),EXIST=LEXIST)
 IF (.NOT.LEXIST) THEN
- print *, ' NetCDF file defining the desired model does not exist '
- print *, '   File = ', TRIM(OUTPUT_PATH)//TRIM(NETCDF_FILE)
+ print *, 'The NetCDF file containing the SCE parameter sets does not exist:'
+ print *, TRIM(NETCDF_FILE)
  STOP
+ELSE
+
+  print *, 'Loading SCE parameters from'
+  print *, TRIM(NETCDF_FILE)
+
 ENDIF
 
 ! open file
-IERR = NF_OPEN(TRIM(OUTPUT_PATH)//TRIM(NETCDF_FILE),NF_NOWRITE,NCID); CALL HANDLE_ERR(IERR)
+IERR = NF_OPEN(TRIM(NETCDF_FILE),NF_NOWRITE,NCID); CALL HANDLE_ERR(IERR)
 
  ! get number of parameter sets
  IERR = NF_INQ_DIMID(NCID,'par',IDIMID); CALL HANDLE_ERR(IERR)
@@ -56,7 +70,7 @@ IERR = NF_OPEN(TRIM(OUTPUT_PATH)//TRIM(NETCDF_FILE),NF_NOWRITE,NCID); CALL HANDL
  print *, 'Number of model parameters:', MPAR
 
  ALLOCATE(RAW_RMSE(NPAR),STAT=IERR); IF(IERR.NE.0) STOP ' problem allocating space for RAW_RMSE '
- 
+
  IERR = NF_INQ_VARID(NCID,'raw_rmse',I_RAW_RMSE); CALL HANDLE_ERR(IERR)
  IERR = NF_GET_VAR_DOUBLE(NCID,I_RAW_RMSE,RAW_RMSE); CALL HANDLE_ERR(IERR)
 
@@ -64,7 +78,7 @@ IERR = NF_OPEN(TRIM(OUTPUT_PATH)//TRIM(NETCDF_FILE),NF_NOWRITE,NCID); CALL HANDL
  LOWEST_RAW_RMSE=RAW_RMSE(I_OPT_PARA)
  print *, 'Index of parameter set with lowest RMSE =',I_OPT_PARA
  print *, 'Lowest RMSE =',LOWEST_RAW_RMSE
- 
+
  DEALLOCATE(RAW_RMSE,STAT=IERR); IF (IERR.NE.0) STOP ' problem deallocating ATIME/TDATA '
 
  PRINT *, 'Reading from NetCDF file parameter values for best parameter set:'
@@ -77,7 +91,7 @@ IERR = NF_OPEN(TRIM(OUTPUT_PATH)//TRIM(NETCDF_FILE),NF_NOWRITE,NCID); CALL HANDL
 
   ! get parameter value for the optimal parameter set
   INDX = (/IMOD,I_OPT_PARA/)
-  IERR = NF_GET_VAR1_DOUBLE(NCID,IVARID,INDX,APAR); CALL HANDLE_ERR(IERR) 
+  IERR = NF_GET_VAR1_DOUBLE(NCID,IVARID,INDX,APAR); CALL HANDLE_ERR(IERR)
 
   ! put parameter value in the output vector
   XPAR(IPAR) = APAR
@@ -92,3 +106,5 @@ IERR = NF_OPEN(TRIM(OUTPUT_PATH)//TRIM(NETCDF_FILE),NF_NOWRITE,NCID); CALL HANDL
 IERR = NF_CLOSE(NCID)
 ! ---------------------------------------------------------------------------------------
 END SUBROUTINE GET_FPARAM
+
+end module get_fparam_module

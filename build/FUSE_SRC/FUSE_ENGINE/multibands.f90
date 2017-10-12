@@ -34,5 +34,6 @@ MODULE multibands
  INTEGER(I4B)                          :: N_BANDS=0       ! number of bands, initialize to zero
  REAL(SP)                              :: Z_FORCING       ! elevation of forcing data (m)
  REAL(SP),DIMENSION(:,:),ALLOCATABLE   :: Z_FORCING_grid  ! elevation of forcing data (m) for the 2D domain
+ REAL(SP),DIMENSION(:,:),ALLOCATABLE   :: elev_mask       ! mask domain for which elevation bands are defined
  ! --------------------------------------------------------------------------------------
 END MODULE multibands

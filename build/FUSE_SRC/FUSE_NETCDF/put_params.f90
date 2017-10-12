@@ -35,47 +35,46 @@ include 'netcdf.inc'                                  ! use netCDF libraries
 ! ---------------------------------------------------------------------------------------
 
 ! open file
-IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,NCID); CALL HANDLE_ERR(IERR)
-
-! print *, 'Writing parameter values to this NetCDF file:', TRIM(FNAME_NETCDF)
+IERR = NF_OPEN(TRIM(FNAME_NETCDF_PARA),NF_WRITE,NCID); CALL HANDLE_ERR(IERR)
 
  ! define indices for model output
  INDX = (/IMOD,IPAR/)
+ PRINT *, 'INDX', INDX
  ! loop through model parameters
  DO IVAR=1,NOUTPAR  ! NOUTPAR is stored in module metaparams
-  
- ! print *, PNAME(IVAR), '=',PAREXTRACT(PNAME(IVAR))
+
+  !print *, PNAME(IVAR), '=',PAREXTRACT(PNAME(IVAR))
 
   XPAR = PAREXTRACT(PNAME(IVAR)); APAR=XPAR                                  ! get parameter PNAME(IVAR)
   IERR = NF_INQ_VARID(NCID,TRIM(PNAME(IVAR)),IVAR_ID); CALL HANDLE_ERR(IERR) ! get variable ID
   IERR = NF_PUT_VAR1_REAL(NCID,IVAR_ID,INDX,APAR); CALL HANDLE_ERR(IERR)     ! write data
  END DO  ! (ivar)
  ! put model description
- IERR = NF_INQ_VARID(NCID,'model_description',IVAR_ID); CALL HANDLE_ERR(IERR)
+ !IERR = NF_INQ_VARID(NCID,'model_description',IVAR_ID); CALL HANDLE_ERR(IERR)
 
- !print *, 'Writing model decisions to this NetCDF file:', TRIM(FNAME_NETCDF)
- 
- DO IVAR=1,NDESC     
-  ! extract text string
-  IF (IVAR.EQ.1) TXTVEC = desc_int2str(SMODL%iRFERR)
-  IF (IVAR.EQ.2) TXTVEC = desc_int2str(SMODL%iARCH1)
-  IF (IVAR.EQ.3) TXTVEC = desc_int2str(SMODL%iARCH2)
-  IF (IVAR.EQ.4) TXTVEC = desc_int2str(SMODL%iQSURF)
-  IF (IVAR.EQ.5) TXTVEC = desc_int2str(SMODL%iQPERC)
-  IF (IVAR.EQ.6) TXTVEC = desc_int2str(SMODL%iESOIL)
-  IF (IVAR.EQ.7) TXTVEC = desc_int2str(SMODL%iQINTF)
-  IF (IVAR.EQ.8) TXTVEC = desc_int2str(SMODL%iQ_TDH)
-  IF (IVAR.EQ.9) TXTVEC = desc_int2str(SMODL%iSNOWM)
-
-  ISTART = (/    1,IVAR,IMOD/)   ! starting position of array
-  ICOUNT = (/NCHAR,   1,   1/)   ! number of array elements (one descriptor, one model)
-  IERR = NF_PUT_VARA_TEXT(NCID,IVAR_ID,ISTART,ICOUNT,TXTVEC); CALL HANDLE_ERR(IERR)
- END DO
+ ! print *, 'Writing model decisions to this NetCDF file:', TRIM(FNAME_NETCDF)
+ !
+ ! DO IVAR=1,NDESC
+ !  ! extract text string
+ !  IF (IVAR.EQ.1) TXTVEC = desc_int2str(SMODL%iRFERR)
+ !  IF (IVAR.EQ.2) TXTVEC = desc_int2str(SMODL%iARCH1)
+ !  IF (IVAR.EQ.3) TXTVEC = desc_int2str(SMODL%iARCH2)
+ !  IF (IVAR.EQ.4) TXTVEC = desc_int2str(SMODL%iQSURF)
+ !  IF (IVAR.EQ.5) TXTVEC = desc_int2str(SMODL%iQPERC)
+ !  IF (IVAR.EQ.6) TXTVEC = desc_int2str(SMODL%iESOIL)
+ !  IF (IVAR.EQ.7) TXTVEC = desc_int2str(SMODL%iQINTF)
+ !  IF (IVAR.EQ.8) TXTVEC = desc_int2str(SMODL%iQ_TDH)
+ !  IF (IVAR.EQ.9) TXTVEC = desc_int2str(SMODL%iSNOWM)
+ !
+ !  ISTART = (/    1,IVAR,IMOD/)   ! starting position of array
+ !  ICOUNT = (/NCHAR,   1,   1/)   ! number of array elements (one descriptor, one model)
+ !  IERR = NF_PUT_VARA_TEXT(NCID,IVAR_ID,ISTART,ICOUNT,TXTVEC); CALL HANDLE_ERR(IERR)
+ ! END DO
  ! put error message
- ISTART = (/                      1,IMOD,IPAR/)   ! starting position of array
- ICOUNT = (/LEN(MSTATS%ERR_MESSAGE),   1,   1/)   ! number of array elements (one descriptor, one model)
- IERR = NF_INQ_VARID(NCID,'error_message',IVAR_ID); CALL HANDLE_ERR(IERR)
- IERR = NF_PUT_VARA_TEXT(NCID,IVAR_ID,ISTART,ICOUNT,MSTATS%ERR_MESSAGE); CALL HANDLE_ERR(IERR)
+ !ISTART = (/                      1,IMOD,IPAR/)   ! starting position of array
+ !ICOUNT = (/LEN(MSTATS%ERR_MESSAGE),   1,   1/)   ! number of array elements (one descriptor, one model)
+ !IERR = NF_INQ_VARID(NCID,'error_message',IVAR_ID); CALL HANDLE_ERR(IERR)
+ !IERR = NF_PUT_VARA_TEXT(NCID,IVAR_ID,ISTART,ICOUNT,MSTATS%ERR_MESSAGE); CALL HANDLE_ERR(IERR)
 ! close NetCDF file
 IERR = NF_CLOSE(NCID)
 ! ---------------------------------------------------------------------------------------

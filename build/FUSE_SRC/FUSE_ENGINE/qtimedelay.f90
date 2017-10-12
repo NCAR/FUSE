@@ -35,6 +35,10 @@ err=0
 SELECT CASE(SMODL%iQ_TDH)
  CASE(iopt_rout_gamma) ! use a Gamma distribution with shape parameter = 2.5
   ALPHA = 2.5_SP                                             ! shape parameter
+
+  !PRINT *, 'MPARAM%TIMEDELAY= ', MPARAM%TIMEDELAY
+  PRINT *, 'MPARAM= ', MPARAM
+
   ALAMB = ALPHA/MPARAM%TIMEDELAY                             ! scale parameter
   PSAVE = 0._SP                                              ! cumulative probability at JTIM-1
   NTDH = SIZE(DPARAM%FRAC_FUTURE)                            ! maximum number of future time steps

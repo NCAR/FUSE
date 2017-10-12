@@ -44,7 +44,7 @@ MODULE multiforce
   TYPE(tData)                           :: timDat     ! model time structure
   ! response data structures
   TYPE(vData)                           :: valDat     ! validation structure
-  TYPE(vData), DIMENSION(:), POINTER    :: aValid     ! all model validation data
+  TYPE(vData), DIMENSION(:,:,:), POINTER    :: aValid     ! all model validation data
   ! forcing data structures
   TYPE(FDATA), DIMENSION(:), POINTER    :: CFORCE     ! COPY of model forcing data
   TYPE(FDATA), DIMENSION(:), POINTER    :: AFORCE     ! all model forcing data
@@ -66,6 +66,10 @@ MODULE multiforce
   INTEGER(i4b)                          :: warmup_beg=-1             ! index for the start of the warm-up period
   INTEGER(i4b)                          :: infern_beg=-1             ! index for the start of the inference period
   INTEGER(i4b)                          :: infern_end=-1             ! index for the end of the inference period
+  INTEGER(i4b)                          :: longrun_beg=-1            ! index for the start of the long run (typically longer than calibration period)
+  INTEGER(i4b)                          :: longrun_end=-1            ! index for the end of the long run (typically longer than calibration period)
+  INTEGER(i4b)                          :: sim_beg=-1                ! index for the start of the simulation in fuse_rmse (either warmup_beg or longrun_beg, depending on fuse mode)
+  INTEGER(i4b)                          :: sim_end=-1                ! index for the end of the simulation in fuse_rmse (either infern_end or longrun_end, depending on fuse mode)
   INTEGER(i4b)                          :: istart=-1                 ! index for start of inference period (in reduced array)
   REAL(sp)                              :: jdayRef                   ! reference time (days)
   REAL(sp)                              :: deltim=-1._dp             ! length of time step (days)
@@ -95,24 +99,25 @@ MODULE multiforce
   CHARACTER(len=StrLen)                 :: vname_dtime='undefined'   ! name of variable for time
 
   ! number of forcing variables
-  INTEGER(i4b),PARAMETER                :: nForce=6                 ! see lines below, does not include Q
+  INTEGER(i4b),PARAMETER                :: nForce=7                 ! see lines below
 
   ! forcing variable names
   CHARACTER(len=StrLen)                 :: vname_aprecip='undefined' ! variable name: precipitation
   CHARACTER(len=StrLen)                 :: vname_potevap='undefined' ! variable name: potential ET
   CHARACTER(len=StrLen)                 :: vname_airtemp='undefined' ! variable name: temperature
+  CHARACTER(len=StrLen)                 :: vname_q      ='undefined' ! variable name: observed runoff
   CHARACTER(len=StrLen)                 :: vname_spechum='undefined' ! variable name: specific humidity
   CHARACTER(len=StrLen)                 :: vname_airpres='undefined' ! variable name: surface pressure
   CHARACTER(len=StrLen)                 :: vname_swdown ='undefined' ! variable name: downward shortwave radiation
-  CHARACTER(len=StrLen)                 :: vname_q      ='undefined' ! variable name: runoff
 
   ! indices for forcing variables
   INTEGER(i4b),PARAMETER                :: ilook_aprecip=1  ! named element in lCheck
   INTEGER(i4b),PARAMETER                :: ilook_potevap=2  ! named element in lCheck
   INTEGER(i4b),PARAMETER                :: ilook_airtemp=3  ! named element in lCheck
-  INTEGER(i4b),PARAMETER                :: ilook_spechum=4  ! named element in lCheck
-  INTEGER(i4b),PARAMETER                :: ilook_airpres=5  ! named element in lCheck
-  INTEGER(i4b),PARAMETER                :: ilook_swdown =6  ! named element in lCheck
+  INTEGER(i4b),PARAMETER                :: ilook_q=4        ! named element in lCheck
+  INTEGER(i4b),PARAMETER                :: ilook_spechum=5  ! named element in lCheck
+  INTEGER(i4b),PARAMETER                :: ilook_airpres=6  ! named element in lCheck
+  INTEGER(i4b),PARAMETER                :: ilook_swdown =7  ! named element in lCheck
 
   ! NetCDF
   INTEGER(i4b)                          :: ncid_forc=-1              ! NetCDF forcing file ID
