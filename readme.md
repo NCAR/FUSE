@@ -10,18 +10,12 @@ This is a source code repository for the **Framework for Understanding Structura
 1. Fork this repository to a directory `$(MASTER)` on your machine.
 2. Change directory to `$(MASTER)/build/` and edit the `Makefile`, by:
    1. defining the name of the master directory (line 10),
-   2. defining the fortran compiler (line 196).
-   3. defining the path to the NetCDF libraries (lines 198-219, note that the NetCDF libraries must be compiled using the same compiler that you are using to run the program ),
+   2. defining the fortran compiler (line 196),
+   3. defining the path to the NetCDF libraries (lines 198-219, note that the NetCDF libraries must be compiled using the same compiler that you are using to run the program ).
  4. Compile the code (i.e. type `make` or `make -f Makefile`).
 
-## B. Define the files to be used
-1. In the directory `$(MASTER)/bin`, edit the file `fuse_direktor_08013000.txt` to point to the file that defines all of the files required to run FUSE (i.e., change the path to wherever you want to put the file manager file).
-1. In the file defined in B1 above (which by default is `$(MASTER)/settings/fuse_fileManager.txt`), modify the path to define the directories where you would like to keep FUSE settings, FUSE input, and FUSE output. In the example given these directories are simply
-  * `$(MASTER)/settings/`
-  * `$(MASTER)/input/`
-  * `$(MASTER)/output/`
-
-  but it may be necessary to store input and output data on a different disk partition that is not backed up (hence, the flexibility). Note that there is also flexibility to change the name of the control files.
+## B. Define the folders to be used
+1. In the directory `$(MASTER)/build/FUSE_SRC/FUSE_HOOK/`, edit the file `fuse_fileManager.f90` and modify the path to define the directories where you would like to keep FUSE settings, FUSE input, and FUSE output (lines 12 to 14). 
 
 ## C. Assemble control and input files
 1. The file `M_DECISIONS` (can be called anything, and by default is called `fuse_zDecisions.txt`) describes the different options available in the FUSE modeling framework. Each of these modeling decisions is described in detail by [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735).
