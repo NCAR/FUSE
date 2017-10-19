@@ -2,25 +2,30 @@
 
 ## Description and credits
 
-This is a source code repository for the **Framework for Understanding Structural Errors** or **FUSE**. FUSE initial implementation is described in [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735).
-
-This implementation involves four main additional features:
+This is a source code repository for the **Framework for Understanding Structural Errors** or **FUSE**. The initial implementation is described in [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735). This implementation involves four main additional features:
 
 1. a snow module described in [Henn et al. (WRR, 2015)](http://dx.doi.org/10.1002/2014WR016736),
 2. a calibration mode using [Duan et al. (WRR, 1992)](http://dx.doi.org/10.1029/91WR02985) shuffled complex evolution alogrithm (SCE),
 3. a distributed mode enabling to run FUSE on a grid, and
 4. all the input, output and parameter files are now NetCDF files.
 
-## FUSE modes
+## FUSE modes and case studies
 
-FUSE can be run in four complentary modes:
+FUSE can be run in four complementary modes:
 
 1. `run_def` runs FUSE with default parameter values,
 2. `run_pre` runs FUSE with with a pre-defined set of parameter values,
 3. `calib_sce` runs FUSE in a SCE-calibration mode,
 4. `run_best` runs FUSE using the best (highest RMSE) parameter set found by SCE.
 
-To get FUSE running, follow the following steps.
+To get you started with FUSE, we provide files for two case studies:
+
+1. Catchment scale: forcing and streamflow data for the [USGS 08013000 Calcasieu River near Glenmora, LA](http://waterdata.usgs.gov/nwis/inventory/?site_no=08013000&agency_cd=USGS&amp;) catchment available [here](
+https://www.dropbox.com/s/ht4hqegcvu60x2m/fuse_catch_ex.zip?dl=0)  
+2. Grid scale: forcing on a 1/8th degree grid for a small 10x10 domain in Colorado available [here](
+https://www.dropbox.com/s/c3a23549rp57sen/fuse_grid_ex.zip?dl=0)  . 
+
+Follow the following steps to run FUSE.
 
 ## A. Fork this repository and compile FUSE
 1. Fork this repository to a directory `$(MASTER)` on your machine.
@@ -28,7 +33,7 @@ To get FUSE running, follow the following steps.
    1. defining the name of the master directory (line 10),
    2. defining the fortran compiler (line 196),
    3. defining the path to the NetCDF libraries (lines 198-219, note that the NetCDF libraries must be compiled using the same compiler that you are using to run the program ).
- 4. Compile the code (i.e. type `make` or `make -f Makefile`).
+ 4. Compile the code (type `make` or `make -f Makefile`).
  
 ## B. Populate the setup directory
 The setup directory must contain the following files:
@@ -46,9 +51,9 @@ The setup directory must contain the following files:
    2. The file `CONSTRAINTS` (can be called anything, and in the example is called `fuse_zConstraints_snow.txt`) defines the default parameter values and lower and upper parameter bounds. The list of parameters corresponds to those described in [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735) and [Henn et al. (WRR, 2015)](http://dx.doi.org/10.1002/2014WR016736). There is a lot in this file, the important columns are the default parameter values and lower and upper parameter bounds.
    
 ## D. Run the puppy
-Background: different driver programs were written to fulfill different objectives. In each driver program the options are defined through command-line arguments. This facilitates running multiple instances of the executable on a cluster. The filenames are quite long (and descriptive) to avoid different model runs writing to the same file.
+The filenames are quite long (and descriptive) to avoid different model runs writing to the same file.
 
-Forcing and streamflow data for the catchment [USGS 08013000 Calcasieu River near Glenmora, LA](http://waterdata.usgs.gov/nwis/inventory/?site_no=08013000&agency_cd=USGS&amp;) are provided as an example in `$(MASTER)/input`. FUSE can be run using an uniform random sampling of feasible parameter space using the Sobol sequence. The NetCDF output in `$(MASTER)/output` was created using the following command line argument:
+The NetCDF output in `$(MASTER)/output` was created using the following command line argument:
 ```
 ./fuse_URS.exe fuse_direktor_08013000.txt 08013000 070 2 0 1.e-2 1.e-2 1.0000000000 10
 ```
@@ -68,7 +73,7 @@ These arguments override the information provided in the control files, specific
 * `$3` is used to define the FUSE model used, and overwrites the information provided in `M_DECISIONS` (UNLESS the ID is negative, in which case the model decisions are read from the file. The list of model indices is defined in `$(MASTER)/settings/fuse_rModelList.txt`.
 * `$4` through `$8` overwrites the information provided in the `MOD_NUMERIX` file.
 
-## D. Content of the output directory
+## E. Content of the output directory
 1. The setup directory must contain the following files:
 
    1. The file `M_DECISIONS` (can be called anything, and in the example is called `fuse_zDecisions_snow.txt`) describes the different options available in the FUSE modeling framework. Each of these modeling decisions is described in detail by [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735), except decision 9 described in [Henn et al. (WRR, 2015)](http://dx.doi.org/10.1002/2014WR016736).
