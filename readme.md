@@ -2,9 +2,25 @@
 
 ## Description and credits
 
-This is a source code repository for the **Framework for Understanding Structural Errors** or **FUSE**. FUSE initial implementation is described in the following paper - if you use FUSE, please credit this publication.
+This is a source code repository for the **Framework for Understanding Structural Errors** or **FUSE**. FUSE initial implementation is described in [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735).
 
- * Clark, M. P., Slater, A. G., Rupp, D. E., Woods, R. A., Vrugt, J. A., Gupta, H. V., Wagener, T. and Hay, L. E.: Framework for Understanding Structural Errors (FUSE): A modular framework to diagnose differences between hydrological models, Water Resources Research, 44(12), [doi:10.1029/2007WR006735](http://dx.doi.org/10.1029/2007WR006735), 2008.
+This implementation involves four main additional features:
+
+1. a snow module described in [Henn et al. (WRR, 2015)](http://dx.doi.org/10.1002/2014WR016736),
+2. a calibration mode using [Duan et al. (WRR, 1992)](http://dx.doi.org/10.1029/91WR02985) shuffled complex evolution alogrithm (SCE),
+3. a distributed mode enabling to run FUSE on a grid, and
+4. all the input, output and parameter files are now NetCDF files.
+
+## FUSE modes
+
+FUSE can be run in four complentary modes:
+
+1. `run_def` runs FUSE with default parameter values,
+2. `run_pre` runs FUSE with with a pre-defined set of parameter values,
+3. `calib_sce` runs FUSE in a SCE-calibration mode,
+4. `run_best` runs FUSE using the best (highest RMSE) parameter set found by SCE.
+
+To get FUSE running, follow the following steps.
 
 ## A. Fork this repository and compile FUSE
 1. Fork this repository to a directory `$(MASTER)` on your machine.
@@ -13,17 +29,22 @@ This is a source code repository for the **Framework for Understanding Structura
    2. defining the fortran compiler (line 196),
    3. defining the path to the NetCDF libraries (lines 198-219, note that the NetCDF libraries must be compiled using the same compiler that you are using to run the program ).
  4. Compile the code (i.e. type `make` or `make -f Makefile`).
+ 
+## B. Populate the setup directory
+The setup directory must contain the following files:
 
-## B. Define the folders to be used
-1. In the directory `$(MASTER)/build/FUSE_SRC/FUSE_HOOK/`, edit the file `fuse_fileManager.f90` and modify the path to define the directories where you would like to keep FUSE settings, FUSE input, and FUSE output (lines 12 to 14). 
+   1. The file `M_DECISIONS` (can be called anything, and in the example is called `fuse_zDecisions_snow.txt`) describes the different options available in the FUSE modeling framework. Each of these modeling decisions is described in detail by [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735), except decision 9 described in [Henn et al. (WRR, 2015)](http://dx.doi.org/10.1002/2014WR016736).
+   2. The file `CONSTRAINTS` (can be called anything, and in the example is called `fuse_zConstraints_snow.txt`) defines the default parameter values and lower and upper parameter bounds. The list of parameters corresponds to those described in [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735) and [Henn et al. (WRR, 2015)](http://dx.doi.org/10.1002/2014WR016736). There is a lot in this file, the important columns are the default parameter values and lower and upper parameter bounds.
+   3. The file `MOD_NUMERIX` (can be called anything, and in the example is called `fuse_zNumerix.txt`) defines decisions regarding the numerical solution technique. Examples of the impact of these decisions are described by [Clark and Kavetski (WRR 2010)](http://dx.doi.org/10.1029/2009WR008894) and [Kavetski and Clark (WRR 2010)](http://dx.doi.org/10.1029/2009WR008896).
+   4. The file `FORCINGINFO` (can be called anything, and in the example is called `us_05585000_input_info.txt`) provides metadata for the NetCDF input file. It defines the name of the input file and of the variables,  and also defines the start of the similation, the end of the warm-up period, and the end of the simulation.
+   5. The file `FILEMANAGER` (can be called anything, and in the example is called `us_09210500_902_fuse_file_manager.txt`) defines the name of the files listed above and the directories in which FUSE settings, FUSE input, and FUSE output are kept.
 
-## C. Assemble control and input files
-1. The file `M_DECISIONS` (can be called anything, and by default is called `fuse_zDecisions.txt`) describes the different options available in the FUSE modeling framework. Each of these modeling decisions is described in detail by [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735).
-2. The file `CONSTRAINTS` (can be called anything, and by default is called `fuse_zConstraints.txt`) defines the default parameter values and lower and upper parameter bounds. The list of parameters corresponds to those described in [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735). There is alot in this file, mostly used for hierarchacal Bayesian modeling, but the important columns are the default parameter values and lower and upper parameter bounds (everything else is used for research that is still underway).
-3. The file `MOD_NUMERIX` (can be called anything, and by default is called `fuse_zNumerix.txt`) defines decisions regarding the numerical solution technique. Examples of the impact of these decisions are described by [Clark and Kavetski (WRR 2010)](http://dx.doi.org/10.1029/2009WR008894) and [Kavetski and Clark (WRR 2010)](http://dx.doi.org/10.1029/2009WR008896).
-4. The file `FORCINGINFO` (can be called anything, and by default is called `forcinginfo.txt`) provides metadata for the model input files. It defines the name of the data file, the number of columns in the data file, the column numbers for precip, potential ET, and runoff, the number of header lines, and the row numbers for the start of the similation, the end of the warm-up period, and the end of the simulation.
-55. The model input file resides in the location defined by `fuse_fileManager.txt` and has the name defined in `FORCINGINFO`. The only real restriction is that it is an ASCII file. The time step of the forcing data (in days) is defined on the second line of the forcing data file.
+## C. Populate the input directory
+1. The setup directory must contain the following files:
 
+   1. The file `M_DECISIONS` (can be called anything, and in the example is called `fuse_zDecisions_snow.txt`) describes the different options available in the FUSE modeling framework. Each of these modeling decisions is described in detail by [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735), except decision 9 described in [Henn et al. (WRR, 2015)](http://dx.doi.org/10.1002/2014WR016736).
+   2. The file `CONSTRAINTS` (can be called anything, and in the example is called `fuse_zConstraints_snow.txt`) defines the default parameter values and lower and upper parameter bounds. The list of parameters corresponds to those described in [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735) and [Henn et al. (WRR, 2015)](http://dx.doi.org/10.1002/2014WR016736). There is a lot in this file, the important columns are the default parameter values and lower and upper parameter bounds.
+   
 ## D. Run the puppy
 Background: different driver programs were written to fulfill different objectives. In each driver program the options are defined through command-line arguments. This facilitates running multiple instances of the executable on a cluster. The filenames are quite long (and descriptive) to avoid different model runs writing to the same file.
 
@@ -47,10 +68,13 @@ These arguments override the information provided in the control files, specific
 * `$3` is used to define the FUSE model used, and overwrites the information provided in `M_DECISIONS` (UNLESS the ID is negative, in which case the model decisions are read from the file. The list of model indices is defined in `$(MASTER)/settings/fuse_rModelList.txt`.
 * `$4` through `$8` overwrites the information provided in the `MOD_NUMERIX` file.
 
-## E. Plot the results
-Plot the content of the input and output files, for instance using the code in Sections 1 to 6 of `$(MASTER)/r_scripts/plot_fuse_input_output.R`. This will make basic consistency tests, e.g. check that the length of the input and output time series and the indices in the settings file are consistent. Since parameter values were obtained from a uniform random sampling, do not expect a good fit of the observed discharge at this stage.
+## D. Content of the output directory
+1. The setup directory must contain the following files:
 
-##F. Calibrate FUSE using the shuffled complex evolution method
+   1. The file `M_DECISIONS` (can be called anything, and in the example is called `fuse_zDecisions_snow.txt`) describes the different options available in the FUSE modeling framework. Each of these modeling decisions is described in detail by [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735), except decision 9 described in [Henn et al. (WRR, 2015)](http://dx.doi.org/10.1002/2014WR016736).
+   2. The file `CONSTRAINTS` (can be called anything, and in the example is called `fuse_zConstraints_snow.txt`) defines the default parameter values and lower and upper parameter bounds. The list of parameters corresponds to those described in [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735) and [Henn et al. (WRR, 2015)](http://dx.doi.org/10.1002/2014WR016736). There is a lot in this file, the important columns are the default parameter values and lower and upper parameter bounds.
+
+## F. Compile SCE
 1. The code of the shuffled complex evolution method (SCE, in file `$(MASTER)/build/FUSE_SRC/FUSE_SCE/sce.f`, [Duan et al., 1992](http://dx.doi.org/10.1029/91WR02985)) was written in F77, so it must be compiled separately. We compile it using `ifort` and the following flags:
   ```
   ifort -c -fixed -O3 -r8 sce.f  
@@ -59,42 +83,6 @@ Plot the content of the input and output files, for instance using the code in S
 2. If necessary, rename the compiled file, so that it can be found by `$(MASTER)/build/FUSE_SRC/FUSE_SCE/URS_driver_sce.f90`, which by default will be looking for a file named `sce.o`.
 
 3. Adapt and compile `$(MASTER)/build/Makefile_sce` following the steps A1 to A3.
-
-4. Calibrate FUSE by adapting and executing one following command lines - the second one will take longer to run because of the higher maximum number of trials:
-
-  ```
-  ./fuse_URS_sce.exe fuse_direktor_08013000.txt 08013000 070 2 0 1.e-2 1.e-2 1.0000000000 3 50 3 1.e-3
-  ./fuse_URS_sce.exe fuse_direktor_08013000.txt 08013000 070 2 0 1.e-2 1.e-2 1.0000000000 3 5000 3 1.e-3
-  ```
-
-  where `$1` to `$8` are as above, `$9` is the number of calibrated parameter sets desired, `$10` is the maximum number of trials before optimization is terminated, `$11` is the number of shuffling loops the objective function must change by `RC` to consider that an optimum has been reached (max=9), `$12` is relative change `RC`.
-
-5. Note that the objective function is RMSE, defined in the file `$(MASTER)/build/FUSE_SRC/FUSE_SCE/fuse_rsme.f90` and called by the wrapper `$(MASTER)/build/FUSE_SCE/functn.f90`.
-
-6. Note that in `$(MASTER)/build/FUSE_SRC/FUSE_SCE/URS_driver_sce.f90` the following line turns off the production
-of time series outputs to save space:
-
-  ```
-  OUTPUT_FLAG = .FALSE.    ! .TRUE. if desire time series output
-  ```
-
-  However, the value of the objective function of each model run is backed up together with parameter values, so that the parameter set associated with the best results can then be run (see Section G below).
-
-## G. Run FUSE with calibrated parameter values
-1. Adapt and compile `$(MASTER)/build/Makefile_sce_merge` following the steps A1 to A3.
-
-2. Create a file containing the name of the NetCDF produced by the SCE calibration (e.g. using  `$(MASTER)/bin/sce_ncfiles_08013000.txt` as template).
-
-3. Run FUSE for the parameter set leading to the lowest RMSE by adapting and executing the following command line:
-
-  ```
-  ./fuse_URS_sce_merge.exe fuse_direktor_08013000.txt 08013000 sce_ncfiles_08013000.txt
-  ```
-
-  where `$1` is the muster file as above, `$2` is the ID of the basin run as above and `$3` is the name of the file containing the name of the NetCDF file produced by SCE.
-
-##H. Check the calibration results
-Explore the calibrated parameter values and plot the calibrated model runs, e.g. using the code in Sections 7 and 8 of `$(MASTER)/r_scripts/plot_fuse_input_output.R`. This will plot the evolution of the NSE through the calibration and check that the NSE values returned by SCE are consistent with those computed in R using the observed discharge from the input file and the simulated discharge from the output file.
 
 ### License
 FUSE is distributed under the GNU Public License Version 3. For details see the file `LICENSE` in the FUSE root directory or visit the [online version](http://www.gnu.org/licenses/gpl-3.0.html).
