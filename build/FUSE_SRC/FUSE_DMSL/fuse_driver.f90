@@ -72,7 +72,7 @@ IMPLICIT NONE
 CHARACTER(LEN=64)                      :: DatString          ! string defining forcing data
 CHARACTER(LEN=6)                       :: FMODEL_ID='      ' ! integer defining FUSE model
 CHARACTER(LEN=6)                       :: F_SPATIAL='      ' ! spatial option (0=lumped, 1= distributed)
-CHARACTER(LEN=10)                      :: fuse_mode='      ' ! fuse execution mode (run_def, run_best, calib_sce)
+CHARACTER(LEN=10)                      :: fuse_mode='      ' ! fuse execution mode (run_def, run_best, run_pre, calib_sce)
 
 ! ---------------------------------------------------------------------------------------
 ! SETUP MODELS FOR SIMULATION -- POPULATE DATA STRUCTURES
@@ -288,17 +288,26 @@ IF (ERR.NE.0) WRITE(*,*) TRIM(MESSAGE); IF (ERR.GT.0) STOP
 ONEMOD=1                 ! one file per model (i.e., model dimension = 1)
 PCOUNT=0                 ! counter for parameter sets evaluated (shared in MODULE multistats)
 
-IF(fuse_mode == 'run_def')THEN
+IF(fuse_mode == 'run_def')THEN ! run FUSE with default parameter values
 
   FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_runs_def.nc'
   FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_para_def.nc'
 
-ELSE IF(fuse_mode == 'calib_sce')THEN
+ELSE IF(fuse_mode == 'run_pre')THEN  ! run FUSE with pre-defined parameter values
+
+  ! file from which parameters will be loaded
+  FNAME_NETCDF_PARA_PRE = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_para_pre.nc'
+
+  ! files to which model run and parameter set will be saved
+  FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_runs_pre.nc'
+  FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_para_pre_out.nc'
+
+ELSE IF(fuse_mode == 'calib_sce')THEN ! calibrate FUSE using SCE
 
   FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_runs_sce.nc'
   FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_para_sce.nc'
 
-ELSE IF(fuse_mode == 'run_best')THEN
+ELSE IF(fuse_mode == 'run_best')THEN  ! run FUSE with best (highest RMSE) parameter set from a previous SCE calibration
 
   ! file from which SCE parameters will be loaded - same as FNAME_NETCDF_PARA above
   FNAME_NETCDF_PARA_SCE = TRIM(OUTPUT_PATH)//TRIM(DatString)//'_'//TRIM(FMODEL_ID)//'_para_sce.nc'
@@ -333,20 +342,30 @@ DO IPAR=1,NUMPAR
  CALL GETPAR_STR(LPARAM(IPAR)%PARNAME,PARAM_META)
  BL(IPAR)   = PARAM_META%PARLOW
  BU(IPAR)   = PARAM_META%PARUPP
- APAR(IPAR) = PARAM_META%PARDEF ! Using default parameter values
+ APAR(IPAR) = PARAM_META%PARDEF ! using default parameter values
  if(PARAM_META%PARFIT) print*, LPARAM(IPAR)%PARNAME, PARAM_META%PARDEF
 END DO
 
-IF(fuse_mode == 'run_def')THEN
+IF(fuse_mode == 'run_def')THEN ! run FUSE with default parameter values
 
-  ! Run FUSE using default parameter values
   OUTPUT_FLAG=.TRUE.
 
   print *, 'Running FUSE with default parameter values'
   CALL FUSE_RMSE(APAR,SPATIAL_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
   print *, 'Done running FUSE with default parameter values'
 
-ELSE IF(fuse_mode == 'calib_sce')THEN
+ELSE IF(fuse_mode == 'run_pre')THEN ! run FUSE with pre-defined parameter values
+
+  OUTPUT_FLAG=.TRUE.
+
+  ! load pre-defined parameter set from NetCDF file into APAR
+  CALL GET_PRE_PARAM(FNAME_NETCDF_PARA_PRE,40000,ONEMOD,NUMPAR,APAR) ! load specific parameter set
+
+  print *, 'Running FUSE with pre-defined parameter set'
+  CALL FUSE_RMSE(APAR,SPATIAL_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
+  print *, 'Done running FUSE with pre-defined parameter set'
+
+ELSE IF(fuse_mode == 'calib_sce')THEN ! calibrate FUSE using SCE
 
   ! Calibrate FUSE with SCE
   OUTPUT_FLAG=.FALSE.
@@ -392,13 +411,12 @@ ELSE IF(fuse_mode == 'calib_sce')THEN
 
   !PRINT *, 'Done calling the function again with the optimized parameter set!'
 
-ELSE IF(fuse_mode == 'run_best')THEN
+ELSE IF(fuse_mode == 'run_best')THEN ! run FUSE with best (highest RMSE) parameter set from a previous SCE calibration
 
-  ! Run FUSE for best parameter set of the SCE calibration
   OUTPUT_FLAG=.TRUE.
 
-  ! Load best SCE parameter set from NetCDF file into APAR
-  CALL GET_FPARAM(FNAME_NETCDF_PARA_SCE,ONEMOD,NUMPAR,APAR)
+  ! load best SCE parameter set from NetCDF file into APAR
+  CALL GET_SCE_PARAM(FNAME_NETCDF_PARA_SCE,ONEMOD,NUMPAR,APAR)
 
   print *, 'Running FUSE with best SCE parameter set'
   CALL FUSE_RMSE(APAR,SPATIAL_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)

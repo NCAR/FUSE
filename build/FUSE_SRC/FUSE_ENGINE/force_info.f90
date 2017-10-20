@@ -241,9 +241,10 @@ contains
 
   ! determine time period to be run
   select case(trim(fuse_mode))
-  case('run_def');     istart = longrun_beg; numtim_sim = (longrun_end - longrun_beg) + 1; numtim_sub=numtim_sim
-    case('calib_sce');   istart = infern_beg;  numtim_sim = (infern_end - warmup_beg) + 1; numtim_sub=numtim_sim
+    case('run_def');     istart = longrun_beg; numtim_sim = (longrun_end - longrun_beg) + 1; numtim_sub=numtim_sim
+    case('run_pre');     istart = longrun_beg; numtim_sim = (longrun_end - longrun_beg) + 1; numtim_sub=numtim_sim
     case('run_best');    istart = longrun_beg; numtim_sim = (longrun_end - longrun_beg) + 1; numtim_sub=numtim_sim
+    case('calib_sce');   istart = infern_beg;  numtim_sim = (infern_end - warmup_beg) + 1; numtim_sub=numtim_sim
     case default
       print *, 'Unexpected FUSE mode:',trim(fuse_mode)
       stop
