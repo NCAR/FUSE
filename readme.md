@@ -52,40 +52,36 @@ The `input` directory must contain the following files (provided for the two cas
    1. The file `NAMEHERE` (can be called anything, and in the example is called `us_03237500_elev_bands.nc`) contains the input data either in 2D (3D) arrays for modeling at the catchment (grid) scale.
    2. The file `NAMEHERE` (can be called anything, and in the example is called `us_06037500_elev_bands.nc`) describe the elevation bands required when the snow module is on as 1D (2D) arrays for modeling at the catchment (grid) scale.
    
+Note that the dimension of the NetCDF files will determine if FUSE is run at the catchment or grid-scale. FUSE will look for the variables `lat` and `lon` and if they are arrays, it will run on the grid they define. This means that NetCDF input files for a single catchment must also include the variables `lat` and `lon` 
+   
+   
 ## D. Run the puppy
 
-Run FUSE at the catchment scale:
+Run FUSE unsing default parameter values at the catchment scale:
 ```
-./fuse_URS.exe fuse_direktor_08013000.txt 08013000 070 2 0 1.e-2 1.e-2 1.0000000000 10
+./fuse_snow_dist_catch.exe mf_901 us_11264500_catch run_def
 ```
 
 or at the grid scale:
 
 ```
-./fuse_URS.exe fuse_direktor_08013000.txt 08013000 070 2 0 1.e-2 1.e-2 1.0000000000 10
+./fuse_snow_dist_catch.exe mf_901 us_11264500_grid run_def
 ```
 
 where
 `$1` is the muster file,
-`$2` if the ID of the basin,
-`$3` is the ID of the FUSE model,
-`$4` is the method used to temporally integrate model equations (2 is implicit Euler),
-
-These arguments override the information provided in the control files, specifically:
-* `$2` is used to define the name of the `FORCINGINFO` file, and overwrites the information provided in `fuse_fileManager.txt`.
-* `$3` is used to define the FUSE model used, and overwrites the information provided in `M_DECISIONS` (UNLESS the ID is negative, in which case the model decisions are read from the file. The list of model indices is defined in `$(MASTER)/settings/fuse_rModelList.txt`.
-* `$4` through `$8` overwrites the information provided in the `MOD_NUMERIX` file.
+`$2` is the ID of the basin,
+`$3` is the FUSE mode.
 
 ## E. Content of the output directory
 Running FUSE in its different modes will create the following files in the `output` directory (provided for the two case studies for comparison purposes):
-
-   * `run_def`: the file `NAMEHERE` (called `us_06906800_694_para.nc` and `us_06784000_694_runs.nc`) contains model parameters.
+   * `run_def`: the file `NAMEHERE` (called `us_06906800_694_para.nc` and `us_06784000_694_runs.nc`) contains model parameters.
    * `run_pre`: the file `NAMEHERE` (called `us_06906800_694_para.nc` and `us_06784000_694_runs.nc`) contains model parameters.
    * `calib_sce`: the file `NAMEHERE` (called `us_10336660_902_para_best.nc`) contains model parameters determined by SCE.
    * `run_sce`: the file `NAMEHERE` (called `us_06746095_902_runs_best.nc`) contains model parameters determined by SCE.
    
 ## F. Compile SCE
-The code of the shuffled complex evolution method (SCE, in file `$(MASTER)/build/FUSE_SRC/FUSE_SCE/sce.f`, [Duan et al., 1992](http://dx.doi.org/10.1029/91WR02985)) was written in F77, so it must be compiled separately. We compile it using `ifort` and the following flags:
+The code of the shuffled complex evolution method (`$(MASTER)/build/FUSE_SRC/FUSE_SCE/sce.f`) was written in F77, so it must be compiled separately. We compile it using `ifort` and the following flags:
   ```
   ifort -c -fixed -O3 -r8 sce.f  
   ```
