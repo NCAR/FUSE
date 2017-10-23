@@ -20,9 +20,9 @@ FUSE can be run in four complementary modes:
 
 To get you started with FUSE, we provide files for two case studies involing modeling at different scales:
 
-* catchment scale: forcing and streamflow data for the [USGS 08013000 Calcasieu River near Glenmora, LA](http://waterdata.usgs.gov/nwis/inventory/?site_no=08013000&agency_cd=USGS&amp;) catchment available [here](
+* catchment scale: forcing and streamflow data for the [USGS 09066300 MIDDLE CREEK NEAR MINTURN, CO.](https://waterdata.usgs.gov/nwis/inventory/?site_no=09066300&agency_cd=USGS&) catchment - available [here](
 https://www.dropbox.com/s/ht4hqegcvu60x2m/fuse_catch_ex.zip?dl=0) for download,  
-* grid scale: forcing on a 1/8th degree grid for a small 10x10 domain (soon available for download).
+* grid scale: forcing on a 1/8th degree grid for a small 10x10 domain - soon available for download.
 
 Follow the following steps to run FUSE.
 
@@ -32,38 +32,48 @@ Follow the following steps to run FUSE.
    1. defining the name of the master directory (line 10),
    2. defining the fortran compiler (line 196),
    3. defining the path to the NetCDF libraries (lines 198-219, note that the NetCDF libraries must be compiled using the same compiler that you are using to run the program ).
- 1. Compile SCE code (see Section F below).
+ 1. Compile SCE code (see Section G below).
  1. Compile FUSE code (type `make` or `make -f Makefile`).
  1.  Change to `$(MASTER)/bin/` and try running FUSE by typing `./fuse.exe`. If the output is `1st command-line argument is missing (DatString)`, you probably have compiled FUSE correctly. 
+ 
+## B. Populate the bin directory
+In addition to `fuse.exe`, the `bin` directory must contain the following file (provided for the catchment case study):
 
-## B. Populate the setup directory
-The `setup` directory must contain the following files (provided for the two case studies):
+* The file `FILEMANAGER` (called `fm_901_us.txt` in the catchment case study) defines the name of the files listed above and the paths to the `settings`, `input`, `output` directories.
+   
+## C. Populate the setup directory
+The `setup` directory must contain the following files (provided for the catchment case study):
 
    1. The file `M_DECISIONS` (called `fuse_zDecisions_902.txt` in the case studies) describes the different options available in the FUSE modeling framework. These modeling decisions are described in detail by [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735), except decision 9 described in [Henn et al. (WRR, 2015)](http://dx.doi.org/10.1002/2014WR016736).
    2. The file `CONSTRAINTS` (called `fuse_zConstraints_snow.txt` in the case studies) defines the default parameter values and lower and upper parameter bounds. The list of parameters corresponds to those described in [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735) and [Henn et al. (WRR, 2015)](http://dx.doi.org/10.1002/2014WR016736). There is a lot in this file, the important columns are the default parameter values and lower and upper parameter bounds.
    3. The file `MOD_NUMERIX` (called `fuse_zNumerix.txt` in the case studies) defines decisions regarding the numerical solution technique. Examples of the impact of these decisions are described by [Clark and Kavetski (WRR 2010)](http://dx.doi.org/10.1029/2009WR008894) and [Kavetski and Clark (WRR 2010)](http://dx.doi.org/10.1029/2009WR008896).
-   4. The file `FORCINGINFO` (called `us_08013000_input_info.txt` in the case studies) provides metadata for the NetCDF input file. It defines the name of the input file and of the variables,  and also defines the start of the similation, the end of the warm-up period, and the end of the simulation.
-   5. The file `FILEMANAGER` (called `fm_901_us.txt` in the case studies) defines the name of the files listed above and the directories in which FUSE settings, FUSE input, and FUSE output are kept.
+   4. The file `FORCINGINFO` (called `us_09066300_input_info.txt` in the catchment case study) provides metadata for the NetCDF input file. It defines the name of the input file and of the variables,  and also defines the start of the similation, the end of the warm-up period, and the end of the simulation.
 
-## C. Populate the input directory
-The `input` directory must contain the following files (provided for the two case studies):
+## D. Populate the input directory
+The `input` directory must contain the following files (provided for the catchment case study):
 
-   1. The file `forcefile` (called `us_08013000_input.nc` in the case catchment case study) contains the input data either in 2D (3D) arrays for modeling at the catchment (grid) scale. The name of this file is prescribed by `FORCINGINFO` (see B4).
-   2. The file `BFILE` (called `us_08013000_elev_bands.nc` in the case catchment case study) describe the elevation bands required when the snow module is on. The dimensions of this file must match that of `forcefile`.
+   1. The file `forcefile` (called `us_09066300_input.nc` in the catchment case study) contains the input data either in 2D (3D) arrays for modeling at the catchment (grid) scale. The name of this file is prescribed by `FORCINGINFO` (see B4).
+   2. The file `BFILE` (called `us_09066300_elev_bands.nc` in the catchment case study) describe the elevation bands required when the snow module is on. The dimensions of this file must match that of `forcefile`.
    
 Note that the dimension of the NetCDF files will determine if FUSE is run at the catchment or grid-scale. FUSE will look for the variables `lat` and `lon` and if they are arrays, it will run on the grid they define. This means that NetCDF input files for a single catchment must also include the variables `lat` and `lon`.
    
-## D. Run the puppy
+## E. Run the puppy
 
 Run FUSE unsing default parameter values at the catchment scale:
 ```
-./fuse_snow_dist_catch.exe fm_902_us.txt us_08013000 902 run_def
+./fuse_snow_dist_catch.exe fm_902_us.txt us_09066300 902 run_def
 ```
 
-or at the grid scale:
+then calibrate it:
 
 ```
-./fuse_snow_dist_catch.exe fm_902_us.txt us_08013000 902 run_def
+./fuse_snow_dist_catch.exe fm_902_us.txt us_09066300 902 run_calib
+```
+
+then run it with the best SCE parameter set:
+
+```
+./fuse_snow_dist_catch.exe fm_902_us.txt us_09066300 902 run_best
 ```
 
 where
@@ -73,23 +83,22 @@ where
 `$4` is the FUSE mode.
 
 Note that:
-* `$2`_ `$3` will define the most of the inpute and output files,
+* the string `$2`_ `$3` will be included in name of most of the input and output files,
 * `$4` will define the name of `M_DECISIONS`.
 
-## E. Content of the output directory
-Running FUSE in its different modes will create the following files in the `output` directory (provided for the two case studies for comparison purposes):
-   * `run_def`: the file `NAMEHERE` (called `us_06906800_694_para.nc` and `us_06784000_694_runs.nc`) contains model parameters.
-   * `run_pre`: the file `NAMEHERE` (called `us_06906800_694_para.nc` and `us_06784000_694_runs.nc`) contains model parameters.
-   * `calib_sce`: the file `NAMEHERE` (called `us_10336660_902_para_best.nc`) contains model parameters determined by SCE.
-   * `run_sce`: the file `NAMEHERE` (called `us_06746095_902_runs_best.nc`) contains model parameters determined by SCE.
-   
-## F. Compile SCE
+## F. Content of the output directory
+Running FUSE in its different modes will create the following files in the `output` directory (provided for the catchment case study for comparison purposes):
+* the files whose name contains `runs` contain the simulations, 
+* the files whose name contains `para` contain the parameter values,
+* the last element of the file name indicates which FUSE mode was used.
+   
+## G. Compile SCE
 The code of the shuffled complex evolution method (`$(MASTER)/build/FUSE_SRC/FUSE_SCE/sce.f`) was written in F77, so it must be compiled separately. We compile it using `ifort` and the following flags:
   ```
-  ifort -c -fixed -O3 -r8 sce.f  
+  ifort -O2 -c -fixed sce_16plus.f
   ```
 
-If necessary, rename the compiled file, so that it can be found by `$(MASTER)/build/FUSE_SRC/FUSE_SCE/URS_driver_sce.f90`, which by default will be looking for a file named `sce.o`.
+If necessary, rename the compiled file, so that it can be found by the `Makefile`, which by default will be looking for a file named `sce_16plus.o`.
 
 ### License
 FUSE is distributed under the GNU Public License Version 3. For details see the file `LICENSE` in the FUSE root directory or visit the [online version](http://www.gnu.org/licenses/gpl-3.0.html).
