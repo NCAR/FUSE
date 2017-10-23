@@ -241,7 +241,6 @@ print*, 'netCDF ID for forcing file', ncid_forc
 print*, 'NA_VALUE = ', NA_VALUE
 print*, 'GRID_FLAG = ', GRID_FLAG
 
-
 ! Define model attributes (valid for all models)
 CALL UNIQUEMODL(NMOD)           ! get nmod unique models
 CALL GETPARMETA(ERR,MESSAGE)    ! read parameter metadata (parameter bounds etc.)
@@ -348,7 +347,7 @@ ELSE IF(fuse_mode == 'calib_sce')THEN ! calibrate FUSE using SCE
 
   ! assign algorithmic control parameters for SCE
   NOPT   =  NUMPAR         ! number of parameters to be optimized (NUMPAR in module multiparam)
-  MAXN   =     10000 			 ! maximum number of trials before optimization is terminated
+  MAXN   =     1000 			 ! maximum number of trials before optimization is terminated
   KSTOP  =      3          ! number of shuffling loops the value must change by PCENTO (MAX=9)
   PCENTO =      0.001      ! the percentage
   NGS    =     10          ! number of complexes in the initial population
