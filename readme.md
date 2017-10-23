@@ -35,7 +35,7 @@ Follow the following steps to run FUSE.
    3. defining the path to the NetCDF libraries (lines 198-219, note that the NetCDF libraries must be compiled using the same compiler that you are using to run the program ).
  1. Compile SCE code (see Section F below)
  1. Compile FUSE code (type `make` or `make -f Makefile`).
- 1.  Change to `$(MASTER)/bin/` and try running FUSE by typing `./fuse_dist`. If the output is `blabla`, you probably have compiled FUSE correctly. 
+ 1.  Change to `$(MASTER)/bin/` and try running FUSE by typing `./fuse_dist`. If the output is `1st command-line argument is missing (DatString)`, you probably have compiled FUSE correctly. 
 
 ## B. Populate the setup directory
 The `setup` directory must contain the following files (provided for the two case studies):
@@ -44,7 +44,7 @@ The `setup` directory must contain the following files (provided for the two cas
    2. The file `CONSTRAINTS` (called `fuse_zConstraints_snow.txt` in the case studies) defines the default parameter values and lower and upper parameter bounds. The list of parameters corresponds to those described in [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735) and [Henn et al. (WRR, 2015)](http://dx.doi.org/10.1002/2014WR016736). There is a lot in this file, the important columns are the default parameter values and lower and upper parameter bounds.
    3. The file `MOD_NUMERIX` (called `fuse_zNumerix.txt` in the case studies) defines decisions regarding the numerical solution technique. Examples of the impact of these decisions are described by [Clark and Kavetski (WRR 2010)](http://dx.doi.org/10.1029/2009WR008894) and [Kavetski and Clark (WRR 2010)](http://dx.doi.org/10.1029/2009WR008896).
    4. The file `FORCINGINFO` (called `us_05585000_input_info.txt` in the case studies) provides metadata for the NetCDF input file. It defines the name of the input file and of the variables,  and also defines the start of the similation, the end of the warm-up period, and the end of the simulation.
-   5. The file `FILEMANAGER` (called `us_09210500_902_fuse_file_manager.txt` in the case studies) defines the name of the files listed above and the directories in which FUSE settings, FUSE input, and FUSE output are kept.
+   5. The file `FILEMANAGER` (called `fm_901_us.txt` in the case studies) defines the name of the files listed above and the directories in which FUSE settings, FUSE input, and FUSE output are kept.
 
 ## C. Populate the input directory
 The `input` directory must contain the following files (provided for the two case studies):
@@ -59,13 +59,13 @@ Note that the dimension of the NetCDF files will determine if FUSE is run at the
 
 Run FUSE unsing default parameter values at the catchment scale:
 ```
-./fuse_snow_dist_catch.exe mf_901 us_11264500_catch run_def
+./fuse_snow_dist_catch.exe fm_901_us.txt us_11264500 run_def
 ```
 
 or at the grid scale:
 
 ```
-./fuse_snow_dist_catch.exe mf_901 us_11264500_grid run_def
+./fuse_snow_dist_catch.exe fm_901_us.txt us_11264500 run_def
 ```
 
 where
