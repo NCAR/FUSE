@@ -15,7 +15,7 @@ SUBROUTINE SELECTMODL(FUSE_ID,ERR,MESSAGE)
 ! ---------------------------------------------------------------------------------------
 USE nrtype,ONLY:I4B,LGT                               ! defines data types
 USE utilities_dmsl_kit_FUSE,ONLY:getSpareUnit,stripTrailString
-USE fuse_fileManager,only:SETNGS_PATH,M_DECISIONS     ! defines data directory                               
+USE fuse_fileManager,only:SETNGS_PATH,M_DECISIONS     ! defines data directory
 USE model_defn,ONLY:NDEC,SMODL,AMODL,&                ! defines model decisions
   LIST_RFERR,LIST_ARCH1,LIST_ARCH2,LIST_QSURF,LIST_QPERC,LIST_ESOIL,&
   LIST_QINTF,LIST_Q_TDH,LIST_SNOWM
@@ -23,7 +23,8 @@ USE model_defnames,ONLY:DESC_STR2INT
 USE model_numerix,only:solution_method,temporal_error_control
 IMPLICIT NONE
 ! Input
-INTEGER(I4B), INTENT(IN), OPTIONAL     :: FUSE_ID     ! identifier for FUSE model
+!INTEGER(I4B), INTENT(IN), OPTIONAL     :: FUSE_ID     ! identifier for FUSE model
+CHARACTER(LEN=6), INTENT(IN), OPTIONAL :: FUSE_ID     ! identifier for FUSE model
 ! Output
 INTEGER(I4B), INTENT(OUT)              :: ERR         ! error code
 CHARACTER(LEN=*), INTENT(OUT)          :: MESSAGE     ! error message
@@ -77,62 +78,60 @@ MESSAGE ='SELECTMODL/everything is fine'
 ! ---------------------------------------------------------------------------------------
 ! (1) READ IN THE COMPONENT CHOICE AND MODEL COMPONENT (AND SAVE IN A STRUCTURE)
 ! ---------------------------------------------------------------------------------------
-! check if there is a need to read data from file
-
-IF (PRESENT(FUSE_ID)) THEN
- !READ_FILE = (FUSE_ID < 1)
- READ_FILE = .TRUE.
- print *, 'FUSE model ID found, but still reading model decision file'
-ELSE
- READ_FILE = .TRUE.
- print *, 'FUSE model ID *not* found, now reading model decision file'
-ENDIF
 ! read in control file
-IF (READ_FILE) THEN
- CFILE = TRIM(SETNGS_PATH)//M_DECISIONS      ! control file info shared in MODULE ddirectory
- INQUIRE(FILE=CFILE,EXIST=LEXIST)  ! check that control file exists
- IF (.not.LEXIST) THEN
+
+!CFILE = TRIM(SETNGS_PATH)//M_DECISIONS      ! control file info shared in MODULE ddirectory
+CFILE = TRIM(SETNGS_PATH)//'fuse_zDecisions_'//TRIM(FUSE_ID)//'.txt'      ! control file info shared in MODULE ddirectory
+
+INQUIRE(FILE=CFILE,EXIST=LEXIST)  ! check that control file exists
+IF (.not.LEXIST) THEN
   message="f-SELECTMODL/decisions file '"//trim(CFILE)//"' does not exist"
   err=100; return
- ENDIF
- ! open up model decisions file
- CALL getSpareUnit(IUNIT,err,message) ! make sure IUNIT is actually available
- IF (err/=0) THEN
-  message="f-SELECTMODL/weird/&"//message
-  err=100; return
- ENDIF
- OPEN(IUNIT,FILE=CFILE,STATUS='old')
- ! read format key (and strip out descriptive text)
- READ(IUNIT,'(a)') KEY
- CALL stripTrailString(string=KEY,trailStart='!')
- !PRINT *, TRIM(KEY)
- ! read model decisions
- DO IDEC=1,NDEC
-  READ(IUNIT,KEY) M_CHOICE, DECISION
-  !WRITE(*,KEY) M_CHOICE, DECISION 
-  PRINT *, 'Model choices read from file: ', DECISION, '-> ', M_CHOICE 
-  SELECT CASE (DECISION)
-  CASE('RFERR'); SMODL%iRFERR = desc_str2int(M_CHOICE)
-  CASE('ARCH1'); SMODL%iARCH1 = desc_str2int(M_CHOICE)
-  CASE('ARCH2'); SMODL%iARCH2 = desc_str2int(M_CHOICE)
-  CASE('QSURF'); SMODL%iQSURF = desc_str2int(M_CHOICE)
-  CASE('QPERC'); SMODL%iQPERC = desc_str2int(M_CHOICE)
-  CASE('ESOIL'); SMODL%iESOIL = desc_str2int(M_CHOICE)
-  CASE('QINTF'); SMODL%iQINTF = desc_str2int(M_CHOICE)
-  CASE('Q_TDH'); SMODL%iQ_TDH = desc_str2int(M_CHOICE)
-  CASE('SNOWM'); SMODL%iSNOWM = desc_str2int(M_CHOICE)
-  CASE DEFAULT
-   message="f-SELECTMODL/UNRECOGNISED[DECISON='"//TRIM(DECISION)//"']&
-                                  &[M_CHOICE='"//TRIM(M_CHOICE)//"']"
-   err=100; RETURN
-  ENDSELECT
- END DO  ! (loop through model decisions)
- ! read the format for the naming convention
- READ(IUNIT,*,IOSTAT=IERR) NAME_FMT; IF (IERR.NE.0) NAME_FMT=1
- CLOSE(IUNIT)
 ELSE
- SMODL=AMODL(FUSE_ID)
+  print *, 'Now reading model decisions from:', trim(CFILE)
 ENDIF
+
+! open up model decisions file
+CALL getSpareUnit(IUNIT,err,message) ! make sure IUNIT is actually available
+IF (err/=0) THEN
+message="f-SELECTMODL/weird/&"//message
+err=100; return
+ENDIF
+
+OPEN(IUNIT,FILE=CFILE,STATUS='old')
+
+! read format key (and strip out descriptive text)
+READ(IUNIT,'(a)') KEY
+CALL stripTrailString(string=KEY,trailStart='!')
+
+! read model decisions
+print *, 'Model decisions:'
+
+DO IDEC=1,NDEC
+  READ(IUNIT,KEY) M_CHOICE, DECISION
+  !WRITE(*,KEY) M_CHOICE, DECISION
+  PRINT *, DECISION, '-> ', M_CHOICE
+  SELECT CASE (DECISION)
+    CASE('RFERR'); SMODL%iRFERR = desc_str2int(M_CHOICE)
+    CASE('ARCH1'); SMODL%iARCH1 = desc_str2int(M_CHOICE)
+    CASE('ARCH2'); SMODL%iARCH2 = desc_str2int(M_CHOICE)
+    CASE('QSURF'); SMODL%iQSURF = desc_str2int(M_CHOICE)
+    CASE('QPERC'); SMODL%iQPERC = desc_str2int(M_CHOICE)
+    CASE('ESOIL'); SMODL%iESOIL = desc_str2int(M_CHOICE)
+    CASE('QINTF'); SMODL%iQINTF = desc_str2int(M_CHOICE)
+    CASE('Q_TDH'); SMODL%iQ_TDH = desc_str2int(M_CHOICE)
+    CASE('SNOWM'); SMODL%iSNOWM = desc_str2int(M_CHOICE)
+    CASE DEFAULT
+     message="f-SELECTMODL/UNRECOGNISED[DECISON='"//TRIM(DECISION)//"']&
+                                    &[M_CHOICE='"//TRIM(M_CHOICE)//"']"
+     err=100; RETURN
+  ENDSELECT
+END DO  ! (loop through model decisions)
+
+! read the format for the naming convention
+READ(IUNIT,*,IOSTAT=IERR) NAME_FMT; IF (IERR.NE.0) NAME_FMT=1
+CLOSE(IUNIT)
+
 !WRITE(*,'(7(A10,1X))') SMODL
 ! ---------------------------------------------------------------------------------------
 ! (2) LOOP THROUGH MODEL COMPONENTS AND IDENTIFY AN INDEX FOR EACH DECISION (AND THE MODEL)
@@ -190,6 +189,7 @@ DO ISW_SNOWM=1,SIZE(LIST_SNOWM)  ! (snow model options)
  END DO  ! Q_TDH
 END DO  ! SNOWM
 END DO MODEL_OPTIONS
+
 ! check that a model was identified
 IF (IX_MODEL.EQ.0) THEN
  MESSAGE='f-SELECTMODL/unable to find given model combination'
@@ -197,7 +197,7 @@ IF (IX_MODEL.EQ.0) THEN
 ENDIF
 SMODL%MODIX = IX_MODEL  ! FUSE model index
 ! ---------------------------------------------------------------------------------------
-! (3) IDENTIFY A UNIQUE MODEL NAME 
+! (3) IDENTIFY A UNIQUE MODEL NAME
 ! ---------------------------------------------------------------------------------------
 ! define an initial model name
 SMODL%MNAME = 'FUSE_'

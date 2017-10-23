@@ -131,7 +131,7 @@ print*, '3rd command-line argument (F_SPATIAL) = ', F_SPATIAL
 FFMFILE=TRIM(SETNGS_PATH)//TRIM(DatString)//'_fuse_file_manager.txt'
 
 ! set directories and filenames for control files
-call fuse_SetDirsUndPhiles(fuseFileManagerIn=FFMFILE,err=err,message=message)
+call fuse_SetDirsUndPhiles(fuseFileManagerIn='/glade/scratch/naddor/fusex/us/settings/us_11264500_902_fuse_file_manager.txt',err=err,message=message)
 if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
 
 ! defines method/parameters used for numerical solution

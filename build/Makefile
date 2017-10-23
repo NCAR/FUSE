@@ -227,7 +227,7 @@ FUSE__URS_DRIVER = \
 URS_DRIVER = $(patsubst %, $(DRIVER_DIR)/%, $(FUSE__URS_DRIVER))
 
 # Define the executables
-URS_DRIVER__EX = fuse_snow_dist_catch.exe
+URS_DRIVER__EX = fuse.exe
 
 #========================================================================
 # PART 3: Compile the puppy

@@ -47,7 +47,9 @@ IF (MOD(timDat%IY,4).EQ.0) THEN
 ELSE
  LEAP = .FALSE.
 ENDIF
+
 JDAY = CUMD(timDat%IM) + timDat%ID
+
 IF (LEAP) THEN   ! calculate melt factor from MFMAX, MFMIN and day of year
  MF = ((0.5_sp*SIN(((JDAY-81._sp)*2._sp*PI)/366._sp))+0.5_sp)*(MPARAM%MFMAX - MPARAM%MFMIN) + MPARAM%MFMIN
 ELSE

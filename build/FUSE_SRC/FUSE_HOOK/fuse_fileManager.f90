@@ -12,8 +12,6 @@ integer(mik),parameter::fusePathLen=256
 CHARACTER(LEN=fusePathLen)  :: SETNGS_PATH='/glade/scratch/naddor/fusex/us/settings/'
 CHARACTER(LEN=fusePathLen)  :: INPUT_PATH ='/glade/scratch/naddor/fusex/us/input/'
 CHARACTER(LEN=fusePathLen)  :: OUTPUT_PATH='/glade/scratch/naddor/fusex/us/output/'
-! define country name for FUSEX
-CHARACTER(LEN=2)            :: country
 ! define name of control files    (and default values)
 CHARACTER(LEN=fusePathLen)  :: M_DECISIONS='fuse_zDecisions.txt'    ! definition of model decisions
 CHARACTER(LEN=fusePathLen)  :: CONSTRAINTS='fuse_zConstraints.txt'  ! definition of parameter constraints
