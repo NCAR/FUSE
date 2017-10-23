@@ -37,23 +37,21 @@ Follow the following steps to run FUSE.
  1.  Change to `$(MASTER)/bin/` and try running FUSE by typing `./fuse.exe`. If the output is `1st command-line argument is missing (DatString)`, you probably have compiled FUSE correctly. 
  
 ## B. Populate the bin directory
-In addition to `fuse.exe`, the `bin` directory must contain the following file (provided for the catchment case study):
-
-* The file `FILEMANAGER` (called `fm_902_us.txt` in the catchment case study) defines the paths to the FUSE `settings`, `input`, `output` directories and the name of files essential to run FUSE (described below in Sections C and D). 
-* Edit the lines 4 to 6 of `fm_902_us.txt` and enter the path of the `fuse_case_study_1` directory on your machine.
+1. Move the file `fm_902_us.txt` provided for the catchment case study to `$(MASTER)/bin/`. The file is a `FILEMANAGER`. It defines the paths to the FUSE `settings`, `input`, `output` directories and the name of files essential to run FUSE (described  in Sections C and D). 
+1. Edit the lines 4 to 6 of `fm_902_us.txt` and enter the path of the `fuse_case_study_1` directory on your machine.
    
 ## C. Populate the setup directory
 The `setup` directory must contain the following files (provided for the catchment case study):
 
    1. The file `M_DECISIONS` (called `fuse_zDecisions_902.txt` in the case studies) describes the different options available in the FUSE modeling framework. These modeling decisions are described in detail by [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735), except decision 9 described in [Henn et al. (WRR, 2015)](http://dx.doi.org/10.1002/2014WR016736).
-   2. The file `CONSTRAINTS` (called `fuse_zConstraints_snow.txt` in the case studies) defines the default parameter values and lower and upper parameter bounds. The list of parameters corresponds to those described in [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735) and [Henn et al. (WRR, 2015)](http://dx.doi.org/10.1002/2014WR016736). There is a lot in this file, the important columns are the default parameter values and lower and upper parameter bounds.
+   2. The file `CONSTRAINTS` (called `fuse_zConstraints_snow.txt` in the case studies) defines in particular the default parameter values and lower and upper parameter bounds. The list of parameters corresponds to those described in [Clark et al. (WRR, 2008)](http://dx.doi.org/10.1029/2007WR006735) and [Henn et al. (WRR, 2015)](http://dx.doi.org/10.1002/2014WR016736). 
    3. The file `MOD_NUMERIX` (called `fuse_zNumerix.txt` in the case studies) defines decisions regarding the numerical solution technique. Examples of the impact of these decisions are described by [Clark and Kavetski (WRR 2010)](http://dx.doi.org/10.1029/2009WR008894) and [Kavetski and Clark (WRR 2010)](http://dx.doi.org/10.1029/2009WR008896).
    4. The file `FORCINGINFO` (called `us_09066300_input_info.txt` in the catchment case study) provides metadata for the NetCDF input file. It defines the name of the input file and of the variables,  and also defines the start of the similation, the end of the warm-up period, and the end of the simulation.
 
 ## D. Populate the input directory
 The `input` directory must contain the following files (provided for the catchment case study):
 
-   1. The file `forcefile` (called `us_09066300_input.nc` in the catchment case study) contains the input data either in 2D (3D) arrays for modeling at the catchment (grid) scale. The name of this file is prescribed by `FORCINGINFO` (see B4).
+   1. The file `forcefile` (called `us_09066300_input.nc` in the catchment case study) contains the input data either in 2D (3D) arrays for modeling at the catchment (grid) scale. The name of this file is prescribed by `FORCINGINFO` (see C4).
    2. The file `BFILE` (called `us_09066300_elev_bands.nc` in the catchment case study) describe the elevation bands required when the snow module is on. The dimensions of this file must match that of `forcefile`.
    
 Note that the dimension of the NetCDF files will determine if FUSE is run at the catchment or grid-scale. FUSE will look for the variables `lat` and `lon` and if they are arrays, it will run on the grid they define. This means that NetCDF input files for a single catchment must also include the variables `lat` and `lon`.
@@ -62,19 +60,19 @@ Note that the dimension of the NetCDF files will determine if FUSE is run at the
 
 Run FUSE unsing default parameter values at the catchment scale:
 ```
-./fuse_snow_dist_catch.exe fm_902_us.txt us_09066300 902 run_def
+./fuse.exe fm_902_us.txt us_09066300 902 run_def
 ```
 
 then calibrate it:
 
 ```
-./fuse_snow_dist_catch.exe fm_902_us.txt us_09066300 902 sce_calib
+./fuse.exe fm_902_us.txt us_09066300 902 calib_sce
 ```
 
 then run it with the best SCE parameter set:
 
 ```
-./fuse_snow_dist_catch.exe fm_902_us.txt us_09066300 902 run_best
+./fuse.exe fm_902_us.txt us_09066300 902 run_best
 ```
 
 where
