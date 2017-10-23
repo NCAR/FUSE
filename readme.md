@@ -32,14 +32,15 @@ Follow the following steps to run FUSE.
    1. defining the name of the master directory (line 10),
    2. defining the fortran compiler (line 196),
    3. defining the path to the NetCDF libraries (lines 198-219, note that the NetCDF libraries must be compiled using the same compiler that you are using to run the program ).
- 1. Compile SCE code (see Section G below).
- 1. Compile FUSE code (type `make` or `make -f Makefile`).
+ 1. Compile the SCE code (see Section G below).
+ 1. Compile the FUSE code (type `make`).
  1.  Change to `$(MASTER)/bin/` and try running FUSE by typing `./fuse.exe`. If the output is `1st command-line argument is missing (DatString)`, you probably have compiled FUSE correctly. 
  
 ## B. Populate the bin directory
 In addition to `fuse.exe`, the `bin` directory must contain the following file (provided for the catchment case study):
 
-* The file `FILEMANAGER` (called `fm_901_us.txt` in the catchment case study) defines the name of the files listed above and the paths to the `settings`, `input`, `output` directories.
+* The file `FILEMANAGER` (called `fm_902_us.txt` in the catchment case study) defines the paths to the FUSE `settings`, `input`, `output` directories and the name of files essential to run FUSE (described below in Sections C and D). 
+* Edit the lines 4 to 6 of `fm_902_us.txt` and enter the path of the `fuse_case_study_1` directory on your machine.
    
 ## C. Populate the setup directory
 The `setup` directory must contain the following files (provided for the catchment case study):
@@ -67,7 +68,7 @@ Run FUSE unsing default parameter values at the catchment scale:
 then calibrate it:
 
 ```
-./fuse_snow_dist_catch.exe fm_902_us.txt us_09066300 902 run_calib
+./fuse_snow_dist_catch.exe fm_902_us.txt us_09066300 902 sce_calib
 ```
 
 then run it with the best SCE parameter set:
@@ -93,7 +94,7 @@ Running FUSE in its different modes will create the following files in the `outp
 * the last element of the file name indicates which FUSE mode was used.
    
 ## G. Compile SCE
-The code of the shuffled complex evolution method (`$(MASTER)/build/FUSE_SRC/FUSE_SCE/sce.f`) was written in F77, so it must be compiled separately. We compile it using `ifort` and the following flags:
+The code of the shuffled complex evolution method (`$(MASTER)/build/FUSE_SRC/FUSE_SCE/sce.f`) was written in F77, so it must be compiled separately. If you use `ifort`, try the following flags:
   ```
   ifort -O2 -c -fixed sce_16plus.f
   ```
