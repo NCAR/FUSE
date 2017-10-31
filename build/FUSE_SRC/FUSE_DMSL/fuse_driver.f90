@@ -184,8 +184,8 @@ CALL GETNUMERIX(ERR,MESSAGE)
 
 ! define basin desired - ?overwrite fuse_SetDirsUndPhiles?
 FORCINGINFO = TRIM(dom_id)//'_input_info.txt'
-MBANDS_INFO = TRIM(dom_id)//'_elev_bands_info.txt'
-ELEV_BANDS_NC = TRIM(dom_id)//'_'//MBANDS_NC
+MBANDS_INFO = TRIM(dom_id)//'_elev_bands_info.txt' ! probably not needed anymore
+ELEV_BANDS_NC = TRIM(dom_id)//'_elev_bands.nc'
 
 ! convert command-line arguments to integer flags and real numbers
 READ(FMODEL_ID,*) FUSE_ID                 ! integer defining FUSE model
@@ -223,7 +223,7 @@ allocate(AROUTE_3d(nspat1,nspat2,numtim_sub), gState_3d(nspat1,nspat2,numtim_sub
 if(err/=0)then; write(*,*) 'unable to allocate space for 3d structure'; stop; endif
 
 ! get elevation band info, in particular N_BANDS
-CALL GET_MBANDS_INFO(ELEV_BANDS_NC,err,message) ! read band data from NetCDF file - for a 2D grid
+CALL GET_MBANDS_INFO(ELEV_BANDS_NC,err,message) ! read band data from NetCDF file
 
 ! allocate space for elevation bands
 allocate(MBANDS_VAR_4d(nspat1,nspat2,N_BANDS,numtim_sub+1),stat=err)

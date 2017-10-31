@@ -153,7 +153,7 @@ USE multiforce,only:nspat1,nspat2                     ! dimension lengths
 
 IMPLICIT NONE
 ! dummies
-CHARACTER(LEN=1024),intent(in)      :: ELEV_BANDS_NC
+CHARACTER(LEN=1024),intent(in)         :: ELEV_BANDS_NC
 integer(I4B), intent(out)              :: err
 character(*), intent(out)              :: message
 ! internal
@@ -186,11 +186,11 @@ integer(i4b)                           :: dimLen      ! dimension length
 ! read in NetCDF file defining the elevation bands - no info file needed for the gridded version
 err=0
 CFILE = TRIM(INPUT_PATH)//ELEV_BANDS_NC      ! control file info shared in MODULE directory
-print *, 'Elevation bands info file:',TRIM(CFILE)
+print *, 'Loading elevation bands from:',TRIM(CFILE)
 
 INQUIRE(FILE=CFILE,EXIST=LEXIST)  ! check that control file exists
 IF (.NOT.LEXIST) THEN
-	print *, 'f-GET_MBANDS_GRID/NetCDF file ',TRIM(CFILE),' for band data does not exist '
+	print *, 'f-GET_MBANDS_GRID/NetCDF file ',TRIM(CFILE),' for elevation bands does not exist '
 	STOP
 ENDIF
 

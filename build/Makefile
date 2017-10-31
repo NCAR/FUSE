@@ -7,7 +7,7 @@
 #========================================================================
 
 # Define core directory below which everything resides
-F_MASTER = /glade/u/home/naddor/fuse/
+F_MASTER = /home/naddor/fuse/
 
 # Core directory that contains FUSE source code
 F_KORE_DIR = $(F_MASTER)build/FUSE_SRC/

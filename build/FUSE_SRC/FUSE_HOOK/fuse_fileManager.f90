@@ -9,18 +9,18 @@ public
 ! FUSE-wide pathlength
 integer(mik),parameter::fusePathLen=256
 ! defines the path for data files (and default values)
-CHARACTER(LEN=fusePathLen)  :: SETNGS_PATH='/glade/scratch/naddor/fusex/us/settings/'
-CHARACTER(LEN=fusePathLen)  :: INPUT_PATH ='/glade/scratch/naddor/fusex/us/input/'
-CHARACTER(LEN=fusePathLen)  :: OUTPUT_PATH='/glade/scratch/naddor/fusex/us/output/'
+CHARACTER(LEN=fusePathLen)  :: SETNGS_PATH
+CHARACTER(LEN=fusePathLen)  :: INPUT_PATH
+CHARACTER(LEN=fusePathLen)  :: OUTPUT_PATH
 ! define name of control files    (and default values)
-CHARACTER(LEN=fusePathLen)  :: M_DECISIONS='fuse_zDecisions.txt'    ! definition of model decisions
-CHARACTER(LEN=fusePathLen)  :: CONSTRAINTS='fuse_zConstraints.txt'  ! definition of parameter constraints
-CHARACTER(LEN=fusePathLen)  :: MOD_NUMERIX='fuse_zNumerix.txt'      ! definition of numerical solution technique
+CHARACTER(LEN=fusePathLen)  :: M_DECISIONS    ! definition of model decisions
+CHARACTER(LEN=fusePathLen)  :: CONSTRAINTS    ! definition of parameter constraints
+CHARACTER(LEN=fusePathLen)  :: MOD_NUMERIX    ! definition of numerical solution technique
 ! additional control files (not needed by the FUSE engines)
-CHARACTER(LEN=fusePathLen)  :: FORCINGINFO='forcing.info.txt'       ! info on forcing data files
-CHARACTER(LEN=fusePathLen)  :: MBANDS_INFO='elevbands.info.txt'     ! info on basin band data files
-CHARACTER(LEN=fusePathLen)  :: MBANDS_NC='elev_bands.nc'            ! info on basin band data files on a grid
-CHARACTER(LEN=fusePathLen)  :: BATEA_PARAM='batea_param.txt'        ! definition of BATEA parameters
+CHARACTER(LEN=fusePathLen)  :: FORCINGINFO       ! info on forcing data files
+CHARACTER(LEN=fusePathLen)  :: MBANDS_INFO       ! info on basin band data files
+CHARACTER(LEN=fusePathLen)  :: MBANDS_NC         ! info on basin band data files on a grid
+CHARACTER(LEN=fusePathLen)  :: BATEA_PARAM       ! definition of BATEA parameters
 !----------------------------------------------------
 contains
 !----------------------------------------------------
