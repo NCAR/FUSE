@@ -8,11 +8,11 @@ implicit none
 public
 ! FUSE-wide pathlength
 integer(mik),parameter::fusePathLen=256
-! defines the path for data files (and default values)
+! defines the path for data files
 CHARACTER(LEN=fusePathLen)  :: SETNGS_PATH
 CHARACTER(LEN=fusePathLen)  :: INPUT_PATH
 CHARACTER(LEN=fusePathLen)  :: OUTPUT_PATH
-! define name of control files    (and default values)
+! define name of control files
 CHARACTER(LEN=fusePathLen)  :: M_DECISIONS    ! definition of model decisions
 CHARACTER(LEN=fusePathLen)  :: CONSTRAINTS    ! definition of parameter constraints
 CHARACTER(LEN=fusePathLen)  :: MOD_NUMERIX    ! definition of numerical solution technique
@@ -21,6 +21,12 @@ CHARACTER(LEN=fusePathLen)  :: FORCINGINFO       ! info on forcing data files
 CHARACTER(LEN=fusePathLen)  :: MBANDS_INFO       ! info on basin band data files
 CHARACTER(LEN=fusePathLen)  :: MBANDS_NC         ! info on basin band data files on a grid
 CHARACTER(LEN=fusePathLen)  :: BATEA_PARAM       ! definition of BATEA parameters
+! define simulation and evaluation periods required in FUSE_FILEMANAGER_V1.2
+CHARACTER(len=20)       :: date_start_sim            ! date start simulation
+CHARACTER(len=20)       :: date_end_sim              ! date end simulation
+CHARACTER(len=20)       :: date_start_eval           ! date start evaluation period
+CHARACTER(len=20)       :: date_end_eval             ! date end evaluation period
+
 !----------------------------------------------------
 contains
 !----------------------------------------------------
@@ -50,7 +56,7 @@ character(*),intent(out)::message
 character(*),parameter::procnam="fuseSetDirsUndPhiles"
 character(*),parameter::pathDelim="/\",defpathSymb="*",blank=" "
 character(*),parameter::fuseMusterDirektorHeader="FUSE_MUSTERDIREKTOR_V1.0"
-character(*),parameter::fuseFileManagerHeader="FUSE_FILEMANAGER_V1.1"
+character(*),parameter::fuseFileManagerHeader="FUSE_FILEMANAGER_V1.2"
 ! locals
 logical(mlk)::haveFMG,haveMUS
 character(LEN=fusePathLen)::fuseMusterDirektor,fuseFileManager,defpath
@@ -127,11 +133,17 @@ read(unt,*)M_DECISIONS
 read(unt,*)CONSTRAINTS
 read(unt,*)MOD_NUMERIX
 read(unt,*)BATEA_PARAM
+read(unt,'(a)')temp
+read(unt,*)date_start_sim
+read(unt,*)date_end_sim
+read(unt,*)date_start_eval
+read(unt,*)date_end_eval
 close(unt)
 ! process paths a bit
 if(SETNGS_PATH(1:1)==defpathSymb)SETNGS_PATH=trim(defpath)//SETNGS_PATH(2:)
 if( INPUT_PATH(1:1)==defpathSymb) INPUT_PATH=trim(defpath)//INPUT_PATH (2:)
 if(OUTPUT_PATH(1:1)==defpathSymb)OUTPUT_PATH=trim(defpath)//OUTPUT_PATH(2:)
+
 ! End procedure here
 endsubroutine fuse_SetDirsUndPhiles
 !----------------------------------------------------
