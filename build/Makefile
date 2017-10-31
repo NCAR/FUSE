@@ -29,6 +29,7 @@ DRIVER_DIR = $(F_KORE_DIR)FUSE_DMSL
 NETCDF_DIR = $(F_KORE_DIR)FUSE_NETCDF
 ENGINE_DIR = $(F_KORE_DIR)FUSE_ENGINE
 SCE_DIR    = $(F_KORE_DIR)FUSE_SCE
+TIME_DIR   = $(F_KORE_DIR)FUSE_TIME
 
 # Utility modules
 FUSE_UTILMS= \
@@ -42,6 +43,11 @@ FUSE_NRUTIL= \
 	nrtype.f90 \
 	nr.f90 nrutil.f90
 NRUTIL = $(patsubst %, $(NUMREC_DIR)/%, $(FUSE_NRUTIL))
+
+# Time I/O modules
+FUSE_TIMEMS=    \
+  time_io.f90
+TIMUTILS = $(patsubst %, $(TIME_DIR)/%, $(FUSE_TIMEMS))
 
 # Data modules
 FUSE_DATAMS=    \
@@ -177,7 +183,7 @@ FUSE_SCE = \
 SCE = $(patsubst %, $(SCE_DIR)/%, $(FUSE_SCE))
 
 # ... and stitch it all together...
-FUSE_ALL = $(UTILMS) $(NRUTIL) $(DATAMS) $(INFOMS) \
+FUSE_ALL = $(UTILMS) $(NRUTIL) ${TIMUTILS} $(DATAMS) $(INFOMS) \
 	$(NR_SUB) $(MODGUT) $(SOLVER) $(PRELIM) $(MODRUN) \
 	$(NETCDF) $(SCE)
 

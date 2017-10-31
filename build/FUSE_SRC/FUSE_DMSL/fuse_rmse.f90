@@ -44,7 +44,7 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
     USE set_all_module
 
     ! code modules
-    USE get_gforce_module, ONLY:get_modtim                   ! get model time for a given time step
+    USE time_io, ONLY:get_modtim                   ! get model time for a given time step
     USE get_gforce_module, ONLY:get_gforce                   ! get gridded forcing data for a given time step
     USE get_gforce_module, ONLY:get_gforce_3d                ! get gridded forcing data for a range of time steps
     USE getPETgrid_module, ONLY:getPETgrid                   ! get gridded PET
