@@ -524,6 +524,9 @@ contains
  READ(CMM,'(i2)') IM
  READ(CDD,'(i2)') ID
  READ(CHH,'(i2)') IH
+
+ PRINT *, 'Reference date in NetCDF file', IY, IM, ID, IH
+
  end subroutine date_extractor
 
 

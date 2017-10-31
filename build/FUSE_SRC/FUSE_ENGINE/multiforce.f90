@@ -63,6 +63,11 @@ MODULE multiforce
   INTEGER(i4b)                          :: itim_sim=-1               ! indice within numtim_sim
   INTEGER(i4b)                          :: itim_sub=-1               ! indice within numtim_sub
 
+  CHARACTER(len=strLen)                 :: date_start_sim            ! date start simulation
+  CHARACTER(len=strLen)                 :: date_end_sim              ! date end simulation
+  CHARACTER(len=strLen)                 :: date_start_eval           ! date start evaluation period
+  CHARACTER(len=strLen)                 :: date_end_eval             ! date end evaluation period
+
   INTEGER(i4b)                          :: warmup_beg=-1             ! index for the start of the warm-up period
   INTEGER(i4b)                          :: infern_beg=-1             ! index for the start of the inference period
   INTEGER(i4b)                          :: infern_end=-1             ! index for the end of the inference period

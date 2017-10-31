@@ -74,6 +74,7 @@ CHARACTER(LEN=64)                      :: DatString          ! string defining f
 CHARACTER(LEN=64)                      :: dom_id             ! ID of the domain
 CHARACTER(LEN=6)                       :: FMODEL_ID='      ' ! integer defining FUSE model
 CHARACTER(LEN=10)                      :: fuse_mode='      ' ! fuse execution mode (run_def, run_best, run_pre, calib_sce)
+CHARACTER(LEN=64)                      :: file_para_list     ! txt file containing list of parameter sets
 
 ! ---------------------------------------------------------------------------------------
 ! SETUP MODELS FOR SIMULATION -- POPULATE DATA STRUCTURES
@@ -147,18 +148,25 @@ CALL GETARG(1,DatString)  ! string defining forcinginfo file
 CALL GETARG(2,dom_id)     ! ID of the domain
 CALL GETARG(3,FMODEL_ID)  ! ID of FUSE model
 CALL GETARG(4,fuse_mode)  ! fuse execution mode (run_def, run_best, calib_sce)
+IF(TRIM(fuse_mode).EQ.'run_pre')  CALL GETARG(5,file_para_list)  ! fuse execution mode txt file containing list of parameter sets
 
 ! check command-line arguments
 IF (LEN_TRIM(DatString).EQ.0) STOP '1st command-line argument is missing (DatString)'
 IF (LEN_TRIM(dom_id).EQ.0) STOP '2nd command-line argument is missing (dom_id)'
 IF (LEN_TRIM(FMODEL_ID).EQ.0) STOP '3rd command-line argument is missing (fuse_mode)'
 IF (LEN_TRIM(fuse_mode).EQ.0) STOP '4th command-line argument is missing (fuse_mode)'
+IF(TRIM(fuse_mode).EQ.'run_pre')THEN
+  IF(LEN_TRIM(file_para_list).EQ.0)  STOP '5th command-line argument is missing (file_para_list) and is required in mode run_pre'
+ENDIF
 
 ! print command-line arguments
 print*, '1st command-line argument (DatString) = ', trim(DatString)
 print*, '2nd command-line argument (dom_id) = ', trim(dom_id)
 print*, '3rd command-line argument (FMODEL_ID) = ', FMODEL_ID
 print*, '4th command-line argument (fuse_mode) = ', fuse_mode
+IF(TRIM(fuse_mode).EQ.'run_pre')THEN
+  print*, '5th command-line argument (file_para_list) = ', file_para_list
+ENDIF
 
 ! set path to fuse_file_manager
 FFMFILE=DatString ! must be in bin folder and you must be in bin to run FUSE - TODO read argument to FFMFILE directly
@@ -266,13 +274,11 @@ PCOUNT=0                 ! counter for parameter sets evaluated (shared in MODUL
 
 IF(fuse_mode == 'run_def')THEN ! run FUSE with default parameter values
 
+  ! files to which model run and parameter set will be saved
   FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_runs_def.nc'
   FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_para_def.nc'
 
 ELSE IF(fuse_mode == 'run_pre')THEN  ! run FUSE with pre-defined parameter values
-
-  ! file from which parameters will be loaded
-  FNAME_NETCDF_PARA_PRE = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_para_pre.nc'
 
   ! files to which model run and parameter set will be saved
   FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_runs_pre.nc'
@@ -280,6 +286,7 @@ ELSE IF(fuse_mode == 'run_pre')THEN  ! run FUSE with pre-defined parameter value
 
 ELSE IF(fuse_mode == 'calib_sce')THEN ! calibrate FUSE using SCE
 
+  ! files to which model run and parameter set will be saved
   FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_runs_sce.nc'
   FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_para_sce.nc'
 
@@ -333,12 +340,26 @@ ELSE IF(fuse_mode == 'run_pre')THEN ! run FUSE with pre-defined parameter values
 
   OUTPUT_FLAG=.TRUE.
 
-  ! load pre-defined parameter set from NetCDF file into APAR
-  CALL GET_PRE_PARAM(FNAME_NETCDF_PARA_PRE,40000,ONEMOD,NUMPAR,APAR) ! load specific parameter set
+  OPEN(21,FILE=TRIM(file_para_list))
+    DO   ! loop through parameter files
 
-  print *, 'Running FUSE with pre-defined parameter set'
-  CALL FUSE_RMSE(APAR,GRID_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
-  print *, 'Done running FUSE with pre-defined parameter set'
+      ! get output filename
+      !READ(21,*,IOSTAT=IERR) FNAME_NETCDF_PARA_PRE
+      !IF (IERR.NE.0) EXIT
+
+      ! file from which parameters will be loaded
+      !FNAME_NETCDF_PARA_PRE = TRIM(OUTPUT_PATH)//TRIM(FNAME_NETCDF_PARA_PRE)
+      !PRINT *, 'Loading parameter set from', $FNAME_NETCDF_PARA_PRE
+
+      !CALL GET_PRE_PARAM(FNAME_NETCDF_PARA_PRE,1,ONEMOD,NUMPAR,APAR) ! load specific parameter set
+
+      !print *, 'Running FUSE with pre-defined parameter set'
+      !CALL FUSE_RMSE(APAR,GRID_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
+      !print *, 'Done running FUSE with pre-defined parameter set'
+
+    END DO ! (looping through output files)
+
+  CLOSE(21)
 
 ELSE IF(fuse_mode == 'calib_sce')THEN ! calibrate FUSE using SCE
 
@@ -347,7 +368,7 @@ ELSE IF(fuse_mode == 'calib_sce')THEN ! calibrate FUSE using SCE
 
   ! assign algorithmic control parameters for SCE
   NOPT   =  NUMPAR         ! number of parameters to be optimized (NUMPAR in module multiparam)
-  MAXN   =     1000 			 ! maximum number of trials before optimization is terminated
+  MAXN   =     10000 			 ! maximum number of trials before optimization is terminated
   KSTOP  =      3          ! number of shuffling loops the value must change by PCENTO (MAX=9)
   PCENTO =      0.001      ! the percentage
   NGS    =     10          ! number of complexes in the initial population
