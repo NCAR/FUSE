@@ -27,7 +27,7 @@ https://www.dropbox.com/s/e8doyoju5fvsrvr/fuse_case_study_1.zip?dl=0) for downlo
 Follow the following steps to run FUSE.
 
 ## A. Fork this repository and compile FUSE
-1. Fork this repository to a directory `$(MASTER)` on your machine.
+1. Fork this repository to a directory `$(MASTER)` on your machine (see the [SUMMA manual](http://summa.readthedocs.io/en/latest/development/SUMMA_and_git/) for a step-by-step procedure)
 1. Change directory to `$(MASTER)/build/` and edit the `Makefile`, by:
    1. defining the name of the master directory (line 10),
    2. defining the fortran compiler (line 196),
