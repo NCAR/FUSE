@@ -14,8 +14,9 @@ USE nrtype                                                ! variable types, etc.
 USE netcdf                                                ! NetCDF library
 USE fuse_fileManager,only:fuse_SetDirsUndPhiles,&         ! sets directories and filenames
           SETNGS_PATH,MBANDS_INFO,MBANDS_NC, &
-          OUTPUT_PATH,FORCINGINFO,INPUT_PATH
-
+          OUTPUT_PATH,FORCINGINFO,INPUT_PATH,&
+          date_start_sim,date_end_sim,&
+          date_start_eval,date_end_eval
 ! data modules
 USE model_defn,nstateFUSE=>nstate                         ! model definition structures
 USE model_defnames                                        ! defines the integer model options
@@ -27,6 +28,7 @@ USE multiforce, only: ancilF, ancilF_3d                   ! ancillary forcing da
 USE multiforce, ONLY: valDat                              ! response data
 USE multiforce, only: DELTIM
 USE multiforce, only: ISTART                              ! index for start of inference
+USE multiforce, ONLY: timeUnits,time_steps                ! time data
 USE multiforce, only: numtim_in, itim_in                  ! length of input time series and associated index
 USE multiforce, only: numtim_sim, itim_sim                ! length of simulated time series and associated index
 USE multiforce, only: numtim_sub, itim_sub                ! length of subperiod time series and associated index
@@ -159,6 +161,9 @@ IF(TRIM(fuse_mode).EQ.'run_pre')THEN
   IF(LEN_TRIM(file_para_list).EQ.0)  STOP '5th command-line argument is missing (file_para_list) and is required in mode run_pre'
 ENDIF
 
+! convert command-line arguments to integer flags and real numbers
+READ(FMODEL_ID,*) FUSE_ID                 ! integer defining FUSE model
+
 ! print command-line arguments
 print*, '1st command-line argument (DatString) = ', trim(DatString)
 print*, '2nd command-line argument (dom_id) = ', trim(dom_id)
@@ -175,20 +180,22 @@ FFMFILE=DatString ! must be in bin folder and you must be in bin to run FUSE - T
 call fuse_SetDirsUndPhiles(fuseFileManagerIn=FFMFILE,err=err,message=message)
 if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
 
+PRINT *, 'Variables defined in file manager:'
 PRINT *, 'SETNGS_PATH:', TRIM(SETNGS_PATH)
 PRINT *, 'INPUT_PATH:', TRIM(INPUT_PATH)
 PRINT *, 'OUTPUT_PATH:', TRIM(OUTPUT_PATH)
 
-! defines method/parameters used for numerical solution
-CALL GETNUMERIX(ERR,MESSAGE)
-
-! define basin desired - ?overwrite fuse_SetDirsUndPhiles?
+! define name of forcing info and elevation band file
 FORCINGINFO = TRIM(dom_id)//'_input_info.txt'
 MBANDS_INFO = TRIM(dom_id)//'_elev_bands_info.txt' ! probably not needed anymore
 ELEV_BANDS_NC = TRIM(dom_id)//'_elev_bands.nc'
 
-! convert command-line arguments to integer flags and real numbers
-READ(FMODEL_ID,*) FUSE_ID                 ! integer defining FUSE model
+PRINT *, 'Variables defined based on domain name:'
+PRINT *, 'FORCINGINFO:', TRIM(FORCINGINFO)
+PRINT *, 'ELEV_BANDS_NC:', TRIM(ELEV_BANDS_NC)
+
+! defines method/parameters used for numerical solution - what is this line doing here?
+CALL GETNUMERIX(ERR,MESSAGE)
 
 ! ---------------------------------------------------------------------------------------
 ! GET MODEL SETUP -- MODEL DEFINITION, AND PARAMETER AND VARIABLE INFO FOR ALL MODELS
@@ -213,6 +220,13 @@ PRINT *, 'NCID_FORC is', ncid_forc
 ! get the grid info (spatial and temporal dimensions) from the NetCDF file
 call read_ginfo(ncid_forc,err,message)
 if(err/=0)then; write(*,*) trim(message); stop; endif
+
+print *, 'Reference time in input file = ', trim(timeUnits)
+print *, 'Start date in input file     = ',  time_steps(1)
+print *, 'End date in input file      = ',  time_steps(numtim_in)
+
+! test if required simulation period is covered by input file
+
 
 ! allocate space for the forcing grid and states
 allocate(ancilF(nspat1,nspat2), gForce(nspat1,nspat2), gState(nspat1,nspat2), stat=err)

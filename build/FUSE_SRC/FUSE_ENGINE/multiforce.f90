@@ -55,6 +55,9 @@ MODULE multiforce
   TYPE(aData), DIMENSION(:,:,:), POINTER  :: ancilF_3d  ! ancillary forcing data for the 3-d grid - because time is timeless
 
   ! timing information - note that numtim_in >= numtim_sim >= numtim_sub
+  CHARACTER(len=20)                     :: date_start_inpt           ! date start input time series
+  CHARACTER(len=20)                     :: date_end_input            ! date end input time series
+
   INTEGER(i4b)                          :: numtim_in=-1              ! number of time steps of input (atmospheric forcing)
   INTEGER(i4b)                          :: numtim_sim=-1             ! number of time steps of FUSE simulations (including spin-up)
   INTEGER(i4b)                          :: numtim_sub=-1             ! number of time steps of subperiod (will be kept in memory)
@@ -62,7 +65,7 @@ MODULE multiforce
   INTEGER(i4b)                          :: itim_in=-1                ! indice within numtim_in
   INTEGER(i4b)                          :: itim_sim=-1               ! indice within numtim_sim
   INTEGER(i4b)                          :: itim_sub=-1               ! indice within numtim_sub
-  
+
   INTEGER(i4b)                          :: warmup_beg=-1             ! index for the start of the warm-up period
   INTEGER(i4b)                          :: infern_beg=-1             ! index for the start of the inference period
   INTEGER(i4b)                          :: infern_end=-1             ! index for the end of the inference period

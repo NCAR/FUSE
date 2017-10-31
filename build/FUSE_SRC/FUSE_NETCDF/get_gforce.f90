@@ -129,7 +129,6 @@ contains
   end subroutine get_dimIds
   ! --------------------------------------------------------------------------------------
 
-
   SUBROUTINE get_varID(ncid,ierr,message)
   ! ---------------------------------------------------------------------------------------
   ! Creator:
@@ -260,7 +259,6 @@ contains
 
  ! compute the year, month, day, hour, minute, second
  call caldatss(jdayRef+timDat%dtime,timDat%iy,timDat%im,timDat%id,timDat%ih,timDat%imin,timDat%dsec)
- !print*, timDat%iy,timDat%im,timDat%id!,timDat%ih,timDat%imin,timDat%dsec
 
  END SUBROUTINE get_modtim
 
@@ -477,9 +475,6 @@ contains
  deallocate(gTemp, stat=ierr)
  if(ierr/=0)then; message=trim(message)//'problem deallocating space for gTemp'; return; endif
 
-
-  !print *,'aValid(1,1,1:10)',aValid(1,1,1:10)
-
  end subroutine get_gforce_3d
 
  subroutine date_extractor(refDate,iy,im,id,ih)
@@ -525,10 +520,7 @@ contains
  READ(CDD,'(i2)') ID
  READ(CHH,'(i2)') IH
 
- PRINT *, 'Reference date in NetCDF file', IY, IM, ID, IH
-
  end subroutine date_extractor
-
 
  SUBROUTINE juldayss(iy,im,id,ih,            &  ! input
                      juldayFrac,ierr,message)   ! output

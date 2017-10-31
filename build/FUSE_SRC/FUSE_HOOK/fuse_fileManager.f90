@@ -2,6 +2,7 @@
 ! (C) Copyright 2009-2010  ---  Dmitri Kavetski and Martyn Clark ---  All rights reserved
 !******************************************************************
 ! Edited by Brian Henn to include snow model, 7/2013
+! Edited by Nans Addor to set simulation and evaluation periods, 11/2017
 MODULE fuse_filemanager
 use kinds_dmsl_kit_FUSE,only:mik,mlk
 implicit none
@@ -13,19 +14,19 @@ CHARACTER(LEN=fusePathLen)  :: SETNGS_PATH
 CHARACTER(LEN=fusePathLen)  :: INPUT_PATH
 CHARACTER(LEN=fusePathLen)  :: OUTPUT_PATH
 ! define name of control files
-CHARACTER(LEN=fusePathLen)  :: M_DECISIONS    ! definition of model decisions
-CHARACTER(LEN=fusePathLen)  :: CONSTRAINTS    ! definition of parameter constraints
-CHARACTER(LEN=fusePathLen)  :: MOD_NUMERIX    ! definition of numerical solution technique
+CHARACTER(LEN=fusePathLen)  :: M_DECISIONS       ! definition of model decisions
+CHARACTER(LEN=fusePathLen)  :: CONSTRAINTS       ! definition of parameter constraints
+CHARACTER(LEN=fusePathLen)  :: MOD_NUMERIX       ! definition of numerical solution technique
 ! additional control files (not needed by the FUSE engines)
 CHARACTER(LEN=fusePathLen)  :: FORCINGINFO       ! info on forcing data files
 CHARACTER(LEN=fusePathLen)  :: MBANDS_INFO       ! info on basin band data files
 CHARACTER(LEN=fusePathLen)  :: MBANDS_NC         ! info on basin band data files on a grid
 CHARACTER(LEN=fusePathLen)  :: BATEA_PARAM       ! definition of BATEA parameters
 ! define simulation and evaluation periods required in FUSE_FILEMANAGER_V1.2
-CHARACTER(len=20)       :: date_start_sim            ! date start simulation
-CHARACTER(len=20)       :: date_end_sim              ! date end simulation
-CHARACTER(len=20)       :: date_start_eval           ! date start evaluation period
-CHARACTER(len=20)       :: date_end_eval             ! date end evaluation period
+CHARACTER(len=20)           :: date_start_sim    ! date start simulation
+CHARACTER(len=20)           :: date_end_sim      ! date end simulation
+CHARACTER(len=20)           :: date_start_eval   ! date start evaluation period
+CHARACTER(len=20)           :: date_end_eval     ! date end evaluation period
 
 !----------------------------------------------------
 contains
