@@ -37,8 +37,9 @@ Follow the following steps to run FUSE.
  1.  Change to `$(MASTER)/bin/` and try running FUSE by typing `./fuse.exe`. If the output is `1st command-line argument is missing (DatString)`, you probably have compiled FUSE correctly. 
  
 ## B. Populate the bin directory
-1. Move the file `fm_902_us.txt` provided for the catchment case study to `$(MASTER)/bin/`. The file is a `FILEMANAGER`. It defines the paths to the FUSE `settings`, `input`, `output` directories and the name of files essential to run FUSE (described  in Sections C and D). 
-1. Edit the lines 4 to 6 of `fm_902_us.txt` and enter the path of the `fuse_case_study_1` directory on your machine.
+To run FUSE, you must use a `FILEMANAGER`, which defines the paths to the FUSE `settings`, `input`, `output` directories and the name of files essential to run FUSE (described  in Sections C and D). 
+1. Move the file `fm_902_us.txt` provided for the catchment case study to `$(MASTER)/bin/`. This is the `FILEMANAGER` for the catchment case study.
+1. Update the lines 4 to 6 of `fm_902_us.txt` using the path of the `fuse_case_study_1` directory on your machine.
    
 ## C. Populate the setup directory
 The `setup` directory must contain the following files (provided for the catchment case study):
