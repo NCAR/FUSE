@@ -252,18 +252,6 @@ contains
 
   if(numtim_sub > numtim_sim)then; ierr=20; message=trim(message)//'the subperiod is greater than the entire period'; return; endif
 
-  print*, 'Number of timesteps per subperiod (numtim_sub) = ', numtim_sub
-  print*, 'warmup_beg', warmup_beg
-  print*, 'infern_beg', infern_beg
-  print*, 'infern_end', infern_end
-  print*, 'longrun_beg', longrun_beg
-  print*, 'longrun_end', longrun_end
-
-  print*, 'Given fuse mode (',trim(fuse_mode),') the simulation will:'
-  print*, '- start at ', istart
-  print*, '- run for ', numtim_sim,' time steps'
-  print*, '- with a subperiod of ', numtim_sub,' time steps'
-
  ! get multipliers for each variable
  do ivar=1,3
   if(ivar==1) call get_multiplier(units_aprecip, amult_ppt, ierr, cmessage)

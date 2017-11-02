@@ -140,10 +140,22 @@ read(unt,*)date_end_sim
 read(unt,*)date_start_eval
 read(unt,*)date_end_eval
 close(unt)
+
 ! process paths a bit
 if(SETNGS_PATH(1:1)==defpathSymb)SETNGS_PATH=trim(defpath)//SETNGS_PATH(2:)
 if( INPUT_PATH(1:1)==defpathSymb) INPUT_PATH=trim(defpath)//INPUT_PATH (2:)
 if(OUTPUT_PATH(1:1)==defpathSymb)OUTPUT_PATH=trim(defpath)//OUTPUT_PATH(2:)
+
+PRINT *, 'Variables defined in file manager:'
+PRINT *, 'SETNGS_PATH:', TRIM(SETNGS_PATH)
+PRINT *, 'INPUT_PATH:', TRIM(INPUT_PATH)
+PRINT *, 'OUTPUT_PATH:', TRIM(OUTPUT_PATH)
+
+PRINT *, 'Dates defined in file manager:'
+PRINT *, 'date_start_sim:', TRIM(date_start_sim)
+PRINT *, 'date_end_sim:', TRIM(date_end_sim)
+PRINT *, 'date_start_eval:', TRIM(date_start_eval)
+PRINT *, 'date_end_eval:', TRIM(date_end_eval)
 
 ! End procedure here
 endsubroutine fuse_SetDirsUndPhiles

@@ -55,7 +55,7 @@ MODULE multiforce
   TYPE(aData), DIMENSION(:,:,:), POINTER  :: ancilF_3d  ! ancillary forcing data for the 3-d grid - because time is timeless
 
   ! timing information - note that numtim_in >= numtim_sim >= numtim_sub
-  CHARACTER(len=20)                     :: date_start_inpt           ! date start input time series
+  CHARACTER(len=20)                     :: date_start_input          ! date start input time series
   CHARACTER(len=20)                     :: date_end_input            ! date end input time series
 
   INTEGER(i4b)                          :: numtim_in=-1              ! number of time steps of input (atmospheric forcing)

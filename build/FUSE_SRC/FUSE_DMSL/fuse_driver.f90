@@ -61,6 +61,7 @@ USE get_fparam_module                                     ! get SCE parameters f
 USE getf_ascii_module,only:prelim_asc                     ! get preliminary data from the ASCII file
 USE getf_ascii_module,only:close_file                     ! close ASCII file
 USE getf_ascii_module,only:read_ascii                     ! read ascii forcing data for a given time step
+USE time_io
 
 ! model numerix
 USE model_numerix                                         ! defines decisions on model numerix
@@ -103,6 +104,11 @@ INTEGER(I4B)                           :: ONEMOD=1        ! just specify one mod
 ! timers
 INTEGER(I4B)                           :: T_start_import_forcing ! system clock
 INTEGER(I4B)                           :: T_end_import_forcing   ! system clock
+
+integer(i4b)                           :: iy,im,id,ih,imin       ! to store year, month, day, hour, min
+real(sp)                               :: isec              ! to store second
+real(sp)                               :: jdate_start_sim
+real(sp)                               :: jdate_ref_netcdf
 
 ! ---------------------------------------------------------------------------------------
 ! RUN MODEL FOR DIFFERENT PARAMETER SETS
@@ -180,11 +186,6 @@ FFMFILE=DatString ! must be in bin folder and you must be in bin to run FUSE - T
 call fuse_SetDirsUndPhiles(fuseFileManagerIn=FFMFILE,err=err,message=message)
 if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
 
-PRINT *, 'Variables defined in file manager:'
-PRINT *, 'SETNGS_PATH:', TRIM(SETNGS_PATH)
-PRINT *, 'INPUT_PATH:', TRIM(INPUT_PATH)
-PRINT *, 'OUTPUT_PATH:', TRIM(OUTPUT_PATH)
-
 ! define name of forcing info and elevation band file
 FORCINGINFO = TRIM(dom_id)//'_input_info.txt'
 MBANDS_INFO = TRIM(dom_id)//'_elev_bands_info.txt' ! probably not needed anymore
@@ -221,12 +222,23 @@ PRINT *, 'NCID_FORC is', ncid_forc
 call read_ginfo(ncid_forc,err,message)
 if(err/=0)then; write(*,*) trim(message); stop; endif
 
-print *, 'Reference time in input file = ', trim(timeUnits)
-print *, 'Start date in input file     = ',  time_steps(1)
-print *, 'End date in input file      = ',  time_steps(numtim_in)
+! convert start and end date of the NetCDF input file to julian date
+call date_extractor(trim(timeUnits),iy,im,id,ih) ! break down reference date of NetCDF file
+call juldayss(iy,im,id,ih,            &          ! convert it to julian date
+                jdate_ref_netcdf,err,message)
+
+call caldatss(jdate_ref_netcdf+time_steps(1),iy,im,id,ih,imin,isec)
+print *, 'Start date input file=',iy,im,id,ih,imin,isec
+
+call caldatss(jdate_ref_netcdf+time_steps(numtim_in),iy,im,id,ih,imin,isec)
+print *, 'End date input file=',iy,im,id,ih,imin,isec
+
+! convert date for simulation into julian date_start_sim
+call date_extractor(trim(date_start_sim),iy,im,id,ih) ! break down reference date of NetCDF file
+call juldayss(iy,im,id,ih,            &          ! convert it to julian date
+                jdate_ref_netcdf,err,message)
 
 ! test if required simulation period is covered by input file
-
 
 ! allocate space for the forcing grid and states
 allocate(ancilF(nspat1,nspat2), gForce(nspat1,nspat2), gState(nspat1,nspat2), stat=err)

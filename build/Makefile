@@ -44,11 +44,6 @@ FUSE_NRUTIL= \
 	nr.f90 nrutil.f90
 NRUTIL = $(patsubst %, $(NUMREC_DIR)/%, $(FUSE_NRUTIL))
 
-# Time I/O modules
-FUSE_TIMEMS=    \
-  time_io.f90
-TIMUTILS = $(patsubst %, $(TIME_DIR)/%, $(FUSE_TIMEMS))
-
 # Data modules
 FUSE_DATAMS=    \
         model_defn.f90 \
@@ -63,6 +58,11 @@ FUSE_DATAMS=    \
 	multistats.f90 \
 	model_numerix.f90
 DATAMS = $(patsubst %, $(ENGINE_DIR)/%, $(FUSE_DATAMS))
+
+# Time I/O modules
+FUSE_TIMEMS=    \
+  time_io.f90
+TIMUTILS = $(patsubst %, $(TIME_DIR)/%, $(FUSE_TIMEMS))
 
 # Information modules
 FUSE_INFOMS= \
@@ -183,7 +183,7 @@ FUSE_SCE = \
 SCE = $(patsubst %, $(SCE_DIR)/%, $(FUSE_SCE))
 
 # ... and stitch it all together...
-FUSE_ALL = $(UTILMS) $(NRUTIL) ${TIMUTILS} $(DATAMS) $(INFOMS) \
+FUSE_ALL = $(UTILMS) $(NRUTIL) $(DATAMS) $(TIMUTILS) $(INFOMS) \
 	$(NR_SUB) $(MODGUT) $(SOLVER) $(PRELIM) $(MODRUN) \
 	$(NETCDF) $(SCE)
 
