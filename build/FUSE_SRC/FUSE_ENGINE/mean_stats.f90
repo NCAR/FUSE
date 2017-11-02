@@ -51,20 +51,16 @@ REAL(SP), PARAMETER                    :: NO_ZERO=1.E-20  ! avoid divide by zero
 ! ---------------------------------------------------------------------------------------
 ! define sample size
 !NS = (NUMTIM_SIM-ISTART) + 1    ! (ISTART is shared in MODULE multiforce)
-NS =  infern_end-infern_beg+1
+NS =  eval_end-eval_beg+1
 PRINT *, 'Number of time steps used for evaluation (NS)= ', NS
 
 ! allocate space for observed and simulated runoff
 ALLOCATE(QOBS(NS),QOBS_MASK(NS),QSIM(NS),STAT=IERR)
 IF (IERR.NE.0) STOP ' PROBLEM ALLOCATING SPACE IN MEAN_STATS.F90 '
 
-print *, 'warmup_beg', warmup_beg
-print *, 'infern_beg', infern_beg
-print *, 'infern_end', infern_end
-
 ! extract OBS and SIM for inference period, disregard warmup period
-QSIM = AROUTE_3d(1,1,infern_beg-warmup_beg:infern_end-warmup_beg)%Q_ROUTED ! TODO - use ISTART INSTEAD
-QOBS = aValid(1,1,infern_beg-warmup_beg:infern_end-warmup_beg)%OBSQ
+QSIM = AROUTE_3d(1,1,eval_beg:eval_end)%Q_ROUTED
+QOBS = aValid(1,1,eval_beg:eval_end)%OBSQ
 
 ! check for missing QOBS values
 QOBS_MASK = QOBS.ne.REAL(NA_VALUE, KIND(SP)) ! find the time steps for which QOBS is available

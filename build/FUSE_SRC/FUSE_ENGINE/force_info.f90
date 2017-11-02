@@ -38,7 +38,6 @@ contains
  USE multiforce,only:vname_dtime                            ! name of time variable (time since reference time)
  USE multiforce,only:deltim                                 ! model timestep (days)
  USE multiforce,only:xlon,ylat                              ! lon-lat coordinates (degrees)
- USE multiforce,only:warmup_beg,infern_beg,infern_end       ! timestep indices
  USE multiforce,only:longrun_beg,longrun_end                ! timestep indices
  USE multiforce,only:istart,numtim_sim                      ! index for start of inference, and number steps in the reduced array
  USE multiforce,only:amult_ppt,amult_pet,amult_q            ! used to convert fluxes to mm/day
@@ -65,7 +64,7 @@ contains
  integer(i4b)                           :: iend_data            ! end index of data in string charlines(iLine)
  character(len=strLen)                  :: cName,cData          ! name and data from charlines(iLine)
  ! internal: named variables
- integer(i4b),parameter                 :: maxinfo=31           ! maximum number of informational elements
+ integer(i4b),parameter                 :: maxinfo=25           ! maximum number of informational elements
  logical(lgt),dimension(maxinfo)        :: lCheck               ! vector to check that we have the infomation we need
  integer(i4b),parameter                 :: iForcefile     =1    ! named variable for element of lCheck
  integer(i4b),parameter                 :: iVname_iy      =2    ! named variable for element of lCheck
@@ -92,12 +91,6 @@ contains
  integer(i4b),parameter                 :: iDeltim        =23   ! named variable for element of lCheck
  integer(i4b),parameter                 :: ixlon          =24   ! named variable for element of lCheck
  integer(i4b),parameter                 :: iylat          =25   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iWarmup_beg    =26   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iInfern_beg    =27   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iInfern_end    =28   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iLongrun_beg   =29   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iLongrun_end   =30   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iNumtim_sub    =31   ! named variable for element of lCheck
  ! get units strings (used to define variable multipliers)
  character(len=strLen)                  :: units_aprecip='undefined' ! unit string for precipitation
  character(len=strLen)                  :: units_airtemp='undefined' ! unit string for air temperature
@@ -110,8 +103,6 @@ contains
  ! ---------------------------------------------------------------------------------------
  ! initialize error control
  ierr=0; message='force_info/'
- ! check dimension size
- if(iInfern_end > maxinfo)then; ierr=20; message=trim(message)//'maxinfo size insufficient'; return; endif
  ! ---------------------------------------------------------------------------------------
  ! build filename
  cfile = trim(SETNGS_PATH)//trim(FORCINGINFO) ! uses paths and filenames from MODULE fuse_fileManager
@@ -174,12 +165,6 @@ contains
    case('<deltim>');     read(cData,*,iostat=ierr) deltim;            lCheck(iDeltim)         = .true.
    case('<xlon>');       read(cData,*,iostat=ierr) xlon;              lCheck(ixlon)           = .true.
    case('<ylat>');       read(cData,*,iostat=ierr) ylat;              lCheck(iylat)           = .true.
-   case('<warmup_beg>'); read(cData,*,iostat=ierr) warmup_beg;        lCheck(iWarmup_beg)     = .true.
-   case('<infern_beg>'); read(cData,*,iostat=ierr) infern_beg;        lCheck(iInfern_beg)     = .true.
-   case('<infern_end>'); read(cData,*,iostat=ierr) infern_end;        lCheck(iInfern_end)     = .true.
-   case('<longrun_beg>'); read(cData,*,iostat=ierr) longrun_beg;      lCheck(iLongrun_beg)    = .true.
-   case('<longrun_end>'); read(cData,*,iostat=ierr) longrun_end;      lCheck(iLongrun_end)    = .true.
-   case('<numtim_sub>'); read(cData,*,iostat=ierr) numtim_sub;        lCheck(iNumtim_sub)     = .true.
    ! check for an unexpected string
    case default
     ierr=20; message=trim(message)//'do not have a case for string ['//trim(cName)//']'; return
@@ -222,10 +207,6 @@ contains
   write(*,'(a,1x,f9.6,1x,L1)') '<deltim>',        deltim,              lCheck(iDeltim)
   write(*,'(a,1x,f9.3,1x,L1)') '<xlon>',          xlon,                lCheck(ixlon)
   write(*,'(a,1x,f9.3,1x,L1)') '<ylat>',          ylat,                lCheck(iylat)
-  write(*,'(a,1x,i9.0,1x,L1)') '<warmup_beg>',    warmup_beg,          lCheck(iWarmup_beg)
-  write(*,'(a,1x,i9.0,1x,L1)') '<infern_beg>',    infern_beg,          lCheck(iInfern_beg)
-  write(*,'(a,1x,i9.0,1x,L1)') '<infern_end>',    infern_end,          lCheck(iInfern_end)
-  write(*,'(a,1x,i9.0,1x,L1)') '<numtim_sub>',    numtim_sub,          lCheck(iNumtim_sub)
   print*, lCheck, size(lcheck)
   return
  endif  ! if we missed a variable
@@ -233,24 +214,6 @@ contains
  ! express the longitude in the interval [-180,180]
  if(xlon < -180._sp) xlon = xlon + 360._dp
  if(xlon >  180._sp) xlon = xlon - 360._dp
-
- ! make a couple of basic checks
- if(warmup_beg > infern_beg)then; ierr=20; message=trim(message)//'start of warm-up period is greater than start of inference period'; return; endif
- if(infern_beg > infern_end)then; ierr=20; message=trim(message)//'start of inference period is greater than end of inference period'; return; endif
- if(longrun_beg > longrun_end)then; ierr=20; message=trim(message)//'start long run greater than end of long run'; return; endif
-
-  ! determine time period to be run
-  select case(trim(fuse_mode))
-    case('run_def');     istart = longrun_beg; numtim_sim = (longrun_end - longrun_beg) + 1; numtim_sub=numtim_sim
-    case('run_pre');     istart = longrun_beg; numtim_sim = (longrun_end - longrun_beg) + 1; numtim_sub=numtim_sim
-    case('run_best');    istart = longrun_beg; numtim_sim = (longrun_end - longrun_beg) + 1; numtim_sub=numtim_sim
-    case('calib_sce');   istart = infern_beg;  numtim_sim = (infern_end - warmup_beg) + 1; numtim_sub=numtim_sim
-    case default
-      print *, 'Unexpected FUSE mode:',trim(fuse_mode)
-      stop
-  endselect
-
-  if(numtim_sub > numtim_sim)then; ierr=20; message=trim(message)//'the subperiod is greater than the entire period'; return; endif
 
  ! get multipliers for each variable
  do ivar=1,3

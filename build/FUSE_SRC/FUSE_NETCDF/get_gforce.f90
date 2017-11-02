@@ -31,7 +31,8 @@ contains
                            INPUT_PATH
  USE multiforce,only:forcefile,vname_aprecip           ! model forcing structures
  USE multiforce,only:nspat1,nspat2,numtim_in           ! dimension lengths
- USE multiforce,only:latitude,longitude,time_steps     ! dimension arrays
+ USE multiforce,only:latitude,longitude                ! dimension arrays
+ USE multiforce,only:time_steps,julian_time_steps      ! dimension arrays
  USE multiforce,only:latUnits,lonUnits,timeUnits       ! units string for time
  USE multiforce,only:vname_dtime                       ! variable name: time sice reference time
 
@@ -78,7 +79,7 @@ contains
 
  end do
 
- allocate(longitude(nspat1),latitude(nspat2),time_steps(numtim_in))
+ allocate(longitude(nspat1),latitude(nspat2),time_steps(numtim_in),julian_time_steps(numtim_in))
 
  ! get longitude
  ierr = nf90_inq_varid(ncid, 'longitude', iVarID)

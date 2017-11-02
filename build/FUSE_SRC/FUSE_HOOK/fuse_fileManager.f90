@@ -5,6 +5,7 @@
 ! Edited by Nans Addor to set simulation and evaluation periods, 11/2017
 MODULE fuse_filemanager
 use kinds_dmsl_kit_FUSE,only:mik,mlk
+
 implicit none
 public
 ! FUSE-wide pathlength
@@ -27,7 +28,7 @@ CHARACTER(len=20)           :: date_start_sim    ! date start simulation
 CHARACTER(len=20)           :: date_end_sim      ! date end simulation
 CHARACTER(len=20)           :: date_start_eval   ! date start evaluation period
 CHARACTER(len=20)           :: date_end_eval     ! date end evaluation period
-
+CHARACTER(len=20)           :: numtim_sub_str    ! number of time steps of subperiod (will be kept in memory)
 !----------------------------------------------------
 contains
 !----------------------------------------------------
@@ -139,6 +140,7 @@ read(unt,*)date_start_sim
 read(unt,*)date_end_sim
 read(unt,*)date_start_eval
 read(unt,*)date_end_eval
+read(unt,*)numtim_sub_str
 close(unt)
 
 ! process paths a bit
@@ -156,6 +158,7 @@ PRINT *, 'date_start_sim:', TRIM(date_start_sim)
 PRINT *, 'date_end_sim:', TRIM(date_end_sim)
 PRINT *, 'date_start_eval:', TRIM(date_start_eval)
 PRINT *, 'date_end_eval:', TRIM(date_end_eval)
+PRINT *, 'numtim_sub_str:', TRIM(numtim_sub_str)
 
 ! End procedure here
 endsubroutine fuse_SetDirsUndPhiles

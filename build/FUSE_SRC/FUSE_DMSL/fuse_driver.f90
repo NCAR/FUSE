@@ -16,7 +16,8 @@ USE fuse_fileManager,only:fuse_SetDirsUndPhiles,&         ! sets directories and
           SETNGS_PATH,MBANDS_INFO,MBANDS_NC, &
           OUTPUT_PATH,FORCINGINFO,INPUT_PATH,&
           date_start_sim,date_end_sim,&
-          date_start_eval,date_end_eval
+          date_start_eval,date_end_eval,&
+          numtim_sub_str
 ! data modules
 USE model_defn,nstateFUSE=>nstate                         ! model definition structures
 USE model_defnames                                        ! defines the integer model options
@@ -28,13 +29,13 @@ USE multiforce, only: ancilF, ancilF_3d                   ! ancillary forcing da
 USE multiforce, ONLY: valDat                              ! response data
 USE multiforce, only: DELTIM
 USE multiforce, only: ISTART                              ! index for start of inference
-USE multiforce, ONLY: timeUnits,time_steps                ! time data
+USE multiforce, ONLY: timeUnits,time_steps,julian_time_steps    ! time data
 USE multiforce, only: numtim_in, itim_in                  ! length of input time series and associated index
 USE multiforce, only: numtim_sim, itim_sim                ! length of simulated time series and associated index
 USE multiforce, only: numtim_sub, itim_sub                ! length of subperiod time series and associated index
-USE multiforce,only:  warmup_beg,infern_beg,infern_end    ! timestep indices
-USE multiforce,only:  longrun_beg,longrun_end             ! timestep indices
 USE multiforce,only:  sim_beg,sim_end                     ! timestep indices
+USE multiforce,only:  eval_beg,eval_end                   ! timestep indices
+USE multiforce,only:  longrun_beg,longrun_end             ! timestep indices
 USE multiforce, only: ncid_forc                           ! NetCDF forcing file ID
 USE multiforce, only: ncid_var                            ! NetCDF forcing variable ID
 USE multistate, only: ncid_out                            ! NetCDF output file ID
@@ -58,9 +59,6 @@ USE get_gforce_module,only:get_varid                      ! get netCDF ID for fo
 USE get_gforce_module,only:get_gforce_3d                  ! get forcing
 USE get_mbands_module,only:get_mbands, GET_MBANDS_INFO    ! get elevation bands for snow modeling
 USE get_fparam_module                                     ! get SCE parameters from NetCDF file
-USE getf_ascii_module,only:prelim_asc                     ! get preliminary data from the ASCII file
-USE getf_ascii_module,only:close_file                     ! close ASCII file
-USE getf_ascii_module,only:read_ascii                     ! read ascii forcing data for a given time step
 USE time_io
 
 ! model numerix
@@ -104,11 +102,14 @@ INTEGER(I4B)                           :: ONEMOD=1        ! just specify one mod
 ! timers
 INTEGER(I4B)                           :: T_start_import_forcing ! system clock
 INTEGER(I4B)                           :: T_end_import_forcing   ! system clock
-
-integer(i4b)                           :: iy,im,id,ih,imin       ! to store year, month, day, hour, min
-real(sp)                               :: isec              ! to store second
 real(sp)                               :: jdate_start_sim
 real(sp)                               :: jdate_ref_netcdf
+
+! dummies
+integer(i4b)                           :: iy,im,id,ih,imin  ! to temporarily store year, month, day, hour, min
+real(sp)                               :: isec              ! to temporarily store sec
+real(sp)                               :: jdate             ! to temporarily store a julian date
+
 
 ! ---------------------------------------------------------------------------------------
 ! RUN MODEL FOR DIFFERENT PARAMETER SETS
@@ -227,18 +228,61 @@ call date_extractor(trim(timeUnits),iy,im,id,ih) ! break down reference date of 
 call juldayss(iy,im,id,ih,            &          ! convert it to julian date
                 jdate_ref_netcdf,err,message)
 
-call caldatss(jdate_ref_netcdf+time_steps(1),iy,im,id,ih,imin,isec)
-print *, 'Start date input file=',iy,im,id,ih,imin,isec
+! julian date of each time step
+julian_time_steps=jdate_ref_netcdf+time_steps
 
-call caldatss(jdate_ref_netcdf+time_steps(numtim_in),iy,im,id,ih,imin,isec)
-print *, 'End date input file=',iy,im,id,ih,imin,isec
+call caldatss(julian_time_steps(1),iy,im,id,ih,imin,isec)
+print *, 'Start date input file=',iy,im,id,ih,imin
 
-! convert date for simulation into julian date_start_sim
-call date_extractor(trim(date_start_sim),iy,im,id,ih) ! break down reference date of NetCDF file
-call juldayss(iy,im,id,ih,            &          ! convert it to julian date
-                jdate_ref_netcdf,err,message)
+call caldatss(julian_time_steps(numtim_in),iy,im,id,ih,imin,isec)
+print *, 'End date input file=',iy,im,id,ih,imin
 
-! test if required simulation period is covered by input file
+! convert date for simulation into julian date
+call date_extractor(trim(date_start_sim),iy,im,id,ih) ! break down date
+call juldayss(iy,im,id,ih,jdate,err,message)          ! convert it to julian date
+sim_beg= minloc(abs(julian_time_steps-jdate),1)       ! find correponding index
+
+call date_extractor(trim(date_end_sim),iy,im,id,ih) ! break down date
+call juldayss(iy,im,id,ih,jdate,err,message)          ! convert it to julian date
+sim_end= minloc(abs(julian_time_steps-jdate),1)       ! find correponding index
+
+call date_extractor(trim(date_start_eval),iy,im,id,ih) ! break down date
+call juldayss(iy,im,id,ih,jdate,err,message)           ! convert it to julian date
+eval_beg= minloc(abs(julian_time_steps-jdate),1)       ! find correponding index
+
+call date_extractor(trim(date_end_eval),iy,im,id,ih)  ! break down date
+call juldayss(iy,im,id,ih,jdate,err,message)          ! convert it to julian date
+eval_end= minloc(abs(julian_time_steps-jdate),1)      ! find correponding index
+
+longrun_beg=1
+longrun_end=numtim_in
+
+! determine time period to be run
+select case(trim(fuse_mode))
+  case('run_def');     istart = longrun_beg; numtim_sim = (longrun_end - longrun_beg) + 1
+  case('run_pre');     istart = longrun_beg; numtim_sim = (longrun_end - longrun_beg) + 1
+  case('run_best');    istart = longrun_beg; numtim_sim = (longrun_end - longrun_beg) + 1
+  case('calib_sce');   istart = eval_beg;  numtim_sim = (eval_end - sim_beg) + 1
+  case default
+    print *, 'Unexpected FUSE mode:',trim(fuse_mode)
+    stop
+endselect
+
+! determine length of subperiods
+read(numtim_sub_str,*,iostat=err) numtim_sub ! convert string to integer
+
+if(numtim_sub.eq.-9999)then
+
+  print *, 'numtim_sub = -9999, setting it to ',numtim_sim
+  numtim_sub=numtim_sim ! no subperiods, run the whole time series
+
+else
+
+  print *, 'FUSE will be run in chuncks of ',numtim_sub, 'time steps'
+
+end if
+
+!if(numtim_sub > numtim_sim)then; ierr=20; message=trim(message)//'the subperiod is greater than the entire period'; return; endif
 
 ! allocate space for the forcing grid and states
 allocate(ancilF(nspat1,nspat2), gForce(nspat1,nspat2), gState(nspat1,nspat2), stat=err)

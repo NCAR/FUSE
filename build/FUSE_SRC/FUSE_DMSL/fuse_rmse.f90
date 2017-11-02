@@ -28,7 +28,8 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
     USE multiforce, ONLY: numtim_sim, itim_sim               ! length of simulated time series and associated index
     USE multiforce, ONLY: numtim_sub, itim_sub               ! length of subperiod time series and associated index
     USE multiforce, ONLY: numtim_sub_cur                     ! length of current subperiod
-    USE multiforce, ONLY: warmup_beg,infern_beg,infern_end   ! timestep indices
+    USE multiforce, ONLY: sim_beg,sim_end                    ! timestep indices
+    USE multiforce, ONLY: eval_beg,eval_end                  ! timestep indices
 
     USE multiforce, ONLY:nspat1,nspat2                       ! spatial dimensions
     USE multiforce, ONLY:ncid_var                            ! NetCDF ID for forcing variables

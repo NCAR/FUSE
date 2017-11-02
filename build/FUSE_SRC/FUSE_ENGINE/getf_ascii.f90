@@ -22,7 +22,7 @@ contains
  ! -----------------
  ! MODULE multiforce -- populates vairable indices
  ! ---------------------------------------------------------------------------------------
- USE fuse_fileManager,only:INPUT_PATH                       ! defines data directory 
+ USE fuse_fileManager,only:INPUT_PATH                       ! defines data directory
  USE ascii_util_module,only:file_open                       ! open file (performs a few checks as well)
  USE ascii_util_module,only:split_line                      ! get a vector of "words" from a line of character data
  USE multiforce,only:forcefile                              ! name of forcing file
@@ -32,7 +32,7 @@ contains
  USE multiforce,only:ivarid_iy,ivarid_im,ivarid_id          ! index of columns for day of year
  USE multiforce,only:ivarid_ih,ivarid_imin,ivarid_dsec      ! index of columns for time of day
  USE multiforce,only:ivarid_ppt,ivarid_pet,ivarid_q         ! index of columns for data
- USE multiforce,only:warmup_beg                             ! index of the start of the warm-up period
+ USE multiforce,only:sim_beg                                ! index of the start of the simulation
  USE multiforce,only:deltim                                 ! time step of the data (data interval)
  IMPLICIT NONE
  ! output
@@ -122,7 +122,7 @@ contains
  ! --------------------------------------------------------------------------------------
  ! (2) read to the start of the warm-up period
  ! --------------------------------------------------------------------------------------
- if(warmup_beg==1)return ! no need to read lines of data
+ if(sim_beg==1)return ! no need to read lines of data
  ! loop through data lines
  do idata=1,maxdata
   ! read a line of data and check that it is not a comment line
@@ -161,7 +161,7 @@ contains
  ! -----------------
  ! None
  ! ---------------------------------------------------------------------------------------
- USE fuse_fileManager,only:INPUT_PATH                       ! defines data directory 
+ USE fuse_fileManager,only:INPUT_PATH                       ! defines data directory
  USE multiforce,only:forcefile                              ! name of forcing file
  IMPLICIT NONE
  ! output
@@ -202,7 +202,7 @@ contains
  ! -----------------
  ! MODULE multiforce -- populates forcing structures
  ! ---------------------------------------------------------------------------------------
- USE fuse_fileManager,only:INPUT_PATH                       ! defines data directory 
+ USE fuse_fileManager,only:INPUT_PATH                       ! defines data directory
  USE ascii_util_module,only:split_line                      ! get a vector of "words" from a line of character data
  USE multiforce,only:forcefile                              ! name of forcing file
  USE multiforce,only:ivarid_iy,ivarid_im,ivarid_id          ! index of columns for day of year
@@ -260,4 +260,4 @@ contains
  end subroutine read_ascii
 
 
-end module getf_ascii_module 
+end module getf_ascii_module

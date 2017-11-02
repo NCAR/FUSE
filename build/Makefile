@@ -147,7 +147,6 @@ PRELIM = $(patsubst %, $(ENGINE_DIR)/%, $(FUSE_PRELIM))
 FUSE_MODRUN= \
 	conv_funcs.f90 \
 	force_info.f90 \
-	getf_ascii.f90 \
 	clrsky_rad.f90 \
 	getPETgrid.f90 \
 	get_mbands.f90 \
