@@ -35,7 +35,6 @@ USE multiforce, only: numtim_sim, itim_sim                ! length of simulated 
 USE multiforce, only: numtim_sub, itim_sub                ! length of subperiod time series and associated index
 USE multiforce,only:  sim_beg,sim_end                     ! timestep indices
 USE multiforce,only:  eval_beg,eval_end                   ! timestep indices
-USE multiforce,only:  longrun_beg,longrun_end             ! timestep indices
 USE multiforce, only: ncid_forc                           ! NetCDF forcing file ID
 USE multiforce, only: ncid_var                            ! NetCDF forcing variable ID
 USE multistate, only: ncid_out                            ! NetCDF output file ID
@@ -254,19 +253,9 @@ call date_extractor(trim(date_end_eval),iy,im,id,ih)  ! break down date
 call juldayss(iy,im,id,ih,jdate,err,message)          ! convert it to julian date
 eval_end= minloc(abs(julian_time_steps-jdate),1)      ! find correponding index
 
-longrun_beg=1
-longrun_end=numtim_in
-
-! determine time period to be run
-select case(trim(fuse_mode))
-  case('run_def');     istart = longrun_beg; numtim_sim = (longrun_end - longrun_beg) + 1
-  case('run_pre');     istart = longrun_beg; numtim_sim = (longrun_end - longrun_beg) + 1
-  case('run_best');    istart = longrun_beg; numtim_sim = (longrun_end - longrun_beg) + 1
-  case('calib_sce');   istart = eval_beg;  numtim_sim = (eval_end - sim_beg) + 1
-  case default
-    print *, 'Unexpected FUSE mode:',trim(fuse_mode)
-    stop
-endselect
+! determine length of simulations
+numtim_sim=sim_end-sim_beg+1
+istart=sim_beg
 
 ! determine length of subperiods
 read(numtim_sub_str,*,iostat=err) numtim_sub ! convert string to integer

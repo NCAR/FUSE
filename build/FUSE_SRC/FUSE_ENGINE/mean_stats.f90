@@ -59,8 +59,8 @@ ALLOCATE(QOBS(NS),QOBS_MASK(NS),QSIM(NS),STAT=IERR)
 IF (IERR.NE.0) STOP ' PROBLEM ALLOCATING SPACE IN MEAN_STATS.F90 '
 
 ! extract OBS and SIM for inference period, disregard warmup period
-QSIM = AROUTE_3d(1,1,eval_beg:eval_end)%Q_ROUTED
-QOBS = aValid(1,1,eval_beg:eval_end)%OBSQ
+QSIM = AROUTE_3d(1,1,eval_beg-sim_beg:eval_end-sim_beg)%Q_ROUTED ! -sim_beg because AROUTE_3d is of length numtim_sim
+QOBS = aValid(1,1,eval_beg-sim_beg:eval_end-sim_beg)%OBSQ
 
 ! check for missing QOBS values
 QOBS_MASK = QOBS.ne.REAL(NA_VALUE, KIND(SP)) ! find the time steps for which QOBS is available

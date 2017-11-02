@@ -38,7 +38,6 @@ contains
  USE multiforce,only:vname_dtime                            ! name of time variable (time since reference time)
  USE multiforce,only:deltim                                 ! model timestep (days)
  USE multiforce,only:xlon,ylat                              ! lon-lat coordinates (degrees)
- USE multiforce,only:longrun_beg,longrun_end                ! timestep indices
  USE multiforce,only:istart,numtim_sim                      ! index for start of inference, and number steps in the reduced array
  USE multiforce,only:amult_ppt,amult_pet,amult_q            ! used to convert fluxes to mm/day
  USE multiforce,only:numtim_sub                             ! number of time steps of subperiod (will be kept in memory)
