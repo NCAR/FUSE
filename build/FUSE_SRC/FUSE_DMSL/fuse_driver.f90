@@ -274,7 +274,7 @@ end if
 allocate(aForce(numtim_sub),aRoute(numtim_sub),stat=err)
 !allocate(aForce(numtim_sub),aRoute(numtim_sub),aValid(numtim_sub),stat=err)
 if(err/=0)then; write(*,*) 'unable to allocate space for basin-average time series [aForce,aRoute]'; stop; endif
-  
+
 ! allocate space for the forcing grid and states
 allocate(ancilF(nspat1,nspat2), gForce(nspat1,nspat2), gState(nspat1,nspat2), stat=err)
 if(err/=0)then; write(*,*) 'unable to allocate space for forcing grid GFORCE'; stop; endif
