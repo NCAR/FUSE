@@ -33,8 +33,8 @@ USE multiforce, ONLY: timeUnits,time_steps,julian_time_steps    ! time data
 USE multiforce, only: numtim_in, itim_in                  ! length of input time series and associated index
 USE multiforce, only: numtim_sim, itim_sim                ! length of simulated time series and associated index
 USE multiforce, only: numtim_sub, itim_sub                ! length of subperiod time series and associated index
-USE multiforce,only:  sim_beg,sim_end                     ! timestep indices
-USE multiforce,only:  eval_beg,eval_end                   ! timestep indices
+USE multiforce, only: sim_beg,sim_end                     ! timestep indices
+USE multiforce, only: eval_beg,eval_end                   ! timestep indices
 USE multiforce, only: ncid_forc                           ! NetCDF forcing file ID
 USE multiforce, only: ncid_var                            ! NetCDF forcing variable ID
 USE multistate, only: ncid_out                            ! NetCDF output file ID
@@ -101,14 +101,15 @@ INTEGER(I4B)                           :: ONEMOD=1        ! just specify one mod
 ! timers
 INTEGER(I4B)                           :: T_start_import_forcing ! system clock
 INTEGER(I4B)                           :: T_end_import_forcing   ! system clock
-real(sp)                               :: jdate_start_sim
 real(sp)                               :: jdate_ref_netcdf
-
 ! dummies
 integer(i4b)                           :: iy,im,id,ih,imin  ! to temporarily store year, month, day, hour, min
 real(sp)                               :: isec              ! to temporarily store sec
 real(sp)                               :: jdate             ! to temporarily store a julian date
-
+real(sp)                               :: jdate_start_sim    ! date start simulation
+real(sp)                               :: jdate_end_sim      ! date end simulation
+real(sp)                               :: jdate_start_eval   ! date start evaluation period
+real(sp)                               :: jdate_end_eval     ! date end evaluation period
 
 ! ---------------------------------------------------------------------------------------
 ! RUN MODEL FOR DIFFERENT PARAMETER SETS
@@ -206,8 +207,6 @@ CALL GETNUMERIX(ERR,MESSAGE)
 call force_info(fuse_mode,err,message)
 if(err/=0)then; write(*,*) trim(message); stop; endif
 
-
-
 print *, 'Open forcing file:', trim(INPUT_PATH)//trim(forcefile)
 
 ! open NetCDF forcing file
@@ -234,21 +233,33 @@ call caldatss(julian_time_steps(numtim_in),iy,im,id,ih,imin,isec)
 print *, 'End date input file=',iy,im,id,ih,imin
 
 ! convert date for simulation into julian date
-call date_extractor(trim(date_start_sim),iy,im,id,ih) ! break down date
-call juldayss(iy,im,id,ih,jdate,err,message)          ! convert it to julian date
-sim_beg= minloc(abs(julian_time_steps-jdate),1)       ! find correponding index
+call date_extractor(trim(date_start_sim),iy,im,id,ih)        ! break down date
+call juldayss(iy,im,id,ih,jdate_start_sim,err,message)       ! convert it to julian date
+sim_beg= minloc(abs(julian_time_steps-jdate_start_sim),1)    ! find correponding index
 
-call date_extractor(trim(date_end_sim),iy,im,id,ih) ! break down date
-call juldayss(iy,im,id,ih,jdate,err,message)          ! convert it to julian date
-sim_end= minloc(abs(julian_time_steps-jdate),1)       ! find correponding index
+call date_extractor(trim(date_end_sim),iy,im,id,ih)          ! break down date
+call juldayss(iy,im,id,ih,jdate_end_sim,err,message)         ! convert it to julian date
+sim_end= minloc(abs(julian_time_steps-jdate_end_sim),1)      ! find correponding index
 
-call date_extractor(trim(date_start_eval),iy,im,id,ih) ! break down date
-call juldayss(iy,im,id,ih,jdate,err,message)           ! convert it to julian date
-eval_beg= minloc(abs(julian_time_steps-jdate),1)       ! find correponding index
+call date_extractor(trim(date_start_eval),iy,im,id,ih)       ! break down date
+call juldayss(iy,im,id,ih,jdate_start_eval,err,message)      ! convert it to julian date
+eval_beg= minloc(abs(julian_time_steps-jdate_start_eval),1)  ! find correponding index
 
-call date_extractor(trim(date_end_eval),iy,im,id,ih)  ! break down date
-call juldayss(iy,im,id,ih,jdate,err,message)          ! convert it to julian date
-eval_end= minloc(abs(julian_time_steps-jdate),1)      ! find correponding index
+call date_extractor(trim(date_end_eval),iy,im,id,ih)         ! break down date
+call juldayss(iy,im,id,ih,jdate_end_eval,err,message)        ! convert it to julian date
+eval_end= minloc(abs(julian_time_steps-jdate_end_eval),1)    ! find correponding index
+
+! check start before end
+if(jdate_start_sim.gt.jdate_end_sim)then; print *, 'Error: date_start_sim > date_end_sim '; stop; endif
+if(jdate_start_eval.gt.jdate_end_eval)then; print *, 'Error: date_start_eval > date_end_eval '; stop; endif
+
+! check input data available for desired runs
+if(jdate_start_sim.lt.julian_time_steps(1))then; print *, 'Error: date_start_sim is before the start if the input data'; stop; endif
+if(jdate_end_sim.gt.julian_time_steps(numtim_in))then; print *, 'Error: the date_stop_sim is after the end of the input data'; stop; endif
+
+! check input data available for desired runs
+if(jdate_start_eval.lt.jdate_start_sim)then; print *, 'Error: date_start_eval < date_start_sim'; stop; endif
+if(jdate_end_eval.gt.jdate_end_sim)then; print *, 'Error: date_end_eval > date_end_sim'; stop; endif
 
 ! determine length of simulations
 numtim_sim=sim_end-sim_beg+1
