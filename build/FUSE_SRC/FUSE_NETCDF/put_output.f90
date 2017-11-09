@@ -76,7 +76,7 @@ SUBROUTINE PUT_OUTPUT(iSpat1,iSpat2,ITIM,IMOD,IPAR)
 
 END SUBROUTINE PUT_OUTPUT
 
-SUBROUTINE PUT_GOUTPUT_3D(istart_sim,istart_in,numtim)
+SUBROUTINE PUT_GOUTPUT_3D(istart_sim,istart_in,numtim,IPAR)
   ! ---------------------------------------------------------------------------------------
   ! Creator:
   ! --------
@@ -101,6 +101,8 @@ SUBROUTINE PUT_GOUTPUT_3D(istart_sim,istart_in,numtim)
   INTEGER(I4B), INTENT(IN)               :: istart_sim  ! index start time step relative to numtim_sim
   INTEGER(I4B), INTENT(IN)               :: istart_in   ! index start time step relative to numtim_in - for time dimension
   INTEGER(I4B), INTENT(IN)               :: numtim      ! number of time steps to write
+  INTEGER(I4B), INTENT(IN)               :: IPAR        ! parameter set index
+
   ! internal
   LOGICAL(LGT)                           :: WRITE_VAR   ! used to denote if the variable is written
   INTEGER(I4B)                           :: IERR        ! error code

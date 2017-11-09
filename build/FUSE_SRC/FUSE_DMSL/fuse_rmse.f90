@@ -337,16 +337,13 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
 
       CALL MEAN_STATS()
       RMSE = MSTATS%RAW_RMSE
-
       PRINT *, 'RMSE = ', RMSE
-
-      ! WRITE(unt,'(2(I6,1X),3(F20.15,1X))') MOD_IX, PCOUNT, MSTATS%RAW_RMSE, MSTATS%NASH_SUTT, MSTATS%NUM_FUNCS
-      ! write model parameters and summary statistics
 
       PRINT *, 'Writing parameter values...'
       CALL PUT_PARAMS(PCOUNT,MOD_IX)  ! PCOUNT = index for parameter set; ONEMOD=1 (just one model structure)
       PRINT *, 'Writing model stastics...'
-      CALL PUT_SSTATS(PCOUNT,MOD_IX)
+      CALL PUT_SSTATS(PCOUNT)
+      PRINT *, 'Done writing model statistics'
 
       ! deallocate state vectors
       DEALLOCATE(W_FLUX_3d)

@@ -98,6 +98,7 @@ INTEGER(I4B),PARAMETER                 :: DISTRIBUTED=1   ! named variable for d
 ! define model output
 LOGICAL(LGT)                           :: OUTPUT_FLAG     ! .TRUE. = write time series output
 INTEGER(I4B)                           :: ONEMOD=1        ! just specify one model
+INTEGER(I4B)                           :: n_param_sets=0  ! counter for number of parameter sets
 ! timers
 INTEGER(I4B)                           :: T_start_import_forcing ! system clock
 INTEGER(I4B)                           :: T_end_import_forcing   ! system clock
@@ -350,6 +351,8 @@ IF(fuse_mode == 'run_def')THEN ! run FUSE with default parameter values
   FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_runs_def.nc'
   FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_para_def.nc'
 
+  n_param_sets=1
+
 ELSE IF(fuse_mode == 'run_pre')THEN  ! run FUSE with pre-defined parameter values
 
   ! files to which model run and parameter set will be saved
@@ -371,15 +374,23 @@ ELSE IF(fuse_mode == 'run_best')THEN  ! run FUSE with best (highest RMSE) parame
   FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_runs_best.nc'
   FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_para_best.nc'
 
+  n_param_sets=1
+
 ELSE
 
   print *, 'Unexpected fuse_mode!'
 
 ENDIF
 
-CALL DEF_PARAMS(ONEMOD)  ! define model parameters (initial CREATE)
-CALL DEF_SSTATS()        ! define summary statistics (REDEF)
+CALL DEF_PARAMS(n_param_sets)                ! define model parameters (initial CREATE)
+print *, 'here1a'
+
+CALL DEF_SSTATS()                            ! define summary statistics (REDEF)
+print *, 'here2a'
+
 CALL DEF_OUTPUT(numtim_sim,nSpat1,nSpat2)    ! define model time series (REDEF)
+print *, 'here3a'
+
 
 ! ---------------------------------------------------------------------------------------
 ! RUN FUSE IN DESIRED MODE
@@ -416,18 +427,21 @@ ELSE IF(fuse_mode == 'run_pre')THEN ! run FUSE with pre-defined parameter values
     DO   ! loop through parameter files
 
       ! get output filename
-      !READ(21,*,IOSTAT=IERR) FNAME_NETCDF_PARA_PRE
-      !IF (IERR.NE.0) EXIT
+      READ(21,*,IOSTAT=ERR) FNAME_NETCDF_PARA_PRE
+      IF (ERR.NE.0) EXIT
+
+      ! increment counter
+      n_param_sets=n_param_sets+1
 
       ! file from which parameters will be loaded
-      !FNAME_NETCDF_PARA_PRE = TRIM(OUTPUT_PATH)//TRIM(FNAME_NETCDF_PARA_PRE)
-      !PRINT *, 'Loading parameter set from', $FNAME_NETCDF_PARA_PRE
+      FNAME_NETCDF_PARA_PRE = TRIM(OUTPUT_PATH)//TRIM(FNAME_NETCDF_PARA_PRE)
+      PRINT *, 'Loading parameter set ',n_param_sets,'from', FNAME_NETCDF_PARA_PRE
 
-      !CALL GET_PRE_PARAM(FNAME_NETCDF_PARA_PRE,1,ONEMOD,NUMPAR,APAR) ! load specific parameter set
+      CALL GET_PRE_PARAM(FNAME_NETCDF_PARA_PRE,1,ONEMOD,NUMPAR,APAR) ! load specific parameter set
 
-      !print *, 'Running FUSE with pre-defined parameter set'
-      !CALL FUSE_RMSE(APAR,GRID_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
-      !print *, 'Done running FUSE with pre-defined parameter set'
+      print *, 'Running FUSE with pre-defined parameter set'
+      CALL FUSE_RMSE(APAR,GRID_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
+      print *, 'Done running FUSE with pre-defined parameter set'
 
     END DO ! (looping through output files)
 
@@ -440,7 +454,7 @@ ELSE IF(fuse_mode == 'calib_sce')THEN ! calibrate FUSE using SCE
 
   ! assign algorithmic control parameters for SCE
   NOPT   =  NUMPAR         ! number of parameters to be optimized (NUMPAR in module multiparam)
-  MAXN   =     10000 			 ! maximum number of trials before optimization is terminated
+  MAXN   =     1000 			 ! maximum number of trials before optimization is terminated
   KSTOP  =      3          ! number of shuffling loops the value must change by PCENTO (MAX=9)
   PCENTO =      0.001      ! the percentage
   NGS    =     10          ! number of complexes in the initial population
@@ -496,6 +510,8 @@ print *, 'Unexpected fuse_mode!'
 stop
 
 ENDIF
+
+if(err/=0)then; write(*,*) 'error here'; stop; endif
 
 ! deallocate space
 DEALLOCATE(APAR,BL,BU,URAND)

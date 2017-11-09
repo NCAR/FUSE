@@ -27,7 +27,7 @@ REAL(SP)                               :: XPAR        ! desired parameter
 REAL(MSP)                              :: APAR        ! convert to SP (need for SP write)
 INTEGER(I4B)                           :: IVAR_ID     ! variable ID
 INTEGER(I4B), PARAMETER                :: NDESC=9     ! number of model descriptors - TODO: THIS SHOULDN'T BE HARD-CODED
-INTEGER(I4B), PARAMETER                :: NCHAR=10    ! length of model descriptors
+INTEGER(I4B), PARAMETER                :: NCHAR=10    ! length of model descriptors - TODO: THIS SHOULDN'T BE HARD-CODED
 INTEGER(I4B), DIMENSION(3)             :: ISTART      ! starting position for array write
 INTEGER(I4B), DIMENSION(3)             :: ICOUNT      ! count for array write
 CHARACTER(LEN=10)                      :: TXTVEC      ! single model descriptor

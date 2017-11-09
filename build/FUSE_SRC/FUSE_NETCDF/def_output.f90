@@ -124,8 +124,6 @@ SUBROUTINE DEF_OUTPUT(NTIM,nSpat1,nSpat2)
 
   !IERR = NF_OPEN(TRIM(FNAME_NETCDF),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
 
-  print *, 'ncid_out for outputfile in write mode:',ncid_out
-
   latitude_msp=latitude ! convert to actual single precision
   IERR = NF_INQ_VARID(ncid_out,'latitude',IVAR_ID); CALL HANDLE_ERR(IERR) ! get variable ID
   IERR = NF_PUT_VARA_REAL(ncid_out,IVAR_ID,1,nspat2,latitude_msp); CALL HANDLE_ERR(IERR) ! write data

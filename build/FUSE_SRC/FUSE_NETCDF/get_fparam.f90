@@ -71,17 +71,17 @@ print *, 'Extracting parameter set', ISET
 ! loop through parameters
 DO IPAR=1,NUMPAR
 
-! get parameter id
-IERR = NF_INQ_VARID(NCID,TRIM(LPARAM(IPAR)%PARNAME),IVARID); CALL HANDLE_ERR(IERR)
+  ! get parameter id
+  IERR = NF_INQ_VARID(NCID,TRIM(LPARAM(IPAR)%PARNAME),IVARID); CALL HANDLE_ERR(IERR)
 
-! get parameter value for the optimal parameter set
-INDX = (/IMOD,ISET/)
-IERR = NF_GET_VAR1_DOUBLE(NCID,IVARID,INDX,APAR); CALL HANDLE_ERR(IERR)
+  ! get parameter value for the selected parameter set
+  INDX = (/IMOD,ISET/)
+  IERR = NF_GET_VAR1_DOUBLE(NCID,IVARID,INDX,APAR); CALL HANDLE_ERR(IERR)
 
-! put parameter value in the output vector
-XPAR(IPAR) = APAR
+  ! put parameter value in the output vector
+  XPAR(IPAR) = APAR
 
-print *, 'PARAM VALUES:',LPARAM(IPAR)%PARNAME, '->', APAR
+  print *, 'PARAM VALUES:',LPARAM(IPAR)%PARNAME, '->', APAR
 
 END DO
 
