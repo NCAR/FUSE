@@ -21,7 +21,7 @@ FUSE can be run in four complementary modes:
 To get you started with FUSE, we provide files for two case studies involing modeling at different scales:
 
 * catchment scale: forcing and streamflow data for the [USGS 09066300 MIDDLE CREEK NEAR MINTURN, CO.](https://waterdata.usgs.gov/nwis/inventory/?site_no=09066300&agency_cd=USGS&) catchment - available [here](
-https://www.dropbox.com/s/e8doyoju5fvsrvr/fuse_case_study_1.zip?dl=0) for download,  
+https://www.dropbox.com/s/cud5p07sgp1yk0d/fuse_case_study_1.zip?dl=0) for download,  
 * grid scale: forcing on a 1/8th degree grid for a small 10x10 domain - soon available for download.
 
 Follow the following steps to run FUSE.
