@@ -18,6 +18,7 @@ USE fuse_fileManager,only:fuse_SetDirsUndPhiles,&         ! sets directories and
           date_start_sim,date_end_sim,&
           date_start_eval,date_end_eval,&
           numtim_sub_str
+
 ! data modules
 USE model_defn,nstateFUSE=>nstate                         ! model definition structures
 USE model_defnames                                        ! defines the integer model options
@@ -35,6 +36,8 @@ USE multiforce, only: numtim_sim, itim_sim                ! length of simulated 
 USE multiforce, only: numtim_sub, itim_sub                ! length of subperiod time series and associated index
 USE multiforce, only: sim_beg,sim_end                     ! timestep indices
 USE multiforce, only: eval_beg,eval_end                   ! timestep indices
+USE multiforce, only: NUMPSET,name_psets                  ! number of parameter set and their names
+
 USE multiforce, only: ncid_forc                           ! NetCDF forcing file ID
 USE multiforce, only: ncid_var                            ! NetCDF forcing variable ID
 USE multistate, only: ncid_out                            ! NetCDF output file ID
@@ -98,7 +101,6 @@ INTEGER(I4B),PARAMETER                 :: DISTRIBUTED=1   ! named variable for d
 ! define model output
 LOGICAL(LGT)                           :: OUTPUT_FLAG     ! .TRUE. = write time series output
 INTEGER(I4B)                           :: ONEMOD=1        ! just specify one model
-INTEGER(I4B)                           :: n_param_sets=0  ! counter for number of parameter sets
 ! timers
 INTEGER(I4B)                           :: T_start_import_forcing ! system clock
 INTEGER(I4B)                           :: T_end_import_forcing   ! system clock
@@ -111,6 +113,8 @@ real(sp)                               :: jdate_start_sim    ! date start simula
 real(sp)                               :: jdate_end_sim      ! date end simulation
 real(sp)                               :: jdate_start_eval   ! date start evaluation period
 real(sp)                               :: jdate_end_eval     ! date end evaluation period
+CHARACTER(LEN=100)                     :: dummy_string       ! used for temporary data storage
+integer(i4b)                           :: file_pass          ! used read parameter list
 
 ! ---------------------------------------------------------------------------------------
 ! RUN MODEL FOR DIFFERENT PARAMETER SETS
@@ -118,7 +122,6 @@ real(sp)                               :: jdate_end_eval     ! date end evaluati
 INTEGER(I4B)                           :: ITIM    ! loop thru time steps
 INTEGER(I4B)                           :: IPAR    ! loop thru model parameters
 INTEGER(I4B)                           :: IPSET   ! loop thru model parameter sets
-INTEGER(I4B)                           :: NUMPSET ! number of parameter sets
 TYPE(PARATT)                           :: PARAM_META ! parameter metadata (model parameters)
 REAL(SP), DIMENSION(:), ALLOCATABLE    :: BL      ! vector of lower parameter bounds
 REAL(SP), DIMENSION(:), ALLOCATABLE    :: BU      ! vector of upper parameter bounds
@@ -180,6 +183,10 @@ print*, '4th command-line argument (fuse_mode) = ', fuse_mode
 IF(TRIM(fuse_mode).EQ.'run_pre')THEN
   print*, '5th command-line argument (file_para_list) = ', file_para_list
 ENDIF
+
+! ---------------------------------------------------------------------------------------
+! SET PATHS AND FILES NAME
+! ---------------------------------------------------------------------------------------
 
 ! set path to fuse_file_manager
 FFMFILE=DatString ! must be in bin folder and you must be in bin to run FUSE - TODO read argument to FFMFILE directly
@@ -271,7 +278,8 @@ read(numtim_sub_str,*,iostat=err) numtim_sub ! convert string to integer
 
 if(numtim_sub.eq.-9999)then
 
-  print *, 'numtim_sub = -9999, setting it to ',numtim_sim
+  print *, 'numtim_sub = -9999, FUSE will be run in 1 chunck of ',numtim_sim, 'time steps'
+
   numtim_sub=numtim_sim ! no subperiods, run the whole time series
 
 else
@@ -351,9 +359,40 @@ IF(fuse_mode == 'run_def')THEN ! run FUSE with default parameter values
   FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_runs_def.nc'
   FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_para_def.nc'
 
-  n_param_sets=1
+  NUMPSET=1  ! only the default parameter set is run
+  ALLOCATE(name_psets(NUMPSET))
+  name_psets(1)='default_param_set'
 
 ELSE IF(fuse_mode == 'run_pre')THEN  ! run FUSE with pre-defined parameter values
+
+  ! read file_para_list twice:
+  ! 1st pass: determine number of parameter set and allocate name_psets accodringly
+  ! 2st pass: save the names of parameter sets in name_psets
+
+  do file_pass = 1, 2
+
+    NUMPSET=0 ! intialize counter
+
+    OPEN(21,FILE=TRIM(file_para_list))
+      DO   ! loop through parameter files
+
+        READ(21,*,IOSTAT=ERR) dummy_string
+        IF (ERR.NE.0) EXIT
+        NUMPSET=NUMPSET+1       ! increment counter
+
+        if (file_pass.eq.2) THEN
+          name_psets(NUMPSET) = dummy_string ! save file names
+        ENDIF
+
+      END DO ! looping through parameter files
+
+    CLOSE(21)
+
+    if(file_pass.eq.1) THEN
+      print *, 'NUMPSET=', NUMPSET, 'based on the number of lines in ', TRIM(file_para_list)
+      ALLOCATE(name_psets(NUMPSET))
+    END IF
+  end do
 
   ! files to which model run and parameter set will be saved
   FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_runs_pre.nc'
@@ -365,6 +404,9 @@ ELSE IF(fuse_mode == 'calib_sce')THEN ! calibrate FUSE using SCE
   FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_runs_sce.nc'
   FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_para_sce.nc'
 
+  NUMPSET=15000  ! make it large enough for now - TODO use 1.2*MAXN
+
+
 ELSE IF(fuse_mode == 'run_best')THEN  ! run FUSE with best (highest RMSE) parameter set from a previous SCE calibration
 
   ! file from which SCE parameters will be loaded - same as FNAME_NETCDF_PARA above
@@ -374,7 +416,7 @@ ELSE IF(fuse_mode == 'run_best')THEN  ! run FUSE with best (highest RMSE) parame
   FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_runs_best.nc'
   FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_para_best.nc'
 
-  n_param_sets=1
+  NUMPSET=1  ! only the one "best" parameter set is run
 
 ELSE
 
@@ -382,15 +424,9 @@ ELSE
 
 ENDIF
 
-CALL DEF_PARAMS(n_param_sets)                ! define model parameters (initial CREATE)
-print *, 'here1a'
-
+CALL DEF_PARAMS(NUMPSET)                ! define model parameters (initial CREATE)
 CALL DEF_SSTATS()                            ! define summary statistics (REDEF)
-print *, 'here2a'
-
-CALL DEF_OUTPUT(numtim_sim,nSpat1,nSpat2)    ! define model time series (REDEF)
-print *, 'here3a'
-
+CALL DEF_OUTPUT(nSpat1,nSpat2,NUMPSET,numtim_sim)    ! define model output time series (REDEF)
 
 ! ---------------------------------------------------------------------------------------
 ! RUN FUSE IN DESIRED MODE
@@ -399,16 +435,12 @@ print *, 'here3a'
 ! get parameter bounds and random numbers
 ALLOCATE(APAR(NUMPAR),BL(NUMPAR),BU(NUMPAR),URAND(NUMPAR))
 
-print *, 'NUMPAR = ', NUMPAR
-
-print *, 'Using default parameter values:'
-
 DO IPAR=1,NUMPAR
  CALL GETPAR_STR(LPARAM(IPAR)%PARNAME,PARAM_META)
- BL(IPAR)   = PARAM_META%PARLOW
- BU(IPAR)   = PARAM_META%PARUPP
- APAR(IPAR) = PARAM_META%PARDEF ! using default parameter values
- if(PARAM_META%PARFIT) print*, LPARAM(IPAR)%PARNAME, PARAM_META%PARDEF
+ BL(IPAR)   = PARAM_META%PARLOW  ! lower boundary
+ BU(IPAR)   = PARAM_META%PARUPP  ! upper boundary
+ APAR(IPAR) = PARAM_META%PARDEF  ! using default parameter values
+ !if(PARAM_META%PARFIT) print*, LPARAM(IPAR)%PARNAME, PARAM_META%PARDEF
 END DO
 
 IF(fuse_mode == 'run_def')THEN ! run FUSE with default parameter values
@@ -416,36 +448,26 @@ IF(fuse_mode == 'run_def')THEN ! run FUSE with default parameter values
   OUTPUT_FLAG=.TRUE.
 
   print *, 'Running FUSE with default parameter values'
-  CALL FUSE_RMSE(APAR,GRID_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
+  CALL FUSE_RMSE(APAR,GRID_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG,NUMPSET)
   print *, 'Done running FUSE with default parameter values'
 
 ELSE IF(fuse_mode == 'run_pre')THEN ! run FUSE with pre-defined parameter values
 
   OUTPUT_FLAG=.TRUE.
 
-  OPEN(21,FILE=TRIM(file_para_list))
-    DO   ! loop through parameter files
+  do IPSET = 1, NUMPSET
 
-      ! get output filename
-      READ(21,*,IOSTAT=ERR) FNAME_NETCDF_PARA_PRE
-      IF (ERR.NE.0) EXIT
+    FNAME_NETCDF_PARA_PRE=TRIM(OUTPUT_PATH)//name_psets(IPSET)
+    PRINT *, 'Loading parameter set ',IPSET,':'
+    CALL GET_PRE_PARAM(FNAME_NETCDF_PARA_PRE,1,ONEMOD,NUMPAR,APAR) ! load specific parameter set
 
-      ! increment counter
-      n_param_sets=n_param_sets+1
+    print *, 'Running FUSE with pre-defined parameter set'
+    CALL FUSE_RMSE(APAR,GRID_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG,IPSET)
+    print *, 'Done running FUSE with pre-defined parameter set'
 
-      ! file from which parameters will be loaded
-      FNAME_NETCDF_PARA_PRE = TRIM(OUTPUT_PATH)//TRIM(FNAME_NETCDF_PARA_PRE)
-      PRINT *, 'Loading parameter set ',n_param_sets,'from', FNAME_NETCDF_PARA_PRE
+  end do
 
-      CALL GET_PRE_PARAM(FNAME_NETCDF_PARA_PRE,1,ONEMOD,NUMPAR,APAR) ! load specific parameter set
-
-      print *, 'Running FUSE with pre-defined parameter set'
-      CALL FUSE_RMSE(APAR,GRID_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
-      print *, 'Done running FUSE with pre-defined parameter set'
-
-    END DO ! (looping through output files)
-
-  CLOSE(21)
+  DEALLOCATE(name_psets)
 
 ELSE IF(fuse_mode == 'calib_sce')THEN ! calibrate FUSE using SCE
 
@@ -470,6 +492,7 @@ ELSE IF(fuse_mode == 'calib_sce')THEN ! calibrate FUSE using SCE
   ALLOCATE(APAR_MSP(NUMPAR),BL_MSP(NUMPAR),BU_MSP(NUMPAR),URAND_MSP(NUMPAR))
 
   APAR_MSP=APAR
+  PRINT *, 'BL=',BL
   BL_MSP=BL
   BU_MSP=BU
   URAND_MSP=URAND
@@ -501,7 +524,7 @@ ELSE IF(fuse_mode == 'run_best')THEN ! run FUSE with best (highest RMSE) paramet
   CALL GET_SCE_PARAM(FNAME_NETCDF_PARA_SCE,ONEMOD,NUMPAR,APAR)
 
   print *, 'Running FUSE with best SCE parameter set'
-  CALL FUSE_RMSE(APAR,GRID_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG)
+  CALL FUSE_RMSE(APAR,GRID_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG,NUMPSET)
   print *, 'Done running FUSE with best SCE parameter set'
 
 ELSE
@@ -511,19 +534,18 @@ stop
 
 ENDIF
 
-if(err/=0)then; write(*,*) 'error here'; stop; endif
-
 ! deallocate space
 DEALLOCATE(APAR,BL,BU,URAND)
+
 IF(SPATIAL_OPTION == 'CATCH')THEN
   DEALLOCATE(aForce,aRoute,aValid)
-  if(err/=0)then; write(*,*) 'unable to deallocate space for catchment modeling'; stop; endif
+  !if(err/=0)then; write(*,*) 'unable to deallocate space for catchment modeling'; stop; endif
 
 ELSE
   DEALLOCATE(gForce, gState)
   !DEALLOCATE(ancilF_3d, gForce_3d, gState_3d,AROUTE_3d)
   DEALLOCATE(gForce_3d, gState_3d,AROUTE_3d)
-  if(err/=0)then; write(*,*) 'unable to deallocate space for grid modeling'; stop; endif
+  !if(err/=0)then; write(*,*) 'unable to deallocate space for grid modeling'; stop; endif
 
 ENDIF
 
@@ -531,12 +553,12 @@ ENDIF
 IF(GRID_FLAG)THEN
   PRINT *, 'Closing forcing file'
   err = nf90_close(ncid_forc)
-  if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
+  !if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
 ENDIF
 
 PRINT *, 'Closing output file'
 err = nf90_close(ncid_out)
-if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
+!if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
 PRINT *, 'Done'
 
 STOP

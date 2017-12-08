@@ -67,7 +67,7 @@ IERR = NF_REDEF(ncid_out); CALL HANDLE_ERR(IERR)
 IERR = NF_ENDDEF(ncid_out)
 ! write the ordinates of the probability distribution
 !rORD = real(ORD_NSUBS,kind(MSP))
-!IERR = NF_PUT_VAR_REAL(ncid_out,IORD_ID,rORD); CALL HANDLE_ERR(IERR)     ! write data
+! IERR = NF_PUT_VAR_REAL(ncid_out,IORD_ID,rORD); CALL HANDLE_ERR(IERR)     ! write data
 IERR = NF_CLOSE(ncid_out)
 
 ! ---------------------------------------------------------------------------------------

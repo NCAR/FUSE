@@ -1,4 +1,5 @@
 SUBROUTINE PUT_OUTPUT(iSpat1,iSpat2,ITIM,IMOD,IPAR)
+
   ! ---------------------------------------------------------------------------------------
   ! Creator:
   ! --------
@@ -76,7 +77,7 @@ SUBROUTINE PUT_OUTPUT(iSpat1,iSpat2,ITIM,IMOD,IPAR)
 
 END SUBROUTINE PUT_OUTPUT
 
-SUBROUTINE PUT_GOUTPUT_3D(istart_sim,istart_in,numtim,IPAR)
+SUBROUTINE PUT_GOUTPUT_3D(istart_sim,istart_in,numtim,IPSET)
   ! ---------------------------------------------------------------------------------------
   ! Creator:
   ! --------
@@ -97,17 +98,18 @@ SUBROUTINE PUT_GOUTPUT_3D(istart_sim,istart_in,numtim,IPAR)
   USE multiforce, only: NUMTIM                          ! number of data steps
 
   IMPLICIT NONE
+
   ! input
   INTEGER(I4B), INTENT(IN)               :: istart_sim  ! index start time step relative to numtim_sim
   INTEGER(I4B), INTENT(IN)               :: istart_in   ! index start time step relative to numtim_in - for time dimension
   INTEGER(I4B), INTENT(IN)               :: numtim      ! number of time steps to write
-  INTEGER(I4B), INTENT(IN)               :: IPAR        ! parameter set index
+  INTEGER(I4B), INTENT(IN)               :: IPSET        ! parameter set index
 
   ! internal
   LOGICAL(LGT)                           :: WRITE_VAR   ! used to denote if the variable is written
   INTEGER(I4B)                           :: IERR        ! error code
-  INTEGER(I4B), DIMENSION(3)             :: IND_START   ! start indices
-  INTEGER(I4B), DIMENSION(3)             :: IND_COUNT   ! count indices
+  INTEGER(I4B), DIMENSION(4)             :: IND_START   ! start indices
+  INTEGER(I4B), DIMENSION(4)             :: IND_COUNT   ! count indices
   INTEGER(I4B)                           :: IVAR        ! loop through variables
   REAL(SP)                               :: XVAR        ! desired variable (SP NOT NECESSARILY SP)
   REAL(MSP)                              :: AVAR        ! desired variable (SINGLE PRECISION)
@@ -122,8 +124,11 @@ SUBROUTINE PUT_GOUTPUT_3D(istart_sim,istart_in,numtim,IPAR)
   IERR = NF_OPEN(TRIM(FNAME_NETCDF_RUNS),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
 
   ! define indices for model output
-  IND_START = (/1,1,istart_sim/) ! The indices are relative to 1, i.e. the first data value of a variable would have index (1, 1, ..., 1)
-  IND_COUNT = (/nspat1,nspat2,numtim/)
+  IND_START = (/1,1,IPSET,istart_sim/)     ! the indices start at 1, i.e. the first data value in (1, 1, ..., 1)
+  IND_COUNT = (/nspat1,nspat2,1,numtim/)  ! third element is 1 because we only write results for one parameter set at a time
+
+  PRINT *, 'IND_START=', IND_START
+  PRINT *, 'IND_COUNT=', IND_COUNT
 
   ! loop through time-varying model output
   DO IVAR=1,NOUTVAR
@@ -131,17 +136,17 @@ SUBROUTINE PUT_GOUTPUT_3D(istart_sim,istart_in,numtim,IPAR)
     ! check if there is a need to write the variable - see also def_output
     IF (Q_ONLY) THEN
        WRITE_VAR=.FALSE.
-       IF (TRIM(VNAME(IVAR)).EQ.'ppt') WRITE_VAR=.TRUE.
-       IF (TRIM(VNAME(IVAR)).EQ.'pet') WRITE_VAR=.TRUE.
-       IF (TRIM(VNAME(IVAR)).EQ.'obsq') WRITE_VAR=.TRUE.
-       IF (TRIM(VNAME(IVAR)).EQ.'evap_1') WRITE_VAR=.TRUE.
-       IF (TRIM(VNAME(IVAR)).EQ.'evap_2') WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'ppt')      WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'pet')      WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'obsq')     WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'evap_1')   WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'evap_2')   WRITE_VAR=.TRUE.
        IF (TRIM(VNAME(IVAR)).EQ.'q_instnt') WRITE_VAR=.TRUE.
        IF (TRIM(VNAME(IVAR)).EQ.'q_routed') WRITE_VAR=.TRUE.
        IF (TRIM(VNAME(IVAR)).EQ.'watr_1')   WRITE_VAR=.TRUE.
        IF (TRIM(VNAME(IVAR)).EQ.'watr_2')   WRITE_VAR=.TRUE.
-       IF (TRIM(VNAME(IVAR)).EQ.'swe_tot')   WRITE_VAR=.TRUE.
-       !IF (TRIM(VNAME(IVAR)).EQ.'qsurf') WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'swe_tot')  WRITE_VAR=.TRUE.
+       !IF (TRIM(VNAME(IVAR)).EQ.'qsurf')   WRITE_VAR=.TRUE.
        !IF (TRIM(VNAME(IVAR)).EQ.'oflow_1') WRITE_VAR=.TRUE.
        !IF (TRIM(VNAME(IVAR)).EQ.'qintf_1') WRITE_VAR=.TRUE.
        !IF (TRIM(VNAME(IVAR)).EQ.'oflow_2') WRITE_VAR=.TRUE.

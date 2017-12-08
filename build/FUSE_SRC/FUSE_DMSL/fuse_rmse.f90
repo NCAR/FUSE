@@ -1,7 +1,7 @@
 MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
   IMPLICIT NONE
   CONTAINS
-  SUBROUTINE FUSE_RMSE(XPAR,DISTRIBUTED,NCID_FORC,RMSE,OUTPUT_FLAG,MPARAM_FLAG)
+  SUBROUTINE FUSE_RMSE(XPAR,DISTRIBUTED,NCID_FORC,RMSE,OUTPUT_FLAG,IPSET,MPARAM_FLAG)
 
     ! ---------------------------------------------------------------------------------------
     ! Creator:
@@ -67,6 +67,7 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
     LOGICAL(LGT), INTENT(IN)               :: DISTRIBUTED    ! .TRUE. if doing distributed simulations
     INTEGER(I4B), INTENT(IN)               :: NCID_FORC      ! NetCDF ID for the forcing file
     LOGICAL(LGT), INTENT(IN)               :: OUTPUT_FLAG    ! .TRUE. if desire time series output
+    INTEGER(I4B), INTENT(IN)               :: IPSET          ! index parameter set
     LOGICAL(LGT), INTENT(IN), OPTIONAL     :: MPARAM_FLAG    ! .FALSE. (used to turn off writing statistics)
 
     ! output
@@ -293,7 +294,7 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
         ! write model output
         IF (OUTPUT_FLAG) THEN
           PRINT *, 'Write output for ',numtim_sub_cur,' time steps starting at indice', itim_sim-numtim_sub_cur+1
-          CALL PUT_GOUTPUT_3D(itim_sim-numtim_sub_cur+1,itim_in-numtim_sub_cur+1,numtim_sub_cur)
+          CALL PUT_GOUTPUT_3D(itim_sim-numtim_sub_cur+1,itim_in-numtim_sub_cur+1,numtim_sub_cur,IPSET)
           PRINT *, 'Done writing output'
         ELSE
           PRINT *, 'OUTPUT_FLAG is set on FALSE, no output written'

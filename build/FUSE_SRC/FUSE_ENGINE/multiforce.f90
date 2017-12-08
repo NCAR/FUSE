@@ -82,6 +82,8 @@ MODULE multiforce
   REAL(sp)                              :: ylat                      ! latitude (degrees) for PET computation
   REAL(sp),dimension(:),allocatable     :: latitude                  ! latitude (degrees)
   REAL(sp),dimension(:),allocatable     :: longitude                 ! longitude (degrees)
+  CHARACTER(len=strLen),dimension(:),allocatable   :: name_psets     ! name of parameter sets
+  INTEGER(I4B)                          :: NUMPSET                   ! number of parameter sets
   REAL(sp),dimension(:),allocatable     :: time_steps                ! time steps (days)
   REAL(sp),dimension(:),allocatable     :: julian_time_steps         ! time steps (julian days)
   CHARACTER(len=strLen)                 :: latUnits                  ! units string for latitude

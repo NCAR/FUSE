@@ -49,8 +49,7 @@ IF (.NOT.LEXIST) THEN
  STOP
 ENDIF
 
-print *, 'Opening parameter file:'
-print *, TRIM(NETCDF_FILE)
+print *, 'Opening parameter file:', TRIM(NETCDF_FILE)
 
 ! open file
 IERR = NF_OPEN(TRIM(NETCDF_FILE),NF_NOWRITE,NCID); CALL HANDLE_ERR(IERR)

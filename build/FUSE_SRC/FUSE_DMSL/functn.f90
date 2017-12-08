@@ -35,23 +35,14 @@ ALLOCATE(SCE_PAR(NOPT), STAT=IERR); IF (IERR.NE.0) STOP ' problem allocating spa
 SCE_PAR(1:NOPT) = A(1:NOPT)  ! convert from MSP used in SCE to SP used in FUSE
 
 DISTRIBUTED=.TRUE.
+OUTPUT_FLAG=.FALSE.   ! do not produce *runs.nc files only, param.nc files
 
-!print *, 'A_MSP', A(1:3)
-!print *, 'SCE_PAR', SCE_PAR(1:3)
-
-! compute RMSE
-OUTPUT_FLAG=.true.          ! .TRUE. = write model time series
-!CALL FUSE_RMSE(SCE_PAR,RMSE,OUTPUT_FLAG,ERR=ERR,MESSAGE=MESSAGE)
-CALL FUSE_RMSE(SCE_PAR,DISTRIBUTED,NCID_FORC,RMSE,OUTPUT_FLAG)
-
-!IF (ERR.NE.0) THEN
-!  print *, MESSAGE
-!  return
-!ENDIF
+CALL FUSE_RMSE(SCE_PAR,DISTRIBUTED,NCID_FORC,RMSE,OUTPUT_FLAG,1)
 
 ! deallocate parameter set
 DEALLOCATE(SCE_PAR, STAT=IERR); IF (IERR.NE.0) STOP ' problem deallocating space '
 print *, 'RMSE =', RMSE
+
 ! save objective function value
 FUNCTN = RMSE
 ! ---------------------------------------------------------------------------------------
