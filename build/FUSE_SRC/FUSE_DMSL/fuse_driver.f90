@@ -288,8 +288,6 @@ else
 
 end if
 
-!if(numtim_sub > numtim_sim)then; ierr=20; message=trim(message)//'the subperiod is greater than the entire period'; return; endif
-
 ! allocate space for the basin-average time series
 allocate(aForce(numtim_sub),aRoute(numtim_sub),stat=err)
 !allocate(aForce(numtim_sub),aRoute(numtim_sub),aValid(numtim_sub),stat=err)
