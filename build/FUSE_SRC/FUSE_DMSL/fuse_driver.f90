@@ -235,18 +235,26 @@ call juldayss(iy,im,id,ih,            &          ! convert it to julian date
 julian_time_steps=jdate_ref_netcdf+time_steps
 
 call caldatss(julian_time_steps(1),iy,im,id,ih,imin,isec)
-print *, 'Start date input file=',iy,im,id,ih,imin
+print *, 'Start date input file=',iy,im,id
 
 call caldatss(julian_time_steps(numtim_in),iy,im,id,ih,imin,isec)
-print *, 'End date input file=',iy,im,id,ih,imin
+print *, 'End date input file=',iy,im,id
 
 ! convert date for simulation into julian date
 call date_extractor(trim(date_start_sim),iy,im,id,ih)        ! break down date
 call juldayss(iy,im,id,ih,jdate_start_sim,err,message)       ! convert it to julian date
+if(jdate_start_sim.lt.minval(julian_time_steps))then         ! check forcing available
+  call caldatss(jdate_start_sim,iy,im,id,ih,imin,isec)
+   print *, 'Error: hydrologic simulation cannot start on ',iy,im,id,' because atmospheric starts later (see above)';stop;
+endif
 sim_beg= minloc(abs(julian_time_steps-jdate_start_sim),1)    ! find correponding index
 
 call date_extractor(trim(date_end_sim),iy,im,id,ih)          ! break down date
 call juldayss(iy,im,id,ih,jdate_end_sim,err,message)         ! convert it to julian date
+if(jdate_end_sim.gt.maxval(julian_time_steps))then         ! check forcing available
+  call caldatss(jdate_end_sim,iy,im,id,ih,imin,isec)
+   print *, 'Error: hydrologic simulation cannot end on ',iy,im,id,' because atmospheric ends earlier (see above)';stop;
+endif
 sim_end= minloc(abs(julian_time_steps-jdate_end_sim),1)      ! find correponding index
 
 call date_extractor(trim(date_start_eval),iy,im,id,ih)       ! break down date
