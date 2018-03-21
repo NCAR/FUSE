@@ -395,9 +395,6 @@ contains
   ierr = nf90_get_var(ncid_forc, ncid_var(ivar), gTemp, start=(/1,1,itim_start/), count=(/nSpat1,nSpat2,numtim/)); CALL HANDLE_ERR(IERR)
   if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
 
-  !print *, trim(cVec(iVar)%vname)
-  !print *, gTemp
-
   ! save the data in the structure -- and convert fluxes to mm/day
   if(trim(cVec(iVar)%vname) == trim(vname_aprecip) )then
     if( ANY(gTemp(:,:,:).lt.0.0)) then; PRINT *, 'Negative precipitation in input file'; stop; endif

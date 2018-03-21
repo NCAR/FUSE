@@ -286,7 +286,6 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
         END DO  ! (looping thru 2nd spatial dimension)
       END DO  ! (looping thru 1st spatial dimension)
 
-
       ! if end of subperiod: move state of last time step to first and flush memory
       IF(itim_sub.EQ.numtim_sub_cur)THEN
 
