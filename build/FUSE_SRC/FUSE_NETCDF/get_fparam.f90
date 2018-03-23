@@ -28,7 +28,7 @@ INTEGER(I4B), INTENT(IN)               :: ISET        ! indice of parameter set 
 INTEGER(I4B), INTENT(IN)               :: IMOD        ! model index
 INTEGER(I4B), INTENT(IN)               :: MPAR        ! number of model parameters
 ! internal
-INTEGER(I4B), DIMENSION(2)             :: INDX        ! indices for parameter extraction
+INTEGER(I4B), DIMENSION(1)             :: INDX        ! indices for parameter extraction
 LOGICAL(LGT)                           :: LEXIST      ! .TRUE. if NetCDF file exists
 INTEGER(I4B)                           :: IERR        ! error code
 INTEGER(I4B)                           :: NCID        ! NetCDF file ID
@@ -74,7 +74,7 @@ DO IPAR=1,NUMPAR
   IERR = NF_INQ_VARID(NCID,TRIM(LPARAM(IPAR)%PARNAME),IVARID); CALL HANDLE_ERR(IERR)
 
   ! get parameter value for the selected parameter set
-  INDX = (/IMOD,ISET/)
+  INDX = (/ISET/)
   IERR = NF_GET_VAR1_DOUBLE(NCID,IVARID,INDX,APAR); CALL HANDLE_ERR(IERR)
 
   ! put parameter value in the output vector
@@ -112,7 +112,7 @@ CHARACTER(LEN=*), INTENT(IN)           :: NETCDF_FILE ! NetCDF file name
 INTEGER(I4B), INTENT(IN)               :: IMOD        ! model index
 INTEGER(I4B), INTENT(IN)               :: MPAR        ! number of model parameters
 ! internal
-INTEGER(I4B), DIMENSION(2)             :: INDX        ! indices for parameter extraction
+INTEGER(I4B), DIMENSION(1)             :: INDX        ! indices for parameter extraction
 LOGICAL(LGT)                           :: LEXIST      ! .TRUE. if NetCDF file exists
 INTEGER(I4B)                           :: IERR        ! error code
 INTEGER(I4B)                           :: NCID        ! NetCDF file ID
@@ -173,7 +173,7 @@ IERR = NF_OPEN(TRIM(NETCDF_FILE),NF_NOWRITE,NCID); CALL HANDLE_ERR(IERR)
   IERR = NF_INQ_VARID(NCID,TRIM(LPARAM(IPAR)%PARNAME),IVARID); CALL HANDLE_ERR(IERR)
 
   ! get parameter value for the optimal parameter set
-  INDX = (/IMOD,I_OPT_PARA/)
+  INDX = (/I_OPT_PARA/)
   IERR = NF_GET_VAR1_DOUBLE(NCID,IVARID,INDX,APAR); CALL HANDLE_ERR(IERR)
 
   ! put parameter value in the output vector
