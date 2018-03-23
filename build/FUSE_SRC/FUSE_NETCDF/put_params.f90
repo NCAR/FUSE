@@ -1,4 +1,4 @@
-SUBROUTINE PUT_PARAMS(IPAR,IMOD)
+SUBROUTINE PUT_PARAMS(IPAR)
 ! ---------------------------------------------------------------------------------------
 ! Creator:
 ! --------
@@ -18,10 +18,9 @@ USE parextract_module                                 ! extract parameters
 IMPLICIT NONE
 ! input
 INTEGER(I4B), INTENT(IN)               :: IPAR        ! parameter set index
-INTEGER(I4B), INTENT(IN)               :: IMOD        ! model index
 ! internal
 INTEGER(I4B)                           :: IERR,NCID   ! error code; NetCDF ID
-INTEGER(I4B), DIMENSION(2)             :: INDX        ! indices for parameter write
+INTEGER(I4B), DIMENSION(1)             :: INDX        ! indices for parameter write
 INTEGER(I4B)                           :: IVAR        ! loop through parameters
 REAL(SP)                               :: XPAR        ! desired parameter
 REAL(MSP)                              :: APAR        ! convert to SP (need for SP write)
@@ -38,17 +37,17 @@ include 'netcdf.inc'                                  ! use netCDF libraries
 IERR = NF_OPEN(TRIM(FNAME_NETCDF_PARA),NF_WRITE,NCID); CALL HANDLE_ERR(IERR)
 
  ! define indices for model output
- INDX = (/IMOD,IPAR/)
- PRINT *, 'INDX', INDX
+ INDX = (/IPAR/)
+
  ! loop through model parameters
  DO IVAR=1,NOUTPAR  ! NOUTPAR is stored in module metaparams
-
-  !print *, PNAME(IVAR), '=',PAREXTRACT(PNAME(IVAR))
 
   XPAR = PAREXTRACT(PNAME(IVAR)); APAR=XPAR                                  ! get parameter PNAME(IVAR)
   IERR = NF_INQ_VARID(NCID,TRIM(PNAME(IVAR)),IVAR_ID); CALL HANDLE_ERR(IERR) ! get variable ID
   IERR = NF_PUT_VAR1_REAL(NCID,IVAR_ID,INDX,APAR); CALL HANDLE_ERR(IERR)     ! write data
+
  END DO  ! (ivar)
+
  ! put model description
  !IERR = NF_INQ_VARID(NCID,'model_description',IVAR_ID); CALL HANDLE_ERR(IERR)
 

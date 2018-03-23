@@ -150,8 +150,7 @@ IERR = NF_OPEN(TRIM(NETCDF_FILE),NF_NOWRITE,NCID); CALL HANDLE_ERR(IERR)
  IERR = NF_INQ_DIMLEN(NCID,IDIMID,NPAR); CALL HANDLE_ERR(IERR)
 
  ! extract RMSE for each parameter set
- print *, 'NPAR - total number of parameter sets produced by SCE', NPAR
- print *, 'Number of model parameters:', MPAR
+ print *, 'Length of the par dimension (the number of parameter sets produced by SCE is lower)', NPAR
 
  ALLOCATE(RAW_RMSE(NPAR),STAT=IERR); IF(IERR.NE.0) STOP ' problem allocating space for RAW_RMSE '
 

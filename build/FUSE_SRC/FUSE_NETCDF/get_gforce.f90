@@ -411,7 +411,6 @@ contains
   endif
 
   if(trim(cVec(iVar)%vname) == trim(vname_q) )then
-    if( ANY(gTemp(:,:,:).lt.0.0)) then; PRINT *, 'Negative Q in input file'; stop; endif
     aValid(:,:,1:numtim)%obsq = gTemp(:,:,:);       lCheck(ilook_q) = .true.
   endif
 

@@ -334,17 +334,16 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
       ! get timing information
       CALL CPU_TIME(T2)
       WRITE(*,*) "TIME ELAPSED = ", t2-t1
-      ! calculate mean summary statistics
 
+      ! calculate mean summary statistics
       CALL MEAN_STATS()
       RMSE = MSTATS%RAW_RMSE
       PRINT *, 'RMSE = ', RMSE
 
       PRINT *, 'Writing parameter values...'
-      CALL PUT_PARAMS(PCOUNT,MOD_IX)  ! PCOUNT = index for parameter set; ONEMOD=1 (just one model structure)
-      PRINT *, 'Writing model stastics...'
+      CALL PUT_PARAMS(PCOUNT)
+      PRINT *, 'Writing model statistics...'
       CALL PUT_SSTATS(PCOUNT)
-      PRINT *, 'Done writing model statistics'
 
       ! deallocate state vectors
       DEALLOCATE(W_FLUX_3d)

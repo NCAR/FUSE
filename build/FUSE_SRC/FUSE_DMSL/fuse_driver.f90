@@ -410,8 +410,23 @@ ELSE IF(fuse_mode == 'calib_sce')THEN ! calibrate FUSE using SCE
   FNAME_NETCDF_RUNS = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_runs_sce.nc'
   FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_para_sce.nc'
 
-  NUMPSET=15000  ! make it large enough for now - TODO use 1.2*MAXN
+  ! assign algorithmic control parameters for SCE
+  NOPT   =  NUMPAR         ! number of parameters to be optimized (NUMPAR in module multiparam)
+  MAXN   =     20000 			 ! maximum number of trials before optimization is terminated
+  KSTOP  =      3          ! number of shuffling loops the value must change by PCENTO (MAX=9)
+  PCENTO =      0.001      ! the percentage
+  NGS    =     10          ! number of complexes in the initial population
+  NPG    =  2*NOPT + 1     ! number of points in each complex
+  NPS    =    NOPT + 1     ! number of points in a sub-complex
+  NSPL   =  2*NOPT + 1     ! number of evolution steps allowed for each complex before shuffling
+  MINGS  =  NGS            ! minimum number of complexes required
+  INIFLG =  1              ! 1 = include initial point in the population
+  IPRINT =  1              ! 0 = supress printing
 
+  NUMPSET=1.2*MAXN         ! will be used to define the parameter set dimension of the NetCDF files
+                           ! using 1.2MAXN since the final number of parameter sets produced by SCE is unknown
+
+  PRINT *, 'Maximum number of trials before SCE optimization is terminated: ', MAXN
 
 ELSE IF(fuse_mode == 'run_best')THEN  ! run FUSE with best (highest RMSE) parameter set from a previous SCE calibration
 
@@ -480,18 +495,6 @@ ELSE IF(fuse_mode == 'calib_sce')THEN ! calibrate FUSE using SCE
   ! Calibrate FUSE with SCE
   OUTPUT_FLAG=.FALSE.
 
-  ! assign algorithmic control parameters for SCE
-  NOPT   =  NUMPAR         ! number of parameters to be optimized (NUMPAR in module multiparam)
-  MAXN   =     1000 			 ! maximum number of trials before optimization is terminated
-  KSTOP  =      3          ! number of shuffling loops the value must change by PCENTO (MAX=9)
-  PCENTO =      0.001      ! the percentage
-  NGS    =     10          ! number of complexes in the initial population
-  NPG    =  2*NOPT + 1     ! number of points in each complex
-  NPS    =    NOPT + 1     ! number of points in a sub-complex
-  NSPL   =  2*NOPT + 1     ! number of evolution steps allowed for each complex before shuffling
-  MINGS  =  NGS            ! minimum number of complexes required
-  INIFLG =  1              ! 1 = include initial point in the population
-  IPRINT =  1              ! 0 = supress printing
   FNAME_ASCII = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_sce_output.txt'
 
   ! convert from SP used in FUSE to MSP used in SCE
