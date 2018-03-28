@@ -395,14 +395,24 @@ contains
   ierr = nf90_get_var(ncid_forc, ncid_var(ivar), gTemp, start=(/1,1,itim_start/), count=(/nSpat1,nSpat2,numtim/)); CALL HANDLE_ERR(IERR)
   if(ierr/=0)then; message=trim(message)//trim(nf90_strerror(ierr)); return; endif
 
-  !print *, trim(cVec(iVar)%vname)
-  !print *, gTemp
-
   ! save the data in the structure -- and convert fluxes to mm/day
-  if(trim(cVec(iVar)%vname) == trim(vname_aprecip) )then; gForce_3d(:,:,1:numtim)%ppt = gTemp(:,:,:)*amult_ppt; lCheck(ilook_aprecip) = .true.; endif
-  if(trim(cVec(iVar)%vname) == trim(vname_potevap) )then; gForce_3d(:,:,1:numtim)%pet = gTemp(:,:,:)*amult_pet; lCheck(ilook_potevap) = .true.; endif
-  if(trim(cVec(iVar)%vname) == trim(vname_airtemp) )then; gForce_3d(:,:,1:numtim)%temp = gTemp(:,:,:);       lCheck(ilook_airtemp) = .true.; endif
-  if(trim(cVec(iVar)%vname) == trim(vname_q) )then;       aValid(:,:,1:numtim)%obsq = gTemp(:,:,:);       lCheck(ilook_q) = .true.; endif
+  if(trim(cVec(iVar)%vname) == trim(vname_aprecip) )then
+    if( ANY(gTemp(:,:,:).lt.0.0)) then; PRINT *, 'Negative precipitation in input file'; stop; endif
+    gForce_3d(:,:,1:numtim)%ppt = gTemp(:,:,:)*amult_ppt; lCheck(ilook_aprecip) = .true.
+  endif
+
+  if(trim(cVec(iVar)%vname) == trim(vname_potevap) )then
+    if( ANY(gTemp(:,:,:).lt.0.0)) then; PRINT *, 'Negative PET in input file'; stop; endif
+    gForce_3d(:,:,1:numtim)%pet = gTemp(:,:,:)*amult_pet; lCheck(ilook_potevap) = .true.
+  endif
+
+  if(trim(cVec(iVar)%vname) == trim(vname_airtemp) )then
+    gForce_3d(:,:,1:numtim)%temp = gTemp(:,:,:);       lCheck(ilook_airtemp) = .true.
+  endif
+
+  if(trim(cVec(iVar)%vname) == trim(vname_q) )then
+    aValid(:,:,1:numtim)%obsq = gTemp(:,:,:);       lCheck(ilook_q) = .true.
+  endif
 
   ! save the other variables required to compute PET
   !if( trim(cVec(iVar)%vname) == trim(vname_airtemp) )then; ancilF(:,:)%airtemp = gTemp(:,:,1);       lCheck(ilook_airtemp) = .true.; endif

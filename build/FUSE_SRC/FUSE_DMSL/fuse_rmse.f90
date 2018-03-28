@@ -1,7 +1,7 @@
 MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
   IMPLICIT NONE
   CONTAINS
-  SUBROUTINE FUSE_RMSE(XPAR,DISTRIBUTED,NCID_FORC,RMSE,OUTPUT_FLAG,MPARAM_FLAG)
+  SUBROUTINE FUSE_RMSE(XPAR,DISTRIBUTED,NCID_FORC,RMSE,OUTPUT_FLAG,IPSET,MPARAM_FLAG)
 
     ! ---------------------------------------------------------------------------------------
     ! Creator:
@@ -67,6 +67,7 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
     LOGICAL(LGT), INTENT(IN)               :: DISTRIBUTED    ! .TRUE. if doing distributed simulations
     INTEGER(I4B), INTENT(IN)               :: NCID_FORC      ! NetCDF ID for the forcing file
     LOGICAL(LGT), INTENT(IN)               :: OUTPUT_FLAG    ! .TRUE. if desire time series output
+    INTEGER(I4B), INTENT(IN)               :: IPSET          ! index parameter set
     LOGICAL(LGT), INTENT(IN), OPTIONAL     :: MPARAM_FLAG    ! .FALSE. (used to turn off writing statistics)
 
     ! output
@@ -293,7 +294,7 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
         ! write model output
         IF (OUTPUT_FLAG) THEN
           PRINT *, 'Write output for ',numtim_sub_cur,' time steps starting at indice', itim_sim-numtim_sub_cur+1
-          CALL PUT_GOUTPUT_3D(itim_sim-numtim_sub_cur+1,itim_in-numtim_sub_cur+1,numtim_sub_cur)
+          CALL PUT_GOUTPUT_3D(itim_sim-numtim_sub_cur+1,itim_in-numtim_sub_cur+1,numtim_sub_cur,IPSET)
           PRINT *, 'Done writing output'
         ELSE
           PRINT *, 'OUTPUT_FLAG is set on FALSE, no output written'
@@ -333,20 +334,16 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
       ! get timing information
       CALL CPU_TIME(T2)
       WRITE(*,*) "TIME ELAPSED = ", t2-t1
-      ! calculate mean summary statistics
 
+      ! calculate mean summary statistics
       CALL MEAN_STATS()
       RMSE = MSTATS%RAW_RMSE
-
       PRINT *, 'RMSE = ', RMSE
 
-      ! WRITE(unt,'(2(I6,1X),3(F20.15,1X))') MOD_IX, PCOUNT, MSTATS%RAW_RMSE, MSTATS%NASH_SUTT, MSTATS%NUM_FUNCS
-      ! write model parameters and summary statistics
-
       PRINT *, 'Writing parameter values...'
-      CALL PUT_PARAMS(PCOUNT,MOD_IX)  ! PCOUNT = index for parameter set; ONEMOD=1 (just one model structure)
-      PRINT *, 'Writing model stastics...'
-      CALL PUT_SSTATS(PCOUNT,MOD_IX)
+      CALL PUT_PARAMS(PCOUNT)
+      PRINT *, 'Writing model statistics...'
+      CALL PUT_SSTATS(PCOUNT)
 
       ! deallocate state vectors
       DEALLOCATE(W_FLUX_3d)

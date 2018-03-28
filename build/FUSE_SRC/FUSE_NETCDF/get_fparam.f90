@@ -28,7 +28,7 @@ INTEGER(I4B), INTENT(IN)               :: ISET        ! indice of parameter set 
 INTEGER(I4B), INTENT(IN)               :: IMOD        ! model index
 INTEGER(I4B), INTENT(IN)               :: MPAR        ! number of model parameters
 ! internal
-INTEGER(I4B), DIMENSION(2)             :: INDX        ! indices for parameter extraction
+INTEGER(I4B), DIMENSION(1)             :: INDX        ! indices for parameter extraction
 LOGICAL(LGT)                           :: LEXIST      ! .TRUE. if NetCDF file exists
 INTEGER(I4B)                           :: IERR        ! error code
 INTEGER(I4B)                           :: NCID        ! NetCDF file ID
@@ -49,8 +49,7 @@ IF (.NOT.LEXIST) THEN
  STOP
 ENDIF
 
-print *, 'Opening parameter file:'
-print *, TRIM(NETCDF_FILE)
+print *, 'Opening parameter file:', TRIM(NETCDF_FILE)
 
 ! open file
 IERR = NF_OPEN(TRIM(NETCDF_FILE),NF_NOWRITE,NCID); CALL HANDLE_ERR(IERR)
@@ -71,17 +70,17 @@ print *, 'Extracting parameter set', ISET
 ! loop through parameters
 DO IPAR=1,NUMPAR
 
-! get parameter id
-IERR = NF_INQ_VARID(NCID,TRIM(LPARAM(IPAR)%PARNAME),IVARID); CALL HANDLE_ERR(IERR)
+  ! get parameter id
+  IERR = NF_INQ_VARID(NCID,TRIM(LPARAM(IPAR)%PARNAME),IVARID); CALL HANDLE_ERR(IERR)
 
-! get parameter value for the optimal parameter set
-INDX = (/IMOD,ISET/)
-IERR = NF_GET_VAR1_DOUBLE(NCID,IVARID,INDX,APAR); CALL HANDLE_ERR(IERR)
+  ! get parameter value for the selected parameter set
+  INDX = (/ISET/)
+  IERR = NF_GET_VAR1_DOUBLE(NCID,IVARID,INDX,APAR); CALL HANDLE_ERR(IERR)
 
-! put parameter value in the output vector
-XPAR(IPAR) = APAR
+  ! put parameter value in the output vector
+  XPAR(IPAR) = APAR
 
-print *, 'PARAM VALUES:',LPARAM(IPAR)%PARNAME, '->', APAR
+  print *, 'PARAM VALUES:',LPARAM(IPAR)%PARNAME, '->', APAR
 
 END DO
 
@@ -113,7 +112,7 @@ CHARACTER(LEN=*), INTENT(IN)           :: NETCDF_FILE ! NetCDF file name
 INTEGER(I4B), INTENT(IN)               :: IMOD        ! model index
 INTEGER(I4B), INTENT(IN)               :: MPAR        ! number of model parameters
 ! internal
-INTEGER(I4B), DIMENSION(2)             :: INDX        ! indices for parameter extraction
+INTEGER(I4B), DIMENSION(1)             :: INDX        ! indices for parameter extraction
 LOGICAL(LGT)                           :: LEXIST      ! .TRUE. if NetCDF file exists
 INTEGER(I4B)                           :: IERR        ! error code
 INTEGER(I4B)                           :: NCID        ! NetCDF file ID
@@ -151,8 +150,7 @@ IERR = NF_OPEN(TRIM(NETCDF_FILE),NF_NOWRITE,NCID); CALL HANDLE_ERR(IERR)
  IERR = NF_INQ_DIMLEN(NCID,IDIMID,NPAR); CALL HANDLE_ERR(IERR)
 
  ! extract RMSE for each parameter set
- print *, 'NPAR - total number of parameter sets produced by SCE', NPAR
- print *, 'Number of model parameters:', MPAR
+ print *, 'Length of the par dimension (the number of parameter sets produced by SCE is lower)', NPAR
 
  ALLOCATE(RAW_RMSE(NPAR),STAT=IERR); IF(IERR.NE.0) STOP ' problem allocating space for RAW_RMSE '
 
@@ -175,7 +173,7 @@ IERR = NF_OPEN(TRIM(NETCDF_FILE),NF_NOWRITE,NCID); CALL HANDLE_ERR(IERR)
   IERR = NF_INQ_VARID(NCID,TRIM(LPARAM(IPAR)%PARNAME),IVARID); CALL HANDLE_ERR(IERR)
 
   ! get parameter value for the optimal parameter set
-  INDX = (/IMOD,I_OPT_PARA/)
+  INDX = (/I_OPT_PARA/)
   IERR = NF_GET_VAR1_DOUBLE(NCID,IVARID,INDX,APAR); CALL HANDLE_ERR(IERR)
 
   ! put parameter value in the output vector
