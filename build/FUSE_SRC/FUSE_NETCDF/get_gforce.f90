@@ -193,7 +193,7 @@ contains
   cVec(ilook_swdown)%vname  = trim(vname_swdown)   ! variable name: downward shortwave radiation
 
   !do ivar=1,nForce
-  do ivar=1,4
+  do ivar=1,3
 
     ! get the variable ID
     ierr = nf90_inq_varid(ncid, trim(cVec(iVar)%vname), ncid_var(ivar))
@@ -389,7 +389,7 @@ contains
  ! get forcing grids
  ! do ivar=1,nForce
 
- do ivar=1,4
+ do ivar=1,3
 
   ! get the data
   ierr = nf90_get_var(ncid_forc, ncid_var(ivar), gTemp, start=(/1,1,itim_start/), count=(/nSpat1,nSpat2,numtim/)); CALL HANDLE_ERR(IERR)

@@ -318,10 +318,10 @@ if(err/=0)then; write(*,*) 'unable to allocate space for elevation bands'; stop;
 
 ! get variable ID from the NetCDF file
 call get_varID(ncid_forc,err,message)
-if(err/=0)then; write(*,*) 'unable to get NetCDF variables ID'; stop; endif
+if(err/=0)then; write(*,*) 'unable to get NetCDF variables ID for forcing file'; stop; endif
 
 ! define the spatial flag (.true. is distributed)
-if(nSpat1.GT.1) THEN
+if(nSpat1.GT.1.OR.nSpat2.GT.1) THEN
 
   GRID_FLAG=.TRUE.
 

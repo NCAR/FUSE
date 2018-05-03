@@ -136,16 +136,16 @@ SUBROUTINE PUT_GOUTPUT_3D(istart_sim,istart_in,numtim,IPSET)
     ! check if there is a need to write the variable - see also def_output
     IF (Q_ONLY) THEN
        WRITE_VAR=.FALSE.
-       !IF (TRIM(VNAME(IVAR)).EQ.'ppt')      WRITE_VAR=.TRUE.
-       !IF (TRIM(VNAME(IVAR)).EQ.'pet')      WRITE_VAR=.TRUE.
-       IF (TRIM(VNAME(IVAR)).EQ.'obsq')     WRITE_VAR=.TRUE.
-       !IF (TRIM(VNAME(IVAR)).EQ.'evap_1')   WRITE_VAR=.TRUE.
-       !IF (TRIM(VNAME(IVAR)).EQ.'evap_2')   WRITE_VAR=.TRUE.
-       !IF (TRIM(VNAME(IVAR)).EQ.'q_instnt') WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'ppt')      WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'pet')      WRITE_VAR=.TRUE.
+       !IF (TRIM(VNAME(IVAR)).EQ.'obsq')     WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'evap_1')   WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'evap_2')   WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'q_instnt') WRITE_VAR=.TRUE.
        IF (TRIM(VNAME(IVAR)).EQ.'q_routed') WRITE_VAR=.TRUE.
-       !IF (TRIM(VNAME(IVAR)).EQ.'watr_1')   WRITE_VAR=.TRUE.
-       !IF (TRIM(VNAME(IVAR)).EQ.'watr_2')   WRITE_VAR=.TRUE.
-       !IF (TRIM(VNAME(IVAR)).EQ.'swe_tot')  WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'watr_1')   WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'watr_2')   WRITE_VAR=.TRUE.
+       IF (TRIM(VNAME(IVAR)).EQ.'swe_tot')  WRITE_VAR=.TRUE.
        !IF (TRIM(VNAME(IVAR)).EQ.'qsurf')   WRITE_VAR=.TRUE.
        !IF (TRIM(VNAME(IVAR)).EQ.'oflow_1') WRITE_VAR=.TRUE.
        !IF (TRIM(VNAME(IVAR)).EQ.'qintf_1') WRITE_VAR=.TRUE.

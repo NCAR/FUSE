@@ -295,7 +295,6 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
         IF (OUTPUT_FLAG) THEN
           PRINT *, 'Write output for ',numtim_sub_cur,' time steps starting at indice', itim_sim-numtim_sub_cur+1
           CALL PUT_GOUTPUT_3D(itim_sim-numtim_sub_cur+1,itim_in-numtim_sub_cur+1,numtim_sub_cur,IPSET)
-          PRINT *, 'PUT_GOUTPUT_3D', itim_sim-numtim_sub_cur+1, '-' , itim_in-numtim_sub_cur+1,'-',numtim_sub_cur,'-',IPSET
 
           PRINT *, 'Done writing output'
         ELSE
@@ -337,15 +336,20 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
       CALL CPU_TIME(T2)
       WRITE(*,*) "TIME ELAPSED = ", t2-t1
 
-      ! calculate mean summary statistics
-      CALL MEAN_STATS()
-      RMSE = MSTATS%RAW_RMSE
-      PRINT *, 'RMSE = ', RMSE
+      ! calculate summary statistics if in catchment mode
+      IF(.NOT.DISTRIBUTED) then
+
+        CALL MEAN_STATS()
+        RMSE = MSTATS%RAW_RMSE
+        PRINT *, 'RMSE = ', RMSE
+
+        PRINT *, 'Writing model statistics...'
+        CALL PUT_SSTATS(PCOUNT)
+
+      END IF
 
       PRINT *, 'Writing parameter values...'
       CALL PUT_PARAMS(PCOUNT)
-      PRINT *, 'Writing model statistics...'
-      CALL PUT_SSTATS(PCOUNT)
 
       ! deallocate state vectors
       DEALLOCATE(W_FLUX_3d)

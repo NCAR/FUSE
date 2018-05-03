@@ -55,8 +55,7 @@ SUBROUTINE DEF_OUTPUT(nSpat1,nSpat2,NPSET,NTIM)
   CALL VARDESCRIBE()  ! get list of variable descriptions
   ! ---------------------------------------------------------------------------------------
 ! put file in define mode
-  print *, 'Create NetCDF file for runs:'
-  PRINT *, FNAME_NETCDF_RUNS
+  print *, 'Define NetCDF output file for model runs: ', TRIM(FNAME_NETCDF_RUNS)
 
   IERR = NF_CREATE(TRIM(FNAME_NETCDF_RUNS),NF_CLOBBER,ncid_out); CALL HANDLE_ERR(IERR)
   !IERR = NF_OPEN(TRIM(FNAME_NETCDF_RUNS),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
@@ -91,16 +90,16 @@ SUBROUTINE DEF_OUTPUT(nSpat1,nSpat2,NPSET,NTIM)
     ! check if there is a need to write the variable - see also put_output
     IF (Q_ONLY) THEN
       WRITE_VAR=.FALSE.
-      !IF (TRIM(VNAME(IVAR)).EQ.'ppt')      WRITE_VAR=.TRUE.
-      !IF (TRIM(VNAME(IVAR)).EQ.'pet')      WRITE_VAR=.TRUE.
-      IF (TRIM(VNAME(IVAR)).EQ.'obsq')     WRITE_VAR=.TRUE.
-      !IF (TRIM(VNAME(IVAR)).EQ.'evap_1')   WRITE_VAR=.TRUE.
-      !IF (TRIM(VNAME(IVAR)).EQ.'evap_2')   WRITE_VAR=.TRUE.
-      !IF (TRIM(VNAME(IVAR)).EQ.'q_instnt') WRITE_VAR=.TRUE.
+      IF (TRIM(VNAME(IVAR)).EQ.'ppt')      WRITE_VAR=.TRUE.
+      IF (TRIM(VNAME(IVAR)).EQ.'pet')      WRITE_VAR=.TRUE.
+      !IF (TRIM(VNAME(IVAR)).EQ.'obsq')     WRITE_VAR=.TRUE.
+      IF (TRIM(VNAME(IVAR)).EQ.'evap_1')   WRITE_VAR=.TRUE.
+      IF (TRIM(VNAME(IVAR)).EQ.'evap_2')   WRITE_VAR=.TRUE.
+      IF (TRIM(VNAME(IVAR)).EQ.'q_instnt') WRITE_VAR=.TRUE.
       IF (TRIM(VNAME(IVAR)).EQ.'q_routed') WRITE_VAR=.TRUE.
-      !IF (TRIM(VNAME(IVAR)).EQ.'watr_1')   WRITE_VAR=.TRUE.
-      !IF (TRIM(VNAME(IVAR)).EQ.'watr_2')   WRITE_VAR=.TRUE.
-      !IF (TRIM(VNAME(IVAR)).EQ.'swe_tot')  WRITE_VAR=.TRUE.
+      IF (TRIM(VNAME(IVAR)).EQ.'watr_1')   WRITE_VAR=.TRUE.
+      IF (TRIM(VNAME(IVAR)).EQ.'watr_2')   WRITE_VAR=.TRUE.
+      IF (TRIM(VNAME(IVAR)).EQ.'swe_tot')  WRITE_VAR=.TRUE.
       !IF (TRIM(VNAME(IVAR)).EQ.'qsurf')   WRITE_VAR=.TRUE.
       !IF (TRIM(VNAME(IVAR)).EQ.'oflow_1') WRITE_VAR=.TRUE.
       !IF (TRIM(VNAME(IVAR)).EQ.'qintf_1') WRITE_VAR=.TRUE.

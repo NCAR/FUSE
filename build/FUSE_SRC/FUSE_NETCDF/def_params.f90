@@ -33,7 +33,7 @@ include 'netcdf.inc'                                  ! use netCDF libraries
 ! ---------------------------------------------------------------------------------------
 CALL PARDESCRIBE()               ! get list of parameter descriptions
 ! ---------------------------------------------------------------------------------------
-PRINT *, 'Define NetCDF output files - parameter variables = ', TRIM(FNAME_NETCDF_PARA)
+PRINT *, 'Define NetCDF output file for parameter values: ', TRIM(FNAME_NETCDF_PARA)
 ! Create file
 IERR = NF_CREATE(TRIM(FNAME_NETCDF_PARA),NF_CLOBBER,ncid_out); CALL HANDLE_ERR(IERR)
  ! define dimensions

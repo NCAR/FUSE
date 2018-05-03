@@ -247,9 +247,9 @@ DO iSpat2=1,nSpat2
 	 Z_FORCING_grid(iSpat1,iSpat2)    = sum(me_TEMP(iSpat1,iSpat2,:)*af_TEMP(iSpat1,iSpat2,:)) ! estimate mean elevation of forcing using weighted mean of EB elevation
 	 elev_mask(iSpat1,iSpat2)=me_TEMP(iSpat1,iSpat2,1)
 
-	 PRINT *, 'Z_FORCING_grid =', Z_FORCING_grid(iSpat1,iSpat2)
-	 PRINT *, 'MBANDS_INFO_3d - ELEV =', MBANDS_INFO_3d(iSpat1,iSpat2,:)%Z_MID
-	 PRINT *, 'MBANDS_INFO_3d - FRAC =', MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF
+	 ! PRINT *, 'Z_FORCING_grid =', Z_FORCING_grid(iSpat1,iSpat2)
+	 ! PRINT *, 'MBANDS_INFO_3d - ELEV =', MBANDS_INFO_3d(iSpat1,iSpat2,:)%Z_MID
+	 ! PRINT *, 'MBANDS_INFO_3d - FRAC =', MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF
 
 	 if (abs(sum(MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF)-1).GT.1E-6) then ! check that area fraction sum to 1
 
