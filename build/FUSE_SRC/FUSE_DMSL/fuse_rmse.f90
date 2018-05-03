@@ -295,6 +295,8 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
         IF (OUTPUT_FLAG) THEN
           PRINT *, 'Write output for ',numtim_sub_cur,' time steps starting at indice', itim_sim-numtim_sub_cur+1
           CALL PUT_GOUTPUT_3D(itim_sim-numtim_sub_cur+1,itim_in-numtim_sub_cur+1,numtim_sub_cur,IPSET)
+          PRINT *, 'PUT_GOUTPUT_3D', itim_sim-numtim_sub_cur+1, '-' , itim_in-numtim_sub_cur+1,'-',numtim_sub_cur,'-',IPSET
+
           PRINT *, 'Done writing output'
         ELSE
           PRINT *, 'OUTPUT_FLAG is set on FALSE, no output written'

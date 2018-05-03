@@ -103,7 +103,7 @@ SUBROUTINE PUT_GOUTPUT_3D(istart_sim,istart_in,numtim,IPSET)
   INTEGER(I4B), INTENT(IN)               :: istart_sim  ! index start time step relative to numtim_sim
   INTEGER(I4B), INTENT(IN)               :: istart_in   ! index start time step relative to numtim_in - for time dimension
   INTEGER(I4B), INTENT(IN)               :: numtim      ! number of time steps to write
-  INTEGER(I4B), INTENT(IN)               :: IPSET        ! parameter set index
+  INTEGER(I4B), INTENT(IN)               :: IPSET       ! parameter set index
 
   ! internal
   LOGICAL(LGT)                           :: WRITE_VAR   ! used to denote if the variable is written
@@ -124,8 +124,8 @@ SUBROUTINE PUT_GOUTPUT_3D(istart_sim,istart_in,numtim,IPSET)
   IERR = NF_OPEN(TRIM(FNAME_NETCDF_RUNS),NF_WRITE,ncid_out); CALL HANDLE_ERR(IERR)
 
   ! define indices for model output
-  IND_START = (/1,1,IPSET,istart_sim/)     ! the indices start at 1, i.e. the first data value in (1, 1, ..., 1)
-  IND_COUNT = (/nspat1,nspat2,1,numtim/)  ! third element is 1 because we only write results for one parameter set at a time
+  IND_START = (/1,1,IPSET,istart_sim/)     ! the indices start at 1, i.e. first element in (1, 1, ..., 1)
+  IND_COUNT = (/nspat1,nspat2,1,numtim/)   ! third element is 1 because we only write results for one parameter set at a time
 
   PRINT *, 'IND_START=', IND_START
   PRINT *, 'IND_COUNT=', IND_COUNT
@@ -136,22 +136,22 @@ SUBROUTINE PUT_GOUTPUT_3D(istart_sim,istart_in,numtim,IPSET)
     ! check if there is a need to write the variable - see also def_output
     IF (Q_ONLY) THEN
        WRITE_VAR=.FALSE.
-       IF (TRIM(VNAME(IVAR)).EQ.'ppt')      WRITE_VAR=.TRUE.
-       IF (TRIM(VNAME(IVAR)).EQ.'pet')      WRITE_VAR=.TRUE.
+       !IF (TRIM(VNAME(IVAR)).EQ.'ppt')      WRITE_VAR=.TRUE.
+       !IF (TRIM(VNAME(IVAR)).EQ.'pet')      WRITE_VAR=.TRUE.
        IF (TRIM(VNAME(IVAR)).EQ.'obsq')     WRITE_VAR=.TRUE.
-       IF (TRIM(VNAME(IVAR)).EQ.'evap_1')   WRITE_VAR=.TRUE.
-       IF (TRIM(VNAME(IVAR)).EQ.'evap_2')   WRITE_VAR=.TRUE.
-       IF (TRIM(VNAME(IVAR)).EQ.'q_instnt') WRITE_VAR=.TRUE.
+       !IF (TRIM(VNAME(IVAR)).EQ.'evap_1')   WRITE_VAR=.TRUE.
+       !IF (TRIM(VNAME(IVAR)).EQ.'evap_2')   WRITE_VAR=.TRUE.
+       !IF (TRIM(VNAME(IVAR)).EQ.'q_instnt') WRITE_VAR=.TRUE.
        IF (TRIM(VNAME(IVAR)).EQ.'q_routed') WRITE_VAR=.TRUE.
-       IF (TRIM(VNAME(IVAR)).EQ.'watr_1')   WRITE_VAR=.TRUE.
-       IF (TRIM(VNAME(IVAR)).EQ.'watr_2')   WRITE_VAR=.TRUE.
-       IF (TRIM(VNAME(IVAR)).EQ.'swe_tot')  WRITE_VAR=.TRUE.
+       !IF (TRIM(VNAME(IVAR)).EQ.'watr_1')   WRITE_VAR=.TRUE.
+       !IF (TRIM(VNAME(IVAR)).EQ.'watr_2')   WRITE_VAR=.TRUE.
+       !IF (TRIM(VNAME(IVAR)).EQ.'swe_tot')  WRITE_VAR=.TRUE.
        !IF (TRIM(VNAME(IVAR)).EQ.'qsurf')   WRITE_VAR=.TRUE.
        !IF (TRIM(VNAME(IVAR)).EQ.'oflow_1') WRITE_VAR=.TRUE.
        !IF (TRIM(VNAME(IVAR)).EQ.'qintf_1') WRITE_VAR=.TRUE.
        !IF (TRIM(VNAME(IVAR)).EQ.'oflow_2') WRITE_VAR=.TRUE.
        !IF (TRIM(VNAME(IVAR)).EQ.'qbase_2') WRITE_VAR=.TRUE.
-       IF (.NOT.WRITE_VAR) CYCLE
+       IF (.NOT.WRITE_VAR) CYCLE ! start new iteration of do loop, i.e. skip writting variable
     ENDIF
 
     ! write the variable

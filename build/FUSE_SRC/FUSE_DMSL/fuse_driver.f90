@@ -286,13 +286,13 @@ read(numtim_sub_str,*,iostat=err) numtim_sub ! convert string to integer
 
 if(numtim_sub.eq.-9999)then
 
-  print *, 'numtim_sub = -9999, FUSE will be run in 1 chunck of ',numtim_sim, 'time steps'
+  print *, 'numtim_sub = -9999, FUSE will be run in 1 chunk of ',numtim_sim, 'time steps'
 
   numtim_sub=numtim_sim ! no subperiods, run the whole time series
 
 else
 
-  print *, 'FUSE will be run in chuncks of ',numtim_sub, 'time steps'
+  print *, 'FUSE will be run in chunks of ',numtim_sub, 'time steps'
 
 end if
 
@@ -372,7 +372,7 @@ IF(fuse_mode == 'run_def')THEN ! run FUSE with default parameter values
 ELSE IF(fuse_mode == 'run_pre')THEN  ! run FUSE with pre-defined parameter values
 
   ! read file_para_list twice:
-  ! 1st pass: determine number of parameter set and allocate name_psets accodringly
+  ! 1st pass: determine number of parameter set and allocate name_psets accordingly
   ! 2st pass: save the names of parameter sets in name_psets
 
   do file_pass = 1, 2
@@ -480,7 +480,10 @@ ELSE IF(fuse_mode == 'run_pre')THEN ! run FUSE with pre-defined parameter values
 
     FNAME_NETCDF_PARA_PRE=TRIM(OUTPUT_PATH)//name_psets(IPSET)
     PRINT *, 'Loading parameter set ',IPSET,':'
-    CALL GET_PRE_PARAM(FNAME_NETCDF_PARA_PRE,1,ONEMOD,NUMPAR,APAR) ! load specific parameter set
+
+    ! load specific parameter set
+    ! 2nd argument is 1 because first (and only) parameter set should be loaded
+    CALL GET_PRE_PARAM(FNAME_NETCDF_PARA_PRE,1,ONEMOD,NUMPAR,APAR)
 
     print *, 'Running FUSE with pre-defined parameter set'
     CALL FUSE_RMSE(APAR,GRID_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG,IPSET)
