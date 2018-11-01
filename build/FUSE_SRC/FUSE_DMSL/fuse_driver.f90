@@ -15,6 +15,7 @@ USE netcdf                                                ! NetCDF library
 USE fuse_fileManager,only:fuse_SetDirsUndPhiles,&         ! sets directories and filenames
           SETNGS_PATH,MBANDS_INFO,MBANDS_NC, &
           OUTPUT_PATH,FORCINGINFO,INPUT_PATH,&
+          suffix_forcing,suffix_elev_bands,&
           date_start_sim,date_end_sim,&
           date_start_eval,date_end_eval,&
           numtim_sub_str
@@ -196,13 +197,15 @@ call fuse_SetDirsUndPhiles(fuseFileManagerIn=FFMFILE,err=err,message=message)
 if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
 
 ! define name of forcing info and elevation band file
-FORCINGINFO = TRIM(dom_id)//'_input_info.txt'
-MBANDS_INFO = TRIM(dom_id)//'_elev_bands_info.txt' ! probably not needed anymore
-!ELEV_BANDS_NC = TRIM(dom_id)//'_elev_bands.nc'
+forcefile= trim(dom_id)//suffix_forcing
+ELEV_BANDS_NC=trim(dom_id)//suffix_elev_bands
 
 PRINT *, 'Variables defined based on domain name:'
-PRINT *, 'FORCINGINFO:', TRIM(FORCINGINFO)
-!PRINT *, 'ELEV_BANDS_NC:', TRIM(ELEV_BANDS_NC) now defined in file manager
+PRINT *, 'forcefile:', TRIM(forcefile)
+PRINT *, 'ELEV_BANDS_NC:', TRIM(ELEV_BANDS_NC)
+
+!FORCINGINFO = TRIM(dom_id)//'_input_info.txt'
+!MBANDS_INFO = TRIM(dom_id)//'_elev_bands_info.txt' ! probably not needed anymore
 
 ! defines method/parameters used for numerical solution - what is this line doing here?
 CALL GETNUMERIX(ERR,MESSAGE)

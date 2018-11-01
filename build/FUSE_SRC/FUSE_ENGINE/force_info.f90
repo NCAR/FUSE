@@ -25,7 +25,6 @@ contains
                            INPUT_PATH
  USE ascii_util_module,only:file_open                       ! open file (performs a few checks as well)
  USE ascii_util_module,only:get_vlines                      ! get a list of character strings from non-comment lines
- USE multiforce,only:forcefile                              ! forcing file
  USE multiforce,only:vname_aprecip                          ! variable name: precipitation
  USE multiforce,only:vname_airtemp                          ! variable name: temperature
  USE multiforce,only:vname_spechum                          ! variable name: specific humidity
@@ -51,7 +50,7 @@ contains
  ! internal: general
  integer(i4b),parameter                 :: strLen=1024          ! length of character strings
  character(len=strLen)                  :: cmessage             ! message of downwind routine
- character(len=strLen),parameter        :: cVersion='FORCINGINFO.VERSION.2.1' ! version of forcinginfo file
+ character(len=strLen),parameter        :: cVersion='FORCINGINFO.VERSION.2.2' ! version of forcinginfo file
  ! internal: read data from file
  integer(i4b)                           :: iunit                ! file unit
  character(len=strLen)                  :: cfile                ! name of control file
@@ -63,33 +62,32 @@ contains
  integer(i4b)                           :: iend_data            ! end index of data in string charlines(iLine)
  character(len=strLen)                  :: cName,cData          ! name and data from charlines(iLine)
  ! internal: named variables
- integer(i4b),parameter                 :: maxinfo=25           ! maximum number of informational elements
+ integer(i4b),parameter                 :: maxinfo=24           ! maximum number of informational elements
  logical(lgt),dimension(maxinfo)        :: lCheck               ! vector to check that we have the infomation we need
- integer(i4b),parameter                 :: iForcefile     =1    ! named variable for element of lCheck
- integer(i4b),parameter                 :: iVname_iy      =2    ! named variable for element of lCheck
- integer(i4b),parameter                 :: iVname_im      =3    ! named variable for element of lCheck
- integer(i4b),parameter                 :: iVname_id      =4    ! named variable for element of lCheck
- integer(i4b),parameter                 :: iVname_ih      =5    ! named variable for element of lCheck
- integer(i4b),parameter                 :: iVname_imin    =6    ! named variable for element of lCheck
- integer(i4b),parameter                 :: iVname_dsec    =7    ! named variable for element of lCheck
- integer(i4b),parameter                 :: iVname_dtime   =8    ! named variable for element of lCheck
- integer(i4b),parameter                 :: iVname_aprecip =9    ! named variable for element of lCheck
- integer(i4b),parameter                 :: iVname_airtemp =10   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iVname_spechum =11   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iVname_airpres =12   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iVname_swdown  =13   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iVname_potevap =14   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iVname_q       =15   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iUnits_aprecip =16   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iUnits_airtemp =17   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iUnits_spechum =18   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iUnits_airpres =19   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iUnits_swdown  =20   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iUnits_potevap =21   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iUnits_q       =22   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iDeltim        =23   ! named variable for element of lCheck
- integer(i4b),parameter                 :: ixlon          =24   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iylat          =25   ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iVname_iy      =1    ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iVname_im      =2    ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iVname_id      =3    ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iVname_ih      =4    ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iVname_imin    =5    ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iVname_dsec    =6    ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iVname_dtime   =7    ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iVname_aprecip =8    ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iVname_airtemp =9   ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iVname_spechum =10   ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iVname_airpres =11   ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iVname_swdown  =12   ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iVname_potevap =13   ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iVname_q       =14   ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iUnits_aprecip =15   ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iUnits_airtemp =16   ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iUnits_spechum =17   ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iUnits_airpres =18   ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iUnits_swdown  =19   ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iUnits_potevap =20   ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iUnits_q       =21   ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iDeltim        =22   ! named variable for element of lCheck
+ integer(i4b),parameter                 :: ixlon          =23   ! named variable for element of lCheck
+ integer(i4b),parameter                 :: iylat          =24   ! named variable for element of lCheck
  ! get units strings (used to define variable multipliers)
  character(len=strLen)                  :: units_aprecip='undefined' ! unit string for precipitation
  character(len=strLen)                  :: units_airtemp='undefined' ! unit string for air temperature
@@ -138,7 +136,6 @@ contains
      ierr=20; return
     endif
    ! put character strings in their correct place
-   case('<forcefile>');     forcefile     = trim(cData);              lCheck(iForcefile)      = .true.
    case('<vname_iy>');      vname_iy      = trim(cData);              lCheck(iVname_iy)       = .true.
    case('<vname_im>');      vname_im      = trim(cData);              lCheck(iVname_im)       = .true.
    case('<vname_id>');      vname_id      = trim(cData);              lCheck(iVname_id)       = .true.
@@ -181,7 +178,6 @@ contains
  ! check that we got all desired variables
  if(any(lCheck .eqv. .false.))then
   ierr=20; message=trim(message)//'missing variable'
-  write(*,'(a,1x,a,1x,L1)')    '<forcefile>',     trim(forcefile),     lCheck(iForcefile)
   write(*,'(a,1x,a,1x,L1)')    '<vname_iy>',      trim(vname_iy),      lCheck(iVname_iy)
   write(*,'(a,1x,a,1x,L1)')    '<vname_im>',      trim(vname_im),      lCheck(iVname_im)
   write(*,'(a,1x,a,1x,L1)')    '<vname_id>',      trim(vname_id),      lCheck(iVname_id)

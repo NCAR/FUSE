@@ -189,7 +189,7 @@ integer(i4b)                           :: dimLen      ! dimension length
 
 ! read in NetCDF file defining the elevation bands
 err=0
-CFILE = TRIM(INPUT_PATH)//MBANDS_NC      ! control file info shared in MODULE directory
+CFILE = TRIM(INPUT_PATH)//ELEV_BANDS_NC      ! control file info shared in MODULE directory
 print *, 'Loading elevation bands from:',TRIM(CFILE)
 
 INQUIRE(FILE=CFILE,EXIST=LEXIST)  ! check that control file exists

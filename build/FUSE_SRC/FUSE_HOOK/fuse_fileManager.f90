@@ -19,11 +19,13 @@ CHARACTER(LEN=fusePathLen)  :: M_DECISIONS       ! definition of model decisions
 CHARACTER(LEN=fusePathLen)  :: CONSTRAINTS       ! definition of parameter constraints
 CHARACTER(LEN=fusePathLen)  :: MOD_NUMERIX       ! definition of numerical solution technique
 ! additional control files (not needed by the FUSE engines)
+CHARACTER(LEN=fusePathLen)  :: suffix_forcing    ! suffix for forcing file
+CHARACTER(LEN=fusePathLen)  :: suffix_elev_bands ! suffix for elevation band file
 CHARACTER(LEN=fusePathLen)  :: FORCINGINFO       ! info on forcing data files
 CHARACTER(LEN=fusePathLen)  :: MBANDS_INFO       ! info on basin band data files ! not needed anymore
 CHARACTER(LEN=fusePathLen)  :: MBANDS_NC         ! netcdf file defining the elevation bands
-CHARACTER(LEN=fusePathLen)  :: BATEA_PARAM       ! definition of BATEA parameters
-! define simulation and evaluation periods required in FUSE_FILEMANAGER_V1.2
+CHARACTER(LEN=fusePathLen)  :: BATEA_PARAM       ! definition of BATEA parameters ! remove this
+! define simulation and evaluation periods
 CHARACTER(len=20)           :: date_start_sim    ! date start simulation
 CHARACTER(len=20)           :: date_end_sim      ! date end simulation
 CHARACTER(len=20)           :: date_start_eval   ! date start evaluation period
@@ -58,7 +60,7 @@ character(*),intent(out)::message
 character(*),parameter::procnam="fuseSetDirsUndPhiles"
 character(*),parameter::pathDelim="/\",defpathSymb="*",blank=" "
 character(*),parameter::fuseMusterDirektorHeader="FUSE_MUSTERDIREKTOR_V1.0"
-character(*),parameter::fuseFileManagerHeader="FUSE_FILEMANAGER_V1.3"
+character(*),parameter::fuseFileManagerHeader="FUSE_FILEMANAGER_V1.4"
 ! locals
 logical(mlk)::haveFMG,haveMUS
 character(LEN=fusePathLen)::fuseMusterDirektor,fuseFileManager,defpath
@@ -96,6 +98,7 @@ if(err/=0)then
   err=100; return
 endif
 if(.not.haveFMG)then  ! grab it from the muster-direktor
+
 ! 2. Open muster-direktor and read it
   open(unt,file=fuseMusterDirektor,status="old",action="read",iostat=err)
   if(err/=0)then
@@ -121,6 +124,9 @@ read(unt,*)temp
 if(temp/=fuseFileManagerHeader)then
   message="f-"//procnam//"/unknownHeader&[file='"//trim(fuseFileManager)//"']&&
     &[header="//trim(temp)//"]"
+
+  message='This version of FUSE requires the file manager to follow the following format:  '//trim(fuseFileManagerHeader)//' not '//trim(temp)
+
   err=20; return
 endif
 read(unt,'(a)')temp
@@ -129,12 +135,12 @@ read(unt,*)SETNGS_PATH
 read(unt,*)INPUT_PATH
 read(unt,*)OUTPUT_PATH
 read(unt,'(a)')temp
-read(unt,*)FORCINGINFO
-read(unt,*)MBANDS_NC
+read(unt,*)suffix_forcing
+read(unt,*)suffix_elev_bands
+read(unt,*)FORCINGINFO      
 read(unt,*)M_DECISIONS
 read(unt,*)CONSTRAINTS
 read(unt,*)MOD_NUMERIX
-read(unt,*)BATEA_PARAM
 read(unt,'(a)')temp
 read(unt,*)date_start_sim
 read(unt,*)date_end_sim
