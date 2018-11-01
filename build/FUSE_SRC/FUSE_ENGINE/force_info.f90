@@ -36,7 +36,6 @@ contains
  USE multiforce,only:vname_ih,vname_imin,vname_dsec         ! names of time variables (time of day)
  USE multiforce,only:vname_dtime                            ! name of time variable (time since reference time)
  USE multiforce,only:deltim                                 ! model timestep (days)
- USE multiforce,only:xlon,ylat                              ! lon-lat coordinates (degrees)
  USE multiforce,only:istart,numtim_sim                      ! index for start of inference, and number steps in the reduced array
  USE multiforce,only:amult_ppt,amult_pet,amult_q            ! used to convert fluxes to mm/day
  USE multiforce,only:numtim_sub                             ! number of time steps of subperiod (will be kept in memory)
@@ -62,7 +61,7 @@ contains
  integer(i4b)                           :: iend_data            ! end index of data in string charlines(iLine)
  character(len=strLen)                  :: cName,cData          ! name and data from charlines(iLine)
  ! internal: named variables
- integer(i4b),parameter                 :: maxinfo=24           ! maximum number of informational elements
+ integer(i4b),parameter                 :: maxinfo=22          ! maximum number of informational elements
  logical(lgt),dimension(maxinfo)        :: lCheck               ! vector to check that we have the infomation we need
  integer(i4b),parameter                 :: iVname_iy      =1    ! named variable for element of lCheck
  integer(i4b),parameter                 :: iVname_im      =2    ! named variable for element of lCheck
@@ -86,8 +85,6 @@ contains
  integer(i4b),parameter                 :: iUnits_potevap =20   ! named variable for element of lCheck
  integer(i4b),parameter                 :: iUnits_q       =21   ! named variable for element of lCheck
  integer(i4b),parameter                 :: iDeltim        =22   ! named variable for element of lCheck
- integer(i4b),parameter                 :: ixlon          =23   ! named variable for element of lCheck
- integer(i4b),parameter                 :: iylat          =24   ! named variable for element of lCheck
  ! get units strings (used to define variable multipliers)
  character(len=strLen)                  :: units_aprecip='undefined' ! unit string for precipitation
  character(len=strLen)                  :: units_airtemp='undefined' ! unit string for air temperature
@@ -159,8 +156,6 @@ contains
    case('<units_q>');       units_q       = trim(cData);              lCheck(iUnits_q)        = .true.
    ! put real numbers and integers in their correct place
    case('<deltim>');     read(cData,*,iostat=ierr) deltim;            lCheck(iDeltim)         = .true.
-   case('<xlon>');       read(cData,*,iostat=ierr) xlon;              lCheck(ixlon)           = .true.
-   case('<ylat>');       read(cData,*,iostat=ierr) ylat;              lCheck(iylat)           = .true.
    ! check for an unexpected string
    case default
     ierr=20; message=trim(message)//'do not have a case for string ['//trim(cName)//']'; return
@@ -200,15 +195,9 @@ contains
   write(*,'(a,1x,a,1x,L1)')    '<units_potevap>', trim(units_potevap), lCheck(iUnits_potevap)
   write(*,'(a,1x,a,1x,L1)')    '<units_q>',       trim(units_q),       lCheck(iUnits_q)
   write(*,'(a,1x,f9.6,1x,L1)') '<deltim>',        deltim,              lCheck(iDeltim)
-  write(*,'(a,1x,f9.3,1x,L1)') '<xlon>',          xlon,                lCheck(ixlon)
-  write(*,'(a,1x,f9.3,1x,L1)') '<ylat>',          ylat,                lCheck(iylat)
   print*, lCheck, size(lcheck)
   return
  endif  ! if we missed a variable
-
- ! express the longitude in the interval [-180,180]
- if(xlon < -180._sp) xlon = xlon + 360._dp
- if(xlon >  180._sp) xlon = xlon - 360._dp
 
  ! get multipliers for each variable
  do ivar=1,3
