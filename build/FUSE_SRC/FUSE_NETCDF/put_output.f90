@@ -13,7 +13,8 @@ SUBROUTINE PUT_OUTPUT(iSpat1,iSpat2,ITIM,IMOD,IPAR)
   USE model_defn                                        ! model definition (includes filename)
   USE metaoutput                                        ! metadata for time-varying model output
   USE varextract_module                                 ! interface for the function to extract variables
-  USE multiforce,ONLY:timDat                            ! time data
+  USE fuse_fileManager,only: Q_ONLY                     ! only write streamflow to output file?
+  USE multiforce,ONLY: timDat                           ! time data
   USE multistate, only: ncid_out                        ! NetCDF output file ID
 
   IMPLICIT NONE
@@ -91,6 +92,8 @@ SUBROUTINE PUT_GOUTPUT_3D(istart_sim,istart_in,numtim,IPSET)
   USE model_defn                                        ! model definition (includes filename)
   USE metaoutput                                        ! metadata for time-varying model output
   USE varextract_module                                 ! interface for the function to extract variables
+  USE fuse_fileManager,only: Q_ONLY                     ! only write streamflow to output file?
+
   USE multiforce, ONLY: timDat,time_steps               ! time data
   USE multistate, only: ncid_out                        ! NetCDF output file ID
   USE multiforce, ONLY: nspat1,nspat2                   ! spatial dimensions

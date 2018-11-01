@@ -13,9 +13,9 @@ SUBROUTINE DEF_OUTPUT(nSpat1,nSpat2,NPSET,NTIM)
   USE nrtype                                            ! variable types, etc.
   USE model_defn                                        ! model definition (includes filename)
   USE metaoutput                                        ! metadata for all model variables
+  USE fuse_fileManager,only: Q_ONLY                     ! only write streamflow to output file?
   USE multiforce, only: latitude,longitude              ! dimension arrays
   USE multiforce, only: name_psets,time_steps           ! dimension arrays
-
   USE multiforce, only: latUnits,lonUnits               ! units string
   USE multiforce, only: timeUnits                       ! units string
   USE multistate, only: ncid_out                        ! NetCDF output file ID
@@ -89,6 +89,7 @@ SUBROUTINE DEF_OUTPUT(nSpat1,nSpat2,NPSET,NTIM)
   DO IVAR=1,NOUTVAR
 
     ! check if there is a need to write the variable - see also put_output
+    ! uncomment variables that should be written to output file
     IF (Q_ONLY) THEN
       WRITE_VAR=.FALSE.
       !IF (TRIM(VNAME(IVAR)).EQ.'ppt')      WRITE_VAR=.TRUE.

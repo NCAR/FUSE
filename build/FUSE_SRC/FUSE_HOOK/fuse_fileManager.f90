@@ -5,6 +5,7 @@
 ! Edited by Nans Addor to set simulation and evaluation periods, 11/2017
 MODULE fuse_filemanager
 use kinds_dmsl_kit_FUSE,only:mik,mlk
+use nrtype,only:LGT
 
 implicit none
 public
@@ -14,18 +15,21 @@ integer(mik),parameter::fusePathLen=256
 CHARACTER(LEN=fusePathLen)  :: SETNGS_PATH
 CHARACTER(LEN=fusePathLen)  :: INPUT_PATH
 CHARACTER(LEN=fusePathLen)  :: OUTPUT_PATH
-! define name of control files
-CHARACTER(LEN=64)           :: FMODEL_ID         ! string defining FUSE model
+! content of input directory
+CHARACTER(LEN=fusePathLen)  :: suffix_forcing    ! suffix for forcing file
+CHARACTER(LEN=fusePathLen)  :: suffix_elev_bands ! suffix for elevation band file
+! content of settings directory
 CHARACTER(LEN=fusePathLen)  :: M_DECISIONS       ! definition of model decisions
 CHARACTER(LEN=fusePathLen)  :: CONSTRAINTS       ! definition of parameter constraints
 CHARACTER(LEN=fusePathLen)  :: MOD_NUMERIX       ! definition of numerical solution technique
-! additional control files (not needed by the FUSE engines)
-CHARACTER(LEN=fusePathLen)  :: suffix_forcing    ! suffix for forcing file
-CHARACTER(LEN=fusePathLen)  :: suffix_elev_bands ! suffix for elevation band file
 CHARACTER(LEN=fusePathLen)  :: FORCINGINFO       ! info on forcing data files
 CHARACTER(LEN=fusePathLen)  :: MBANDS_INFO       ! info on basin band data files ! not needed anymore
 CHARACTER(LEN=fusePathLen)  :: MBANDS_NC         ! netcdf file defining the elevation bands
 CHARACTER(LEN=fusePathLen)  :: BATEA_PARAM       ! definition of BATEA parameters ! remove this
+! content of output directory
+CHARACTER(LEN=64)           :: FMODEL_ID         ! string defining FUSE model
+CHARACTER(LEN=64)           :: Q_ONLY_STR        ! TRUE = restrict attention to simulated runoff
+LOGICAL(LGT)                :: Q_ONLY            ! .TRUE. = restrict attention to simulated runoff
 ! define simulation and evaluation periods
 CHARACTER(len=20)           :: date_start_sim    ! date start simulation
 CHARACTER(len=20)           :: date_end_sim      ! date end simulation
@@ -131,7 +135,6 @@ if(temp/=fuseFileManagerHeader)then
   err=20; return
 endif
 read(unt,'(a)')temp
-read(unt,'(a)')temp
 read(unt,*)SETNGS_PATH
 read(unt,*)INPUT_PATH
 read(unt,*)OUTPUT_PATH
@@ -145,6 +148,7 @@ read(unt,*)MOD_NUMERIX
 read(unt,*)M_DECISIONS
 read(unt,'(a)')temp
 read(unt,*)FMODEL_ID
+read(unt,*)Q_ONLY_STR
 read(unt,'(a)')temp
 read(unt,*)date_start_sim
 read(unt,*)date_end_sim
@@ -152,6 +156,18 @@ read(unt,*)date_start_eval
 read(unt,*)date_end_eval
 read(unt,*)numtim_sub_str
 close(unt)
+
+! Convert Q_ONLY to logical
+if(Q_ONLY_STR=='TRUE')then
+  Q_ONLY = .TRUE.
+elseif(Q_ONLY_STR=='FALSE')then
+  Q_ONLY = .FALSE.
+else
+  message="Q_ONLY must be either TRUE or FALSE"
+  err=20; return
+endif
+
+PRINT*, 'Q_ONLY', Q_ONLY
 
 ! process paths a bit
 if(SETNGS_PATH(1:1)==defpathSymb)SETNGS_PATH=trim(defpath)//SETNGS_PATH(2:)

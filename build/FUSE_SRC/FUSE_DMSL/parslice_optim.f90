@@ -19,7 +19,7 @@ USE selectmodl_module                                     ! reads model control 
 USE getpar_str_module                                     ! extracts parameter metadata
 USE par_insert_module                                     ! inserts model parameters
 USE get_objfnc_module                                     ! wrapper to get objective function from NetCDF output files
-USE metaoutput, ONLY: Q_ONLY                              ! Q_ONLY=.TRUE. to restrict write to streamflow time series
+USE fuse_fileManager,only: Q_ONLY                         ! only write streamflow to output file?
 ! model numerix
 USE model_numerix                                         ! defines decisions on model numerix
 ! access to qnewton and model simulation modules
@@ -102,7 +102,7 @@ INTEGER(I4B)                           :: IWANT           ! index of desired par
 INTEGER(I4B),DIMENSION(1)              :: IMIN            ! location of minimum value
 INTEGER(I4B),PARAMETER                 :: NGRID=1001      ! number of elements in the slice
 ! ---------------------------------------------------------------------------------------
-! (1) READ COMMAND LINE ARGUMENTS 
+! (1) READ COMMAND LINE ARGUMENTS
 ! ---------------------------------------------------------------------------------------
 ! read command-line arguments
 CALL GETARG( 1,MBASIN_ID)  ! MOPEX basin ID
@@ -153,7 +153,7 @@ CASE DEFAULT
  STOP
 END SELECT
 SELECT CASE(TEMPORAL_ERROR_CONTROL); CASE(TS_FIXED,TS_ADAPT); CASE DEFAULT;
- STOP 'temporal error control (2nd command line argument) must equal 0 (fixed steps) or 1 (adaptive steps)' 
+ STOP 'temporal error control (2nd command line argument) must equal 0 (fixed steps) or 1 (adaptive steps)'
 END SELECT
 IF (NMULTI.LE.0) STOP 'number of re-starts (6th command line argument) must be > 0'
 IF (IBEGIN.LE.0) STOP 'starting seed in the Sobol sequence must be greater > 0'
@@ -196,11 +196,11 @@ OF_NAME = 'raw_rmse'; ALLOCATE(OF_VALS(NMULTI),XPAR(NUMPAR,NMULTI))
 DO ISEED=IBEGIN,(IBEGIN+NMULTI)-1
  ! get the seed as a character string
  WRITE(SOBOLSEED,'(i3.3)') ISEED
- ! define file prefix (add seeds) 
+ ! define file prefix (add seeds)
  FNAME_PREFIX = TRIM(OUTPUT_PATH)//'DMSL_'//TRIM(MBASIN_ID)//'__'//TRIM(SMODL%MNAME)//'__'//TRIM(SOBOLSEED)//'__'//&
                 TRIM(NSOLUTION)//'-'//TRIM(FADAPTIVE)//'__'//TRIM(NUMDIGITS)//'__'//&
                 TRIM(TRUNC_ABS)//'__'//TRIM(TRUNC_REL)
- ! define NetCDF files (filename shared in MODULE model_defn) 
+ ! define NetCDF files (filename shared in MODULE model_defn)
  FNAME_NETCDF = TRIM(FNAME_PREFIX)//'__qnewton.nc'
  ONEMOD=1                  ! one file per model (i.e., model dimension = 1)
 
@@ -260,12 +260,12 @@ PCOUNT=0                 ! counter for parameter sets in output file (shared in 
 FCOUNT=0                 ! counter for parameter sets evaluated (shared in MODULE multistats)
 OUTPUT_FLAG = .TRUE.    ! write model time series
 Q_ONLY      = .TRUE.     ! restrict output time series to simulated runoff
-! define file prefix (no seeds in the filename) 
+! define file prefix (no seeds in the filename)
 FNAME_PREFIX = TRIM(OUTPUT_PATH)//'DMSL_'//TRIM(MBASIN_ID)//'__'//TRIM(SMODL%MNAME)//'__'//&
                TRIM(NSOLUTION)//'-'//TRIM(FADAPTIVE)//'__'//TRIM(NUMDIGITS)//'__'//&
                TRIM(TRUNC_ABS)//'__'//TRIM(TRUNC_REL)//'__'//TRIM(PARAMNAME)
-! define NetCDF files (filename shared in MODULE model_defn) 
-FNAME_NETCDF = TRIM(FNAME_PREFIX)//'__parslice.nc' 
+! define NetCDF files (filename shared in MODULE model_defn)
+FNAME_NETCDF = TRIM(FNAME_PREFIX)//'__parslice.nc'
 CALL DEF_PARAMS(ONEMOD)  ! define model parameters (initial CREATE)
 IF (OUTPUT_FLAG) CALL DEF_OUTPUT(NTIM)    ! define model time series (REDEF)
 CALL DEF_SSTATS()        ! define summary statistics (REDEF)

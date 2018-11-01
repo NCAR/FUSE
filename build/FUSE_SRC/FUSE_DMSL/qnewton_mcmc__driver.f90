@@ -56,7 +56,7 @@ USE selectmodl_module                                     ! reads model control 
 USE getpar_str_module                                     ! extracts parameter metadata
 USE par_insert_module                                     ! inserts model parameters
 USE get_objfnc_module                                     ! wrapper to get objective function from NetCDF output files
-USE metaoutput, ONLY: Q_ONLY                              ! Q_ONLY=.TRUE. to restrict write to streamflow time series
+USE fuse_fileManager,only: Q_ONLY                         ! only write streamflow to output file?
 ! model numerix
 USE model_numerix                                         ! defines decisions on model numerix
 ! access to qnewton and model simulation modules
@@ -147,7 +147,7 @@ INTEGER(I4B)                           :: IWANT           ! used to skip paramet
 
 !MyProcID=GetCurrentProcessId()
 ! ---------------------------------------------------------------------------------------
-! (1) READ COMMAND LINE ARGUMENTS 
+! (1) READ COMMAND LINE ARGUMENTS
 ! ---------------------------------------------------------------------------------------
 ! read command-line arguments
 read_arg=.true.
@@ -209,7 +209,7 @@ CASE DEFAULT
  STOP
 END SELECT
 SELECT CASE(TEMPORAL_ERROR_CONTROL); CASE(TS_FIXED,TS_ADAPT); CASE DEFAULT;
- STOP 'temporal error control (2nd command line argument) must equal 0 (fixed steps) or 1 (adaptive steps)' 
+ STOP 'temporal error control (2nd command line argument) must equal 0 (fixed steps) or 1 (adaptive steps)'
 END SELECT
 IF (NMULTI.LE.0) STOP 'number of re-starts (6th command line argument) must be > 0'
 IF (IBEGIN.LE.0) STOP 'starting seed in the Sobol sequence must be greater > 0'
@@ -255,11 +255,11 @@ OF_NAME = 'raw_rmse'; ALLOCATE(OF_VALS(NMULTI),XPAR(NUMPAR,NMULTI))
 DO ISEED=IBEGIN,(IBEGIN+NMULTI)-1
  ! get the seed as a character string
  WRITE(SOBOLSEED,'(i3.3)') ISEED
- ! define file prefix (add seeds) 
+ ! define file prefix (add seeds)
  FNAME_PREFIX = TRIM(OUTPUT_PATH)//'DMSL_'//TRIM(MBASIN_ID)//'__'//TRIM(SMODL%MNAME)//'__'//TRIM(SOBOLSEED)//'__'//&
                 TRIM(NSOLUTION)//'-'//TRIM(FADAPTIVE)//'__'//TRIM(NUMDIGITS)//'__'//&
                 TRIM(TRUNC_ABS)//'__'//TRIM(TRUNC_REL)
- ! define NetCDF files (filename shared in MODULE model_defn) 
+ ! define NetCDF files (filename shared in MODULE model_defn)
  FNAME_NETCDF = TRIM(FNAME_PREFIX)//'__qnewton.nc'
  ONEMOD=1                  ! one file per model (i.e., model dimension = 1)
 
@@ -317,12 +317,12 @@ PCOUNT=0                 ! counter for parameter sets in output file (shared in 
 FCOUNT=0                 ! counter for parameter sets evaluated (shared in MODULE multistats)
 OUTPUT_FLAG = .TRUE.     ! write model time series
 Q_ONLY      = .TRUE.     ! restrict output time series to simulated runofff
-! define file prefix (no seeds in the filename) 
+! define file prefix (no seeds in the filename)
 FNAME_PREFIX = TRIM(OUTPUT_PATH)//'DMSL_'//TRIM(MBASIN_ID)//'__'//TRIM(SMODL%MNAME)//'__'//&
                TRIM(NSOLUTION)//'-'//TRIM(FADAPTIVE)//'__'//TRIM(NUMDIGITS)//'__'//&
                TRIM(TRUNC_ABS)//'__'//TRIM(TRUNC_REL)
-! define NetCDF files (filename shared in MODULE model_defn) 
-FNAME_NETCDF = TRIM(FNAME_PREFIX)//'__predict.nc' 
+! define NetCDF files (filename shared in MODULE model_defn)
+FNAME_NETCDF = TRIM(FNAME_PREFIX)//'__predict.nc'
 CALL DEF_PARAMS(ONEMOD)  ! define model parameters (initial CREATE)
 IF (OUTPUT_FLAG) CALL DEF_OUTPUT(NTIM)    ! define model time series (REDEF)
 CALL DEF_SSTATS()        ! define summary statistics (REDEF)
@@ -345,7 +345,7 @@ IF (ERR.NE.0) THEN; PRINT *, ERR, ' PROBLEM OPENING FILE '; STOP; ENDIF
  DO ! continuous do loop with exit clause
   ! read a parameter set
   READ(UIN_MCMC,*,IOSTAT=ERR) sample0, MSTATS%LOGP_SIMULN, JUMP_FLAG; IF (ERR.NE.0) EXIT
-  MSTATS%JUMP_TAKEN = 0._SP; IF (JUMP_FLAG) MSTATS%JUMP_TAKEN = 1._SP ! (convert flag to real) 
+  MSTATS%JUMP_TAKEN = 0._SP; IF (JUMP_FLAG) MSTATS%JUMP_TAKEN = 1._SP ! (convert flag to real)
   IF (IWANT.EQ.50) THEN
    ! run FUSE
    CALL FUSE_RMSE(sample0(1:),FOPT,OUTPUT_FLAG)

@@ -15,7 +15,6 @@ USE multibands,ONLY:N_BANDS
 USE model_defn,ONLY:SMODL
 USE model_defnames
 IMPLICIT NONE
-LOGICAL(LGT)                           :: Q_ONLY=.TRUE. ! .TRUE. = restrict attention to simulated runoff
 CHARACTER(LEN=11), DIMENSION(200)      :: VNAME       ! variable names
 CHARACTER(LEN=52), DIMENSION(200)      :: LNAME       ! variable long names (descrition of variable)
 CHARACTER(LEN=13), DIMENSION(200)      :: VUNIT       ! variable units
