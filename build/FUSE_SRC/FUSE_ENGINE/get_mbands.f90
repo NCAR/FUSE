@@ -25,7 +25,8 @@ SUBROUTINE GET_MBANDS(err,message)
 ! ---------------------------------------------------------------------------------------
 use nrtype,only:I4B,LGT,SP
 use utilities_dmsl_kit_FUSE,only:getSpareUnit,stripTrailString
-USE fuse_fileManager,only:INPUT_PATH,SETNGS_PATH,MBANDS_INFO     ! defines data directory
+USE fuse_fileManager,only:INPUT_PATH,SETNGS_PATH      ! defines data directory
+USE fuse_fileManager,only:MBANDS_NC      							! defines elevation bands
 USE multibands,only:N_BANDS,MBANDS,Z_FORCING          ! model band structures
 IMPLICIT NONE
 ! dummies
@@ -53,7 +54,7 @@ REAL(SP),DIMENSION(:),ALLOCATABLE      :: TMPDAT      ! one line of data
 ! ---------------------------------------------------------------------------------------
 ! read in control file
 err=0
-CFILE = TRIM(SETNGS_PATH)//MBANDS_INFO      ! control file info shared in MODULE directory
+CFILE = TRIM(SETNGS_PATH)//MBANDS_NC      ! control file info shared in MODULE directory
 print *, 'Elevation bands info file:',TRIM(CFILE)
 
 INQUIRE(FILE=CFILE,EXIST=LEXIST)  ! check that control file exists
@@ -146,7 +147,9 @@ SUBROUTINE GET_MBANDS_INFO(ELEV_BANDS_NC,err,message)
 ! ---------------------------------------------------------------------------------------
 use nrtype,only:I4B,LGT,SP
 use utilities_dmsl_kit_FUSE,only:getSpareUnit,stripTrailString
-USE fuse_fileManager,only:INPUT_PATH,SETNGS_PATH,MBANDS_INFO     ! defines data directory
+USE fuse_fileManager,only:INPUT_PATH,SETNGS_PATH      ! defines data directory
+USE fuse_fileManager,only:MBANDS_NC      							! defines elevation bands
+
 USE multibands,only:N_BANDS,MBANDS,MBANDS_INFO_3d,Z_FORCING,&
 										Z_FORCING_grid,elev_mask          ! model band structures
 USE multiforce,only:nspat1,nspat2                     ! dimension lengths
@@ -183,9 +186,10 @@ integer(i4b)                           :: iDimID      ! dimension ID
 integer(i4b)                           :: dimLen      ! dimension length
 
 ! ---------------------------------------------------------------------------------------
-! read in NetCDF file defining the elevation bands - no info file needed for the gridded version
+
+! read in NetCDF file defining the elevation bands
 err=0
-CFILE = TRIM(INPUT_PATH)//ELEV_BANDS_NC      ! control file info shared in MODULE directory
+CFILE = TRIM(INPUT_PATH)//MBANDS_NC      ! control file info shared in MODULE directory
 print *, 'Loading elevation bands from:',TRIM(CFILE)
 
 INQUIRE(FILE=CFILE,EXIST=LEXIST)  ! check that control file exists

@@ -20,8 +20,8 @@ CHARACTER(LEN=fusePathLen)  :: CONSTRAINTS       ! definition of parameter const
 CHARACTER(LEN=fusePathLen)  :: MOD_NUMERIX       ! definition of numerical solution technique
 ! additional control files (not needed by the FUSE engines)
 CHARACTER(LEN=fusePathLen)  :: FORCINGINFO       ! info on forcing data files
-CHARACTER(LEN=fusePathLen)  :: MBANDS_INFO       ! info on basin band data files
-CHARACTER(LEN=fusePathLen)  :: MBANDS_NC         ! info on basin band data files on a grid
+CHARACTER(LEN=fusePathLen)  :: MBANDS_INFO       ! info on basin band data files ! not needed anymore
+CHARACTER(LEN=fusePathLen)  :: MBANDS_NC         ! netcdf file defining the elevation bands
 CHARACTER(LEN=fusePathLen)  :: BATEA_PARAM       ! definition of BATEA parameters
 ! define simulation and evaluation periods required in FUSE_FILEMANAGER_V1.2
 CHARACTER(len=20)           :: date_start_sim    ! date start simulation
@@ -58,7 +58,7 @@ character(*),intent(out)::message
 character(*),parameter::procnam="fuseSetDirsUndPhiles"
 character(*),parameter::pathDelim="/\",defpathSymb="*",blank=" "
 character(*),parameter::fuseMusterDirektorHeader="FUSE_MUSTERDIREKTOR_V1.0"
-character(*),parameter::fuseFileManagerHeader="FUSE_FILEMANAGER_V1.2"
+character(*),parameter::fuseFileManagerHeader="FUSE_FILEMANAGER_V1.3"
 ! locals
 logical(mlk)::haveFMG,haveMUS
 character(LEN=fusePathLen)::fuseMusterDirektor,fuseFileManager,defpath
@@ -130,7 +130,7 @@ read(unt,*)INPUT_PATH
 read(unt,*)OUTPUT_PATH
 read(unt,'(a)')temp
 read(unt,*)FORCINGINFO
-read(unt,*)MBANDS_INFO
+read(unt,*)MBANDS_NC
 read(unt,*)M_DECISIONS
 read(unt,*)CONSTRAINTS
 read(unt,*)MOD_NUMERIX

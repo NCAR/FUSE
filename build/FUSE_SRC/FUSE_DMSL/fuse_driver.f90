@@ -198,11 +198,11 @@ if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
 ! define name of forcing info and elevation band file
 FORCINGINFO = TRIM(dom_id)//'_input_info.txt'
 MBANDS_INFO = TRIM(dom_id)//'_elev_bands_info.txt' ! probably not needed anymore
-ELEV_BANDS_NC = TRIM(dom_id)//'_elev_bands.nc'
+!ELEV_BANDS_NC = TRIM(dom_id)//'_elev_bands.nc'
 
 PRINT *, 'Variables defined based on domain name:'
 PRINT *, 'FORCINGINFO:', TRIM(FORCINGINFO)
-PRINT *, 'ELEV_BANDS_NC:', TRIM(ELEV_BANDS_NC)
+!PRINT *, 'ELEV_BANDS_NC:', TRIM(ELEV_BANDS_NC) now defined in file manager
 
 ! defines method/parameters used for numerical solution - what is this line doing here?
 CALL GETNUMERIX(ERR,MESSAGE)
