@@ -15,6 +15,7 @@ CHARACTER(LEN=fusePathLen)  :: SETNGS_PATH
 CHARACTER(LEN=fusePathLen)  :: INPUT_PATH
 CHARACTER(LEN=fusePathLen)  :: OUTPUT_PATH
 ! define name of control files
+CHARACTER(LEN=64)           :: FMODEL_ID         ! string defining FUSE model
 CHARACTER(LEN=fusePathLen)  :: M_DECISIONS       ! definition of model decisions
 CHARACTER(LEN=fusePathLen)  :: CONSTRAINTS       ! definition of parameter constraints
 CHARACTER(LEN=fusePathLen)  :: MOD_NUMERIX       ! definition of numerical solution technique
@@ -137,10 +138,13 @@ read(unt,*)OUTPUT_PATH
 read(unt,'(a)')temp
 read(unt,*)suffix_forcing
 read(unt,*)suffix_elev_bands
-read(unt,*)FORCINGINFO      
-read(unt,*)M_DECISIONS
+read(unt,'(a)')temp
+read(unt,*)FORCINGINFO
 read(unt,*)CONSTRAINTS
 read(unt,*)MOD_NUMERIX
+read(unt,*)M_DECISIONS
+read(unt,'(a)')temp
+read(unt,*)FMODEL_ID
 read(unt,'(a)')temp
 read(unt,*)date_start_sim
 read(unt,*)date_end_sim

@@ -15,6 +15,7 @@ USE netcdf                                                ! NetCDF library
 USE fuse_fileManager,only:fuse_SetDirsUndPhiles,&         ! sets directories and filenames
           SETNGS_PATH,MBANDS_INFO,MBANDS_NC, &
           OUTPUT_PATH,FORCINGINFO,INPUT_PATH,&
+          FMODEL_ID,&
           suffix_forcing,suffix_elev_bands,&
           date_start_sim,date_end_sim,&
           date_start_eval,date_end_eval,&
@@ -76,7 +77,6 @@ IMPLICIT NONE
 ! ---------------------------------------------------------------------------------------
 CHARACTER(LEN=64)                      :: DatString          ! string defining forcing data
 CHARACTER(LEN=64)                      :: dom_id             ! ID of the domain
-CHARACTER(LEN=6)                       :: FMODEL_ID='      ' ! integer defining FUSE model
 CHARACTER(LEN=10)                      :: fuse_mode='      ' ! fuse execution mode (run_def, run_best, run_pre, calib_sce)
 CHARACTER(LEN=64)                      :: file_para_list     ! txt file containing list of parameter sets
 
@@ -160,29 +160,23 @@ REAL(MSP)                              :: FUNCTN  ! function name for the model 
 ! read command-line arguments
 CALL GETARG(1,DatString)  ! string defining forcinginfo file
 CALL GETARG(2,dom_id)     ! ID of the domain
-CALL GETARG(3,FMODEL_ID)  ! ID of FUSE model
-CALL GETARG(4,fuse_mode)  ! fuse execution mode (run_def, run_best, calib_sce)
-IF(TRIM(fuse_mode).EQ.'run_pre')  CALL GETARG(5,file_para_list)  ! fuse execution mode txt file containing list of parameter sets
+CALL GETARG(3,fuse_mode)  ! fuse execution mode (run_def, run_best, calib_sce)
+IF(TRIM(fuse_mode).EQ.'run_pre')  CALL GETARG(4,file_para_list)  ! fuse execution mode txt file containing list of parameter sets
 
 ! check command-line arguments
-IF (LEN_TRIM(DatString).EQ.0) STOP '1st command-line argument is missing (DatString)'
+IF (LEN_TRIM(DatString).EQ.0) STOP '1st command-line argument is missing (fileManager)'
 IF (LEN_TRIM(dom_id).EQ.0) STOP '2nd command-line argument is missing (dom_id)'
-IF (LEN_TRIM(FMODEL_ID).EQ.0) STOP '3rd command-line argument is missing (fuse_mode)'
-IF (LEN_TRIM(fuse_mode).EQ.0) STOP '4th command-line argument is missing (fuse_mode)'
+IF (LEN_TRIM(fuse_mode).EQ.0) STOP '3rd command-line argument is missing (fuse_mode)'
 IF(TRIM(fuse_mode).EQ.'run_pre')THEN
-  IF(LEN_TRIM(file_para_list).EQ.0)  STOP '5th command-line argument is missing (file_para_list) and is required in mode run_pre'
+  IF(LEN_TRIM(file_para_list).EQ.0)  STOP '4th command-line argument is missing (file_para_list) and is required in mode run_pre'
 ENDIF
-
-! convert command-line arguments to integer flags and real numbers
-READ(FMODEL_ID,*) FUSE_ID                 ! integer defining FUSE model
 
 ! print command-line arguments
 print*, '1st command-line argument (DatString) = ', trim(DatString)
 print*, '2nd command-line argument (dom_id) = ', trim(dom_id)
-print*, '3rd command-line argument (FMODEL_ID) = ', FMODEL_ID
-print*, '4th command-line argument (fuse_mode) = ', fuse_mode
+print*, '3rd command-line argument (fuse_mode) = ', fuse_mode
 IF(TRIM(fuse_mode).EQ.'run_pre')THEN
-  print*, '5th command-line argument (file_para_list) = ', file_para_list
+  print*, '4th command-line argument (file_para_list) = ', file_para_list
 ENDIF
 
 ! ---------------------------------------------------------------------------------------
