@@ -5,7 +5,6 @@
 ! Edited by Nans Addor to set simulation and evaluation periods, 11/2017
 MODULE fuse_filemanager
 use kinds_dmsl_kit_FUSE,only:mik,mlk
-use nrtype,only:LGT
 
 implicit none
 public
@@ -29,7 +28,7 @@ CHARACTER(LEN=fusePathLen)  :: BATEA_PARAM       ! definition of BATEA parameter
 ! content of output directory
 CHARACTER(LEN=64)           :: FMODEL_ID         ! string defining FUSE model
 CHARACTER(LEN=64)           :: Q_ONLY_STR        ! TRUE = restrict attention to simulated runoff
-LOGICAL(LGT)                :: Q_ONLY            ! .TRUE. = restrict attention to simulated runoff
+LOGICAL                     :: Q_ONLY            ! .TRUE. = restrict attention to simulated runoff
 ! define simulation and evaluation periods
 CHARACTER(len=20)           :: date_start_sim    ! date start simulation
 CHARACTER(len=20)           :: date_end_sim      ! date end simulation

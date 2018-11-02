@@ -31,18 +31,18 @@ ENGINE_DIR = $(F_KORE_DIR)FUSE_ENGINE
 SCE_DIR    = $(F_KORE_DIR)FUSE_SCE
 TIME_DIR   = $(F_KORE_DIR)FUSE_TIME
 
-# Numerical Recipes utilities
-FUSE_NRUTIL= \
-	nrtype.f90 \
-	nr.f90 nrutil.f90
-NRUTIL = $(patsubst %, $(NUMREC_DIR)/%, $(FUSE_NRUTIL))
-
 # Utility modules
 FUSE_UTILMS= \
 	kinds_dmsl_kit_FUSE.f90 \
 	utilities_dmsl_kit_FUSE.f90 \
 	fuse_fileManager.f90
 UTILMS = $(patsubst %, $(HOOKUP_DIR)/%, $(FUSE_UTILMS))
+
+# Numerical Recipes utilities
+FUSE_NRUTIL= \
+	nrtype.f90 \
+	nr.f90 nrutil.f90
+NRUTIL = $(patsubst %, $(NUMREC_DIR)/%, $(FUSE_NRUTIL))
 
 # Data modules
 FUSE_DATAMS=    \
@@ -182,7 +182,7 @@ FUSE_SCE = \
 SCE = $(patsubst %, $(SCE_DIR)/%, $(FUSE_SCE))
 
 # ... and stitch it all together...
-FUSE_ALL = $(NRUTIL) $(UTILMS) $(DATAMS) $(TIMUTILS) $(INFOMS) \
+FUSE_ALL = $(UTILMS) $(NRUTIL) $(DATAMS) $(TIMUTILS) $(INFOMS) \
 	$(NR_SUB) $(MODGUT) $(SOLVER) $(PRELIM) $(MODRUN) \
 	$(NETCDF) $(SCE)
 

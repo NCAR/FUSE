@@ -206,6 +206,9 @@ contains
   if(ivar==3) call get_multiplier(units_q,       amult_q,   ierr, cmessage)
   if(ierr/=0)then; message=trim(message)//trim(cmessage); return; endif
  end do
+
+ PRINT *, 'Done reading forcing info'
+
  end subroutine force_info
 
  ! ***** new subroutine: get multiplier for given flux variable (L/T)
