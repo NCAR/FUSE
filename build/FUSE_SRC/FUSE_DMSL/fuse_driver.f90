@@ -39,6 +39,7 @@ USE multiforce, only: numtim_sub, itim_sub                ! length of subperiod 
 USE multiforce, only: sim_beg,sim_end                     ! timestep indices
 USE multiforce, only: eval_beg,eval_end                   ! timestep indices
 USE multiforce, only: NUMPSET,name_psets                  ! number of parameter set and their names
+USE multiforce, only: nForce, nInput                      ! number of parameter set and their names
 
 USE multiforce, only: ncid_forc                           ! NetCDF forcing file ID
 USE multiforce, only: ncid_var                            ! NetCDF forcing variable ID
@@ -76,7 +77,7 @@ IMPLICIT NONE
 ! GET COMMAND-LINE ARGUMENTS...
 ! ---------------------------------------------------------------------------------------
 CHARACTER(LEN=64)                      :: DatString          ! string defining forcing data
-CHARACTER(LEN=64)                      :: dom_id             ! ID of the domain
+CHARACTER(LEN=256)                      :: dom_id             ! ID of the domain
 CHARACTER(LEN=10)                      :: fuse_mode='      ' ! fuse execution mode (run_def, run_best, run_pre, calib_sce)
 CHARACTER(LEN=64)                      :: file_para_list     ! txt file containing list of parameter sets
 
@@ -223,6 +224,25 @@ PRINT *, 'NCID_FORC is', ncid_forc
 call read_ginfo(ncid_forc,err,message)
 if(err/=0)then; write(*,*) trim(message); stop; endif
 
+! define the spatial flag (.true. is distributed)
+PRINT *, ' '
+if(nSpat1.GT.1.OR.nSpat2.GT.1) THEN
+  PRINT *, '### FUSE set to run in grid mode'
+  GRID_FLAG=.TRUE.
+  nInput=3   ! number of variables to be retrieved from input file (P, T, PET)
+
+ELSE
+
+  PRINT *, '### FUSE set to run in catchment mode'
+  GRID_FLAG=.FALSE.
+  nInput=4   ! number of variables to be retrieved from input file (P, T, PET, Q)
+
+ENDIF
+
+print*, 'spatial dimensions = ', nSpat1, nSpat2
+print*, 'NA_VALUE = ', NA_VALUE
+print*, 'GRID_FLAG = ', GRID_FLAG
+
 ! convert start and end date of the NetCDF input file to julian date
 call date_extractor(trim(timeUnits),iy,im,id,ih) ! break down reference date of NetCDF file
 call juldayss(iy,im,id,ih,            &          ! convert it to julian date
@@ -316,22 +336,6 @@ if(err/=0)then; write(*,*) 'unable to allocate space for elevation bands'; stop;
 ! get variable ID from the NetCDF file
 call get_varID(ncid_forc,err,message)
 if(err/=0)then; write(*,*) 'unable to get NetCDF variables ID'; stop; endif
-
-! define the spatial flag (.true. is distributed)
-if(nSpat1.GT.1) THEN
-
-  GRID_FLAG=.TRUE.
-
-ELSE
-
-  GRID_FLAG=.FALSE.
-
-ENDIF
-
-print*, 'spatial dimensions = ', nSpat1, nSpat2
-print*, 'netCDF ID for forcing file', ncid_forc
-print*, 'NA_VALUE = ', NA_VALUE
-print*, 'GRID_FLAG = ', GRID_FLAG
 
 ! Define model attributes (valid for all models)
 CALL UNIQUEMODL(NMOD)           ! get nmod unique models

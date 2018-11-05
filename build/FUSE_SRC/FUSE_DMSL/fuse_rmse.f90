@@ -338,9 +338,13 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
       WRITE(*,*) "TIME ELAPSED = ", t2-t1
 
       ! calculate mean summary statistics
-      CALL MEAN_STATS()
-      RMSE = MSTATS%RAW_RMSE
-      PRINT *, 'RMSE = ', RMSE
+      IF(.NOT.distributed)THEN
+
+        CALL MEAN_STATS()
+        RMSE = MSTATS%RAW_RMSE
+        PRINT *, 'RMSE = ', RMSE
+
+      ENDIF
 
       PRINT *, 'Writing parameter values...'
       CALL PUT_PARAMS(PCOUNT)

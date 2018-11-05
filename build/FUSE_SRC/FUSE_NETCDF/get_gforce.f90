@@ -144,7 +144,7 @@ contains
   ! -----------------
   ! MODULE multiforce -- populate structure ncid_var%(*)
   ! ---------------------------------------------------------------------------------------
-  USE multiforce, only: nForce                           ! number of forcing variables
+  USE multiforce, only: nForce, nInput                   ! number of forcing variables
   USE multiforce, only: ncid_var                         ! NetCDF forcing variable ID
 
   USE multiforce,only:forcefile                          ! name of forcing file
@@ -192,8 +192,7 @@ contains
   cVec(ilook_airpres)%vname = trim(vname_airpres)  ! variable name: surface pressure
   cVec(ilook_swdown)%vname  = trim(vname_swdown)   ! variable name: downward shortwave radiation
 
-  !do ivar=1,nForce
-  do ivar=1,4
+  do ivar=1,nInput
 
     ! get the variable ID
     ierr = nf90_inq_varid(ncid, trim(cVec(iVar)%vname), ncid_var(ivar))
@@ -343,7 +342,7 @@ contains
  USE multiforce,only:amult_ppt,amult_pet                ! multipliers o convert to mm/day
  USE multiforce,only:gForce_3d                          ! gridded forcing data
  USE multiforce,only:ancilF_3d                          ! ancillary forcing data
- USE multiforce,only:nForce                             ! number of forcing variables
+ USE multiforce,only:nForce, nInput                     ! number of forcing variables
  USE multiforce,only:aValid                             ! time series of lumped forcing/response data
 
  IMPLICIT NONE
@@ -387,9 +386,7 @@ contains
  cVec(ilook_swdown)%vname  = trim(vname_swdown)   ! variable name: downward shortwave radiation
 
  ! get forcing grids
- ! do ivar=1,nForce
-
- do ivar=1,4
+ do ivar=1,nInput
 
   ! get the data
   ierr = nf90_get_var(ncid_forc, ncid_var(ivar), gTemp, start=(/1,1,itim_start/), count=(/nSpat1,nSpat2,numtim/)); CALL HANDLE_ERR(IERR)

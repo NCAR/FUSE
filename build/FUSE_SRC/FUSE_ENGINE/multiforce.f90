@@ -103,7 +103,8 @@ MODULE multiforce
   CHARACTER(len=StrLen)                 :: vname_dtime='undefined'   ! name of variable for time
 
   ! number of forcing variables
-  INTEGER(i4b),PARAMETER                :: nForce=7                 ! see lines below
+  INTEGER(i4b), PARAMETER               :: nForce=7                  ! see lines below
+  INTEGER(i4b)                          :: nInput=3                  ! number of variable to retrieve from input file
 
   ! forcing variable names
   CHARACTER(len=StrLen)                 :: vname_aprecip='undefined' ! variable name: precipitation
