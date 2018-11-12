@@ -394,13 +394,13 @@ contains
 
   ! save the data in the structure -- and convert fluxes to mm/day
   if(trim(cVec(iVar)%vname) == trim(vname_aprecip) )then
-    if( ANY(gTemp(:,:,:).lt.0.0)) then; PRINT *, 'Negative precipitation in input file'; stop; endif
+
     gForce_3d(:,:,1:numtim)%ppt = gTemp(:,:,:)*amult_ppt; lCheck(ilook_aprecip) = .true.
+
   endif
 
   if(trim(cVec(iVar)%vname) == trim(vname_potevap) )then
-    if( ANY(gTemp(:,:,:).lt.0.0)) then; PRINT *, 'Negative PET in input file'; stop; endif
-    gForce_3d(:,:,1:numtim)%pet = gTemp(:,:,:)*amult_pet; lCheck(ilook_potevap) = .true.
+      gForce_3d(:,:,1:numtim)%pet = gTemp(:,:,:)*amult_pet; lCheck(ilook_potevap) = .true.
   endif
 
   if(trim(cVec(iVar)%vname) == trim(vname_airtemp) )then
@@ -418,6 +418,14 @@ contains
   !if( trim(cVec(iVar)%vname) == trim(vname_swdown)  )then; ancilF(:,:)%swdown  = gTemp(:,:,1);       lCheck(ilook_swdown)  = .true.; endif
 
  end do  ! (loop thru forcing variables)
+
+ ! make a few safety tests
+ !if( ANY(MFORCE%PPT.lt.0.0)) then; PRINT *, 'Negative precipitation in input file'; stop; endif
+ !if( ANY(MFORCE%PPT.gt.1000.0)) then; PRINT *, 'Precipitation greater than 1000 in input file'; stop; endif
+ !if( ANY(MFORCE%PET.lt.0.0)) then; PRINT *, 'Negative PET in input file'; stop; endif
+ !if( ANY(MFORCE%PET.gt.1000.0)) then; PRINT *, 'PET greater than 1000 in input file'; stop; endif
+ !if( ANY(MFORCE%TEMP.lt.-100.0)) then; PRINT *, 'Temperature lower than -100 in input file'; stop; endif
+ !if( ANY(MFORCE%TEMP.gt.100.0)) then; PRINT *, 'Temperature greater than 100 in input file'; stop; endif
 
  ! deallocate space for gTemp
  deallocate(gTemp, stat=ierr)

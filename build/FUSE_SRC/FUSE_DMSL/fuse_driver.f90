@@ -199,9 +199,6 @@ PRINT *, 'Variables defined based on domain name:'
 PRINT *, 'forcefile:', TRIM(forcefile)
 PRINT *, 'ELEV_BANDS_NC:', TRIM(ELEV_BANDS_NC)
 
-!FORCINGINFO = TRIM(dom_id)//'_input_info.txt'
-!MBANDS_INFO = TRIM(dom_id)//'_elev_bands_info.txt' ! probably not needed anymore
-
 ! defines method/parameters used for numerical solution - what is this line doing here?
 CALL GETNUMERIX(ERR,MESSAGE)
 
@@ -209,7 +206,7 @@ CALL GETNUMERIX(ERR,MESSAGE)
 ! GET MODEL SETUP -- MODEL DEFINITION, AND PARAMETER AND VARIABLE INFO FOR ALL MODELS
 ! ---------------------------------------------------------------------------------------
 
-! get forcing info from the txt file, including NA_VALUE
+! get forcing info from the txt file, ?? including NA_VALUE ??
 call force_info(fuse_mode,err,message)
 if(err/=0)then; write(*,*) trim(message); stop; endif
 

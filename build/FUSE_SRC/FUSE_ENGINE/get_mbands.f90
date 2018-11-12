@@ -199,7 +199,6 @@ ENDIF
 !open netcdf file
 err = nf90_open(CFILE, nf90_nowrite, NCID_EB)
 if (err.ne.0) write(*,*) trim(message); if (err.gt.0) stop
-PRINT *, 'NCID_EB is', NCID_EB
 
 ! get the dimension IDs for elevation_band
 ierr = nf90_inq_dimid(NCID_EB, 'elevation_band', dimid_eb)
@@ -247,20 +246,18 @@ DO iSpat2=1,nSpat2
 	 MBANDS_INFO_3d(iSpat1,iSpat2,:)%Z_MID = me_TEMP(iSpat1,iSpat2,:)
 	 MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF    = af_TEMP(iSpat1,iSpat2,:)
 	 Z_FORCING_grid(iSpat1,iSpat2)    = sum(me_TEMP(iSpat1,iSpat2,:)*af_TEMP(iSpat1,iSpat2,:)) ! estimate mean elevation of forcing using weighted mean of EB elevation
-	 elev_mask(iSpat1,iSpat2)=me_TEMP(iSpat1,iSpat2,1)
+	 elev_mask(iSpat1,iSpat2)=ISNAN(me_TEMP(iSpat1,iSpat2,1)) ! if mean elevation first band is NaN, mask this grid cell
 
-	 !PRINT *, 'Z_FORCING_grid =', Z_FORCING_grid(iSpat1,iSpat2)
-	 !PRINT *, 'MBANDS_INFO_3d - ELEV =', MBANDS_INFO_3d(iSpat1,iSpat2,:)%Z_MID
-	 !PRINT *, 'MBANDS_INFO_3d - FRAC =', MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF
+	 if(.NOT.elev_mask(iSpat1,iSpat2)) THEN ! only check area fraction sum to 1 is not NaN
 
-	 if (abs(sum(MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF)-1).GT.1E-6) then ! check that area fraction sum to 1
+		 if (abs(sum(MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF)-1).GT.1E-6) then ! check that area fraction sum to 1
 
- 	  print *, 'DIF EB = ', abs(sum(MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF)-1)
-	 	print *, "f-GET_MBANDS/area fraction of elevation bands do not sum to 1" ! TODO: use message instead?
-		stop
+	 	  print *, 'DIF EB = ', abs(sum(MBANDS_INFO_3d(iSpat1,iSpat2,:)%AF)-1)
+		 	print *, "Area fraction of elevation bands do not sum to 1" ! TODO: use message instead?
+			stop
 
+		 end if
 	 end if
-
 	END DO
 END DO
 

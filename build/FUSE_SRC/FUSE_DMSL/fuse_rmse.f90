@@ -198,7 +198,8 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
             MFORCE = gForce_3d(iSpat1,iSpat2,itim_sub)      ! assign model forcing data
 
             ! only run FUSE for grid points in domain and for which forcing available
-            IF(abs(NA_VALUE-elev_mask(iSpat1,iSpat2))>0.1.AND.abs(NA_VALUE-MFORCE%temp)>0.1)THEN
+            !IF(abs(NA_VALUE-elev_mask(iSpat1,iSpat2))>0.1.AND.abs(NA_VALUE-MFORCE%temp)>0.1)THEN
+            IF(.NOT.elev_mask(iSpat1,iSpat2))THEN
 
                ! extract model states
                MSTATE = gState_3d(iSpat1,iSpat2,itim_sub)      ! refresh model states
