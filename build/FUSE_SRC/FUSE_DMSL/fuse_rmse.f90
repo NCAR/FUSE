@@ -161,8 +161,6 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
     itim_sim = 1
 
     ! loop through time
-    PRINT *, 'Running FUSE...'
-
     DO ITIM_IN=sim_beg,sim_end
 
       ! if start of subperiod: load forcing
@@ -174,7 +172,7 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
         PRINT *, 'New subperiod: loading forcing for ',numtim_sub_cur,' time steps'
         CALL get_gforce_3d(itim_in,numtim_sub_cur,ncid_forc,err,message)
         IF(err/=0)THEN; WRITE(*,*) 'Error while extracting 3d forcing'; STOP; ENDIF
-        PRINT *, 'Forcing loaded'
+        PRINT *, 'Forcing loaded. Running FUSE...'
 
       ENDIF
 
