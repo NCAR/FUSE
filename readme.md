@@ -61,30 +61,25 @@ Note that the dimension of the NetCDF files will determine if FUSE is run at the
 
 Run FUSE unsing default parameter values at the catchment scale:
 ```
-./fuse.exe fm_902_us.txt us_09066300 902 run_def
+./fuse.exe fm_catch.txt us_09066300 run_def
 ```
 
 then calibrate it:
 
 ```
-./fuse.exe fm_902_us.txt us_09066300 902 calib_sce
+./fuse.exe fm_catch_sce.txt us_09066300 calib_sce
 ```
 
 then run it with the best SCE parameter set:
 
 ```
-./fuse.exe fm_902_us.txt us_09066300 902 run_best
+./fuse.exe fm_catch_sce.txt us_09066300 run_best
 ```
 
 where
-`$1` is the muster file,
+`$1` is the file manager,
 `$2` is the ID of the basin,
-`$3` is the ID of the FUSE model,
-`$4` is the FUSE mode.
-
-Note that:
-* the string `$2`_ `$3` will be included in name of most of the input and output files,
-* `$4` will define the name of `M_DECISIONS`.
+`$3` is the FUSE mode.
 
 ## F. Content of the output directory
 Running FUSE in its different modes will create the following files in the `output` directory (provided for the catchment case study for comparison purposes):
