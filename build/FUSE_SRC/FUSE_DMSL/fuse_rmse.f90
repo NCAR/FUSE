@@ -1,14 +1,14 @@
 MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
   IMPLICIT NONE
   CONTAINS
-  SUBROUTINE FUSE_RMSE(XPAR,DISTRIBUTED,NCID_FORC,RMSE,OUTPUT_FLAG,IPSET,MPARAM_FLAG)
+  SUBROUTINE FUSE_RMSE(XPAR,GRID_FLAG,NCID_FORC,RMSE,OUTPUT_FLAG,IPSET,MPARAM_FLAG)
 
     ! ---------------------------------------------------------------------------------------
     ! Creator:
     ! --------
     ! Martyn Clark, 2009
     ! Modified by Brian Henn to include snow model, 6/2013
-    ! Modified by Nans Addor to enable distributed modeling, 9/2016
+    ! Modified by Nans Addor to enable grid-based modeling, 9/2016
     ! ---------------------------------------------------------------------------------------
     ! Purpose:
     ! --------
@@ -64,7 +64,7 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
 
     ! input
     REAL(SP),DIMENSION(:),INTENT(IN)       :: XPAR           ! model parameter set
-    LOGICAL(LGT), INTENT(IN)               :: DISTRIBUTED    ! .TRUE. if doing distributed simulations
+    LOGICAL(LGT), INTENT(IN)               :: GRID_FLAG      ! .TRUE. if running FUSE on a grid
     INTEGER(I4B), INTENT(IN)               :: NCID_FORC      ! NetCDF ID for the forcing file
     LOGICAL(LGT), INTENT(IN)               :: OUTPUT_FLAG    ! .TRUE. if desire time series output
     INTEGER(I4B), INTENT(IN)               :: IPSET          ! index parameter set
@@ -262,7 +262,7 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
               END IF
 
               ! save forcing data
-              IF(distributed)THEN
+              IF(GRID_FLAG)THEN
                  aForce(itim_sub)%ppt = SUM(gForce_3d(:,:,itim_sub)%ppt)/REAL(SIZE(gForce_3d(:,:,itim_sub)), KIND(sp))
                  aForce(itim_sub)%pet = SUM(gForce_3d(:,:,itim_sub)%pet)/REAL(SIZE(gForce_3d(:,:,itim_sub)), KIND(sp))
               ENDIF
@@ -337,8 +337,9 @@ MODULE FUSE_RMSE_MODULE  ! have as a module because of dynamic arrays
       WRITE(*,*) "TIME ELAPSED = ", t2-t1
 
       ! calculate mean summary statistics
-      IF(.NOT.distributed)THEN
+      IF(.NOT.GRID_FLAG)THEN
 
+        PRINT *, 'Calculating performance metrics...'
         CALL MEAN_STATS()
         RMSE = MSTATS%RAW_RMSE
         PRINT *, 'RMSE = ', RMSE
