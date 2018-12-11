@@ -19,7 +19,8 @@ USE fuse_fileManager,only:fuse_SetDirsUndPhiles,&         ! sets directories and
           suffix_forcing,suffix_elev_bands,&
           date_start_sim,date_end_sim,&
           date_start_eval,date_end_eval,&
-          numtim_sub_str
+          numtim_sub_str,&
+          KSTOP_str, MAXN_str, PCENTO_str
 
 ! data modules
 USE model_defn,nstateFUSE=>nstate                         ! model definition structures
@@ -409,10 +410,17 @@ ELSE IF(fuse_mode == 'calib_sce')THEN ! calibrate FUSE using SCE
   FNAME_NETCDF_PARA = TRIM(OUTPUT_PATH)//TRIM(dom_id)//'_'//TRIM(FMODEL_ID)//'_para_sce.nc'
 
   ! assign algorithmic control parameters for SCE
+  ! convert characters to interger/MSP
+  READ (MAXN_STR,*) MAXN		 ! maximum number of trials before optimization is terminated
+  READ (KSTOP_STR,*) KSTOP   ! number of shuffling loops the value must change by PCENTO (MAX=9)
+  READ (PCENTO_STR,*) PCENTO    ! the percentage
+
+  PRINT *, 'SCE parameters read from file manager:'
+  PRINT *, 'Maximum number of trials before SCE optimization is stopped (MAXN) = ', MAXN_STR
+  PRINT *, 'Number of shuffling loops the value must change by PCENTO (KSTOP) = ', KSTOP_STR
+  PRINT *, 'PCENTO = ', PCENTO_STR
+
   NOPT   =  NUMPAR         ! number of parameters to be optimized (NUMPAR in module multiparam)
-  MAXN   =     20000 			 ! maximum number of trials before optimization is terminated
-  KSTOP  =      3          ! number of shuffling loops the value must change by PCENTO (MAX=9)
-  PCENTO =      0.001      ! the percentage
   NGS    =     10          ! number of complexes in the initial population
   NPG    =  2*NOPT + 1     ! number of points in each complex
   NPS    =    NOPT + 1     ! number of points in a sub-complex
@@ -423,8 +431,6 @@ ELSE IF(fuse_mode == 'calib_sce')THEN ! calibrate FUSE using SCE
 
   NUMPSET=1.2*MAXN         ! will be used to define the parameter set dimension of the NetCDF files
                            ! using 1.2MAXN since the final number of parameter sets produced by SCE is unknown
-
-  PRINT *, 'Maximum number of trials before SCE optimization is terminated: ', MAXN
 
 ELSE IF(fuse_mode == 'run_best')THEN  ! run FUSE with best (highest RMSE) parameter set from a previous SCE calibration
 
@@ -508,7 +514,7 @@ ELSE IF(fuse_mode == 'calib_sce')THEN ! calibrate FUSE using SCE
   URAND_MSP=URAND
 
   ! open up ASCII output file
-  print *, 'Creating SCE output file:', FNAME_ASCII
+  print *, 'Creating SCE output file:', trim(FNAME_ASCII)
   ISCE = 96; OPEN(ISCE,FILE=TRIM(FNAME_ASCII))
 
   ! optimize (returns A and AF)

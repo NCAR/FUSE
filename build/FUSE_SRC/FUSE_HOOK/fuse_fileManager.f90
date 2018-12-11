@@ -35,6 +35,11 @@ CHARACTER(len=20)           :: date_end_sim      ! date end simulation
 CHARACTER(len=20)           :: date_start_eval   ! date start evaluation period
 CHARACTER(len=20)           :: date_end_eval     ! date end evaluation period
 CHARACTER(len=20)           :: numtim_sub_str    ! number of time steps of subperiod (will be kept in memory)
+! SCE parameters
+CHARACTER(len=20)           :: KSTOP_str   ! number of shuffling loops the value must change by PCENTO
+CHARACTER(len=20)           :: MAXN_str    ! maximum number of trials before optimization is terminated
+CHARACTER(len=20)           :: PCENTO_str  ! the percentage
+
 !----------------------------------------------------
 contains
 !----------------------------------------------------
@@ -64,7 +69,7 @@ character(*),intent(out)::message
 character(*),parameter::procnam="fuseSetDirsUndPhiles"
 character(*),parameter::pathDelim="/\",defpathSymb="*",blank=" "
 character(*),parameter::fuseMusterDirektorHeader="FUSE_MUSTERDIREKTOR_V1.0"
-character(*),parameter::fuseFileManagerHeader="FUSE_FILEMANAGER_V1.4"
+character(*),parameter::fuseFileManagerHeader="FUSE_FILEMANAGER_V1.5"
 ! locals
 logical(mlk)::haveFMG,haveMUS
 character(LEN=fusePathLen)::fuseMusterDirektor,fuseFileManager,defpath
@@ -154,6 +159,10 @@ read(unt,*)date_end_sim
 read(unt,*)date_start_eval
 read(unt,*)date_end_eval
 read(unt,*)numtim_sub_str
+read(unt,'(a)')temp
+read(unt,*)MAXN_STR
+read(unt,*)KSTOP_STR
+read(unt,*)PCENTO_STR
 close(unt)
 
 ! Convert Q_ONLY to logical
@@ -173,7 +182,7 @@ if(SETNGS_PATH(1:1)==defpathSymb)SETNGS_PATH=trim(defpath)//SETNGS_PATH(2:)
 if( INPUT_PATH(1:1)==defpathSymb) INPUT_PATH=trim(defpath)//INPUT_PATH (2:)
 if(OUTPUT_PATH(1:1)==defpathSymb)OUTPUT_PATH=trim(defpath)//OUTPUT_PATH(2:)
 
-PRINT *, 'Variables defined in file manager:'
+PRINT *, 'Paths defined in file manager:'
 PRINT *, 'SETNGS_PATH:', TRIM(SETNGS_PATH)
 PRINT *, 'INPUT_PATH:', TRIM(INPUT_PATH)
 PRINT *, 'OUTPUT_PATH:', TRIM(OUTPUT_PATH)
