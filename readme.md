@@ -18,13 +18,14 @@ FUSE can be run in four complementary modes:
 3. `calib_sce` runs FUSE in an SCE-calibration mode,
 4. `run_best` runs FUSE using the best (lowest RMSE) parameter set found by SCE.
 
-To get you started with FUSE, we provide files for two case studies involing modeling at different scales:
+To get you started with FUSE, we provide files for two case studies involing modeling at different spatial scales:
 
 * catchment scale: forcing and streamflow data for the [USGS 09066300 MIDDLE CREEK NEAR MINTURN, CO.](https://waterdata.usgs.gov/nwis/inventory/?site_no=09066300&agency_cd=USGS&) catchment - available [here](
 https://dl.dropboxusercontent.com/s/f6omcgz8hsirlr0/fuse_catch.zip?dl=0) for download,  
-* grid scale: forcing on a 1/8th degree grid for a small 10x10 domain - soon available for download.
+* grid scale: forcing from a climate model on a 1/8th degree grid for a 58 x 28 grid cells domain - available [here](
+https://dl.dropboxusercontent.com/s/g5193e0n01ao33d/fuse_grid.zip?dl=0) for download.
 
-Follow the following steps to run FUSE.
+Follow the following steps to run FUSE for the catchment case study.
 
 ## A. Fork this repository and compile FUSE
 1. Fork this repository to a directory `$(MASTER)` on your machine (see the [SUMMA manual](http://summa.readthedocs.io/en/latest/development/SUMMA_and_git/) for a step-by-step procedure)
@@ -32,7 +33,7 @@ Follow the following steps to run FUSE.
    1. defining the name of the master directory (line 10),
    2. defining the fortran compiler (line 201),
    3. defining the path to the NetCDF libraries (lines 204-224, note that the NetCDF libraries must be compiled using the same compiler that you are using to compile FUSE).
- 1. Compile the SCE code (see Section G below).
+ 1. Compile the SCE code (see Section F below).
  1. Compile the FUSE code (type `make`).
  1. Change to `$(MASTER)/bin/` and try running FUSE by typing `./fuse.exe`. If the output is `1st command-line argument is missing (fileManager)`, you have probably compiled FUSE correctly. 
  
@@ -57,7 +58,7 @@ The `input` directory must contain the following files (provided for the catchme
    
 Note that the dimension of the NetCDF files will determine if FUSE is run at the catchment or grid-scale. FUSE will look for the variables `lat` and `lon` and if they are arrays, it will run on the grid they define. This means that NetCDF input files for a single catchment must also include the variables `lat` and `lon`.
    
-## E. Run the puppy
+## E. Execute FUSE
 
 Run FUSE unsing default parameter values at the catchment scale:
 ```
@@ -86,8 +87,20 @@ Running FUSE in its different modes will create the following files in the `outp
 * the files whose name contains `runs` contain the simulations, 
 * the files whose name contains `para` contain the parameter values,
 * the last element of the file name indicates which FUSE mode was used.
+
+## G. Run FUSE for the grid case study
+
+Download the data for the grid scale case study (see `FUSE modes and case studies` section) and follow the same step as for the catchment scale case study. 
+
+Run FUSE unsing default parameter values over the grid:
+
+```
+./fuse.exe fm_grid.txt cesm1-cam5 run_def
+```
    
-## G. Compile SCE
+Note that because the gridded data does not contain streamflow, FUSE cannot be calibrated using SCE. Instead, FUSE can be run using pre-defined parameter sets using the `run_pre` mode (description to be added).   
+   
+## F. Compile SCE
 The code of the shuffled complex evolution method (`$(MASTER)/build/FUSE_SRC/FUSE_SCE/sce.f`) was written in F77, so it must be compiled separately. If you use `ifort`, try the following flags:
   ```
   ifort -O2 -c -fixed sce_16plus.f
