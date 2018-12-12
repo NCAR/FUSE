@@ -90,14 +90,14 @@ Running FUSE in its different modes will create the following files in the `outp
 
 ## G. Run FUSE for the grid case study
 
-Download the data for the grid scale case study (see `FUSE modes and case studies` section) and follow the same step as for the catchment scale case study. 
+Download the data for the grid scale case study (see `FUSE modes and case studies` section) and follow the same steps as for the catchment scale case study. 
 
 Run FUSE unsing default parameter values over the grid:
 
 ```
 ./fuse.exe fm_grid.txt cesm1-cam5 run_def
 ```
-   
+
 Note that because the gridded data does not contain streamflow, FUSE cannot be calibrated using SCE. Instead, FUSE can be run using pre-defined parameter sets using the `run_pre` mode (description to be added).   
    
 ## F. Compile SCE
